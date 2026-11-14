@@ -5,10 +5,10 @@ import { THEME_BOOT } from "@/lib/theme";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://dozzier.co"),
-  title: "Dozzier — Share documents. Know what happens next.",
+  title: "Dozzier | Cheaper and better than Docsend",
   description: "Secure document sharing with page-by-page analytics, live alerts, data rooms and AI follow-ups.",
   icons: { icon: "/favicon.svg" },
-  openGraph: { siteName: "Dozzier", url: "https://dozzier.co", type: "website" },
+  openGraph: { title: "Dozzier | Cheaper and better than Docsend", siteName: "Dozzier", url: "https://dozzier.co", type: "website" },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
