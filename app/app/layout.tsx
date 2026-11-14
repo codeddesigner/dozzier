@@ -2,77 +2,26 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Search, Bell, CircleHelp, ChevronLeft, ChevronRight, ChevronDown, LogOut, FileText, Users, Zap, Moon, User as UserIcon, Check, Sparkles } from "lucide-react";
+import { Inbox as InboxIcon, Folder as FolderIcon, Building2, Settings as SettingsIcon, Search, Bell, CircleHelp, ChevronLeft, ChevronRight, ChevronDown, LogOut, FileText, Users, Zap, Moon, User as UserIcon, Check, Sparkles } from "lucide-react";
 import { applyTheme, type Theme } from "@/components/Theme";
 import { supabase } from "@/lib/supabase";
 import { LogoMark } from "@/components/Logo";
-import { Avatar, ToastHost, toast, DocThumb } from "@/components/ui";
+import { Avatar, ToastHost, toast } from "@/components/ui";
 import { NAV_GROUPS, NAV_ALL, APPS } from "@/components/nav";
 import { Ctx, Profile } from "@/components/AppContext";
 import { useChecklist } from "@/components/GettingStarted";
 import { HelpPanel } from "@/components/HelpPanel";
 import { NotificationsMenu } from "@/components/NotificationsMenu";
+import { CommandPalette, openPalette } from "@/components/CommandPalette";
 import { displayName, timeAgo } from "@/lib/format";
 
 const PLAN_LABEL: Record<string, string> = { trial: "Free trial", personal: "Personal", standard: "Standard", datarooms: "Advanced Data Rooms" };
 
-type Hit = { kind: "doc" | "contact" | "account" | "space"; id: string; title: string; sub?: string; type?: string };
-
-function GlobalSearch() {
-  const router = useRouter();
-  const [q, setQ] = useState("");
-  const [hits, setHits] = useState<Hit[]>([]);
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLInputElement>(null);
-  useEffect(() => {
-    const k = (e: KeyboardEvent) => { if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") { e.preventDefault(); ref.current?.focus(); } };
-    window.addEventListener("keydown", k);
-    return () => window.removeEventListener("keydown", k);
-  }, []);
-  useEffect(() => {
-    if (q.trim().length < 2) { setHits([]); return; }
-    const t = setTimeout(async () => {
-      const like = `%${q.trim()}%`;
-      const [d, c, a, s] = await Promise.all([
-        supabase.from("documents").select("id,name,file_type").is("deleted_at", null).ilike("name", like).limit(5),
-        supabase.from("contacts").select("id,name,email").or(`name.ilike.${like},email.ilike.${like}`).limit(5),
-        supabase.from("accounts").select("id,name,domain").ilike("name", like).limit(5),
-        supabase.from("spaces").select("id,name").ilike("name", like).limit(5),
-      ]);
-      setHits([
-        ...(d.data || []).map((x) => ({ kind: "doc" as const, id: x.id, title: x.name, type: x.file_type })),
-        ...(s.data || []).map((x) => ({ kind: "space" as const, id: x.id, title: x.name, sub: "Space" })),
-        ...(c.data || []).map((x) => ({ kind: "contact" as const, id: x.id, title: displayName(x.email, x.name), sub: x.email })),
-        ...(a.data || []).map((x) => ({ kind: "account" as const, id: x.id, title: x.name, sub: x.domain || "Account" })),
-      ]);
-    }, 180);
-    return () => clearTimeout(t);
-  }, [q]);
-  const go = (h: Hit) => {
-    setOpen(false); setQ("");
-    router.push(h.kind === "doc" ? `/app/content/${h.id}` : h.kind === "contact" ? `/app/contacts/${h.id}` : h.kind === "account" ? `/app/accounts/${h.id}` : `/app/spaces/${h.id}`);
-  };
+function SearchButton() {
   return (
-    <div style={{ position: "relative" }}>
-      <label className="hdr-search">
-        <Search size={14} />
-        <input id="dz-search" ref={ref} value={q} placeholder="Search" onChange={(e) => { setQ(e.target.value); setOpen(true); }}
-          onFocus={() => setOpen(true)} onBlur={() => setTimeout(() => setOpen(false), 150)}
-          onKeyDown={(e) => { if (e.key === "Enter" && hits[0]) go(hits[0]); }} />
-        <span className="kbd">⌘K</span>
-      </label>
-      {open && q.trim().length >= 2 && (
-        <div className="menu" style={{ right: 0, width: 360 }}>
-          {hits.length === 0 && <div className="caption faint" style={{ padding: 10 }}>No results for “{q}”</div>}
-          {hits.map((h) => (
-            <button key={h.kind + h.id} onMouseDown={() => go(h)}>
-              {h.kind === "doc" ? <DocThumb kind={h.type || "file"} /> : <Avatar name={h.title} size={24} />}
-              <span className="grow ellipsis">{h.title}</span><span className="micro faint">{h.sub || "Content"}</span>
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
+    <button className="hdr-search" onClick={openPalette} aria-label="Search (⌘K)">
+      <Search size={14} /><span className="grow faint" style={{ textAlign: "left" }}>Search</span><span className="kbd">⌘K</span>
+    </button>
   );
 }
 
@@ -207,7 +156,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   if (!state) return <div className="loading" style={{ paddingTop: 200 }}><span className="spinner" /></div>;
   const isActive = (href: string) => (href === "/app" ? path === "/app" : path.startsWith(href));
   const ws = state.profile.workspace_name || "My workspace";
-  const current = [...NAV_ALL, { href: "/app/upgrade", label: "Upgrade" }, { href: "/app/help", label: "Help" }, { href: "/app/links", label: "Links" }]
+  const current = [...NAV_ALL, { href: "/app/upgrade", label: "Upgrade" }, { href: "/app/help", label: "Help" }, { href: "/app/links", label: "Links" }, { href: "/app/inbox", label: "Inbox" }]
     .filter((n) => isActive(n.href)).sort((x, y) => y.href.length - x.href.length)[0];
   const deeper = current && path.replace(/\/$/, "") !== current.href;
   const toggle = () => { const c = !collapsed; setCollapsed(c); try { localStorage.setItem("dz-sidebar", c ? "1" : "0"); } catch {} };
@@ -225,7 +174,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             <Link key={a.label} href={a.href} data-label={a.label} aria-label={a.label} className={`rail-app ${a.match(path) ? "active" : ""}`}><a.icon size={20} /></Link>
           ))}
           <span className="spacer" />
-          <button className="rail-btn" data-label="Search" aria-label="Search" onClick={() => document.getElementById("dz-search")?.focus()}><Search size={18} /></button>
+          <button className="rail-btn" data-label="Search" aria-label="Search" onClick={openPalette}><Search size={18} /></button>
           <button className={`rail-btn ${help ? "on" : ""}`} data-label="Help" aria-label="Help" onClick={() => setHelp((h) => !h)}><CircleHelp size={18} /></button>
           <UserMenu profile={state.profile} email={state.email} onHelp={() => setHelp(true)} />
         </nav>
@@ -256,14 +205,20 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 {deeper && <><span className="sep">/</span><span className="cur">Details</span></>}
               </div>
               <span className="spacer" />
-              <GlobalSearch />
+              <SearchButton />
               <NotificationsMenu />
               <button className="support-link hide-sm" onClick={() => setHelp(true)}><FileText size={16} />Support</button>
             </header>
             <main className="main">{children}</main>
+            <nav className="mob-tabs" aria-label="Main">
+              {[{ href: "/app/inbox", label: "Inbox", I: InboxIcon }, { href: "/app/content", label: "Content", I: FolderIcon }, { href: "/app/accounts", label: "Accounts", I: Building2 }, { href: "/app/settings", label: "Settings", I: SettingsIcon }].map((t) => (
+                <Link key={t.href} href={t.href} className={path.startsWith(t.href) || (t.href === "/app/inbox" && path === "/app") ? "on" : ""}><t.I size={20} /><span>{t.label}</span></Link>
+              ))}
+            </nav>
           </div>
         </div>
         <HelpPanel open={help} onClose={() => setHelp(false)} />
+        <CommandPalette />
         <ToastHost />
       </div>
     </Ctx.Provider>

@@ -9,6 +9,7 @@ import { Avatar, Kpi, Loading, Menu, Modal, Tabs, Toggle, copy, toast, useLoad }
 import { PageBars, LineChart, dailySeries } from "@/components/charts";
 import { LinkModal, linkUrl } from "@/components/LinkModal";
 import { ProcessingCard } from "@/components/ProcessingCard";
+import { Versions } from "@/components/Versions";
 import { DocRenderer, sourceFor } from "@/components/DocRenderer";
 import { displayName, duration, timeAgo, fileKind } from "@/lib/format";
 import { countPdfPages } from "@/lib/pdf";
@@ -17,9 +18,9 @@ import { useApp } from "@/components/AppContext";
 export default function DocumentPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
-  const { userId } = useApp();
-  const [tab, setTab] = useState<"activity" | "performance" | "links" | "settings">("activity");
-  useEffect(() => { const t = new URLSearchParams(window.location.search).get("tab"); if (t === "links" || t === "performance") setTab(t); }, []);
+  const { userId, email } = useApp();
+  const [tab, setTab] = useState<"activity" | "performance" | "links" | "versions" | "settings">("activity");
+  useEffect(() => { const t = new URLSearchParams(window.location.search).get("tab"); if (t === "links" || t === "performance" || t === "versions") setTab(t); }, []);
   const [linkModal, setLinkModal] = useState<{ existing?: LinkT | null } | null>(null);
   const [preview, setPreview] = useState(false);
   const [range, setRange] = useState(30);
@@ -33,8 +34,8 @@ export default function DocumentPage() {
       supabase.from("visits").select("id,link_id,contact_id,visitor_email,location,duration_seconds,pages_viewed,downloaded,is_sample,started_at").eq("document_id", id).order("started_at", { ascending: false }),
     ]);
     if (d.error) throw d.error;
-    const pv = await supabase.from("page_views").select("visit_id,page_number,seconds").eq("document_id", id);
-    return { doc: d.data as Doc, links: (l.data || []) as LinkT[], visits: (v.data || []) as V[], pages: (pv.data || []) as PV[] };
+    const [pv, vc] = await Promise.all([supabase.from("page_views").select("visit_id,page_number,seconds").eq("document_id", id), supabase.from("document_versions").select("replaced_at,replaced_by", { count: "exact" }).eq("document_id", id).order("version", { ascending: false }).limit(1)]);
+    return { doc: d.data as Doc, links: (l.data || []) as LinkT[], visits: (v.data || []) as V[], pages: (pv.data || []) as PV[], vcount: vc.count || 0, lastReplace: (vc.data?.[0] || null) as { replaced_at: string; replaced_by: string | null } | null };
   }, [id]);
 
   useEffect(() => { try { if (!localStorage.getItem("dz-coach-visits")) setCoach(true); } catch {} }, []);
@@ -74,9 +75,12 @@ export default function DocumentPage() {
     if (up.error) return toast(up.error.message);
     const kind = fileKind(file.type || file.name);
     const pages = kind === "pdf" ? await countPdfPages(file) : 1;
-    if (doc.file_path) await supabase.storage.from(BUCKET).remove([doc.file_path]);
+    if (doc.file_path) {
+      const { count } = await supabase.from("document_versions").select("id", { count: "exact", head: true }).eq("document_id", doc.id);
+      await supabase.from("document_versions").insert({ document_id: doc.id, version: (count || 0) + 1, file_path: doc.file_path, file_type: doc.file_type, mime_type: doc.mime_type, page_count: doc.page_count, size_bytes: doc.size_bytes, uploaded_at: doc.updated_at, replaced_by: email });
+    }
     await supabase.from("documents").update({ file_path: path, file_type: kind, mime_type: file.type, size_bytes: file.size, page_count: pages, is_sample: false, updated_at: new Date().toISOString() }).eq("id", doc.id);
-    toast("New version live on all links"); reload();
+    toast("New version live on all links — the old one is in Versions"); reload();
   }
 
   return (
@@ -100,10 +104,10 @@ export default function DocumentPage() {
         <div className="split-btn"><button className="btn btn-dark" onClick={() => setLinkModal({})}>Create link</button>
           <button className="btn btn-dark" aria-label="Link options" onClick={() => setTab("links")}><ChevronDown size={16} /></button></div>
       </div>
-      <div className="row gap-8 caption muted mt-8"><Avatar name="You" size={20} />Last updated {timeAgo(doc.updated_at)} · {doc.page_count} page{doc.page_count === 1 ? "" : "s"}</div>
+      <div className="row gap-8 caption muted mt-8"><Avatar name="You" email={data.lastReplace?.replaced_by || email} size={20} />{data.vcount ? <button className="link caption" onClick={() => setTab("versions")}>v{data.vcount + 1} · Replaced {new Date(data.lastReplace!.replaced_at).toLocaleDateString("en-GB", { month: "short", day: "numeric" })}</button> : <>Last updated {timeAgo(doc.updated_at)}</>} · {doc.page_count} page{doc.page_count === 1 ? "" : "s"}</div>
 
       {links.length === 0 && Date.now() - new Date(doc.created_at).getTime() < 3 * 86400000 && <ProcessingCard doc={doc} onCreateLink={() => setLinkModal({})} />}
-      <div className="mt-24"><Tabs value={tab} onChange={setTab} tabs={[{ id: "activity", label: "Activity" }, { id: "performance", label: "Performance" }, { id: "links", label: "Links" }, { id: "settings", label: "Settings" }]} /></div>
+      <div className="mt-24"><Tabs value={tab} onChange={setTab} tabs={[{ id: "activity", label: "Activity" }, { id: "performance", label: "Performance" }, { id: "links", label: "Links" }, { id: "versions", label: data.vcount ? `Versions ${data.vcount + 1}` : "Versions" }, { id: "settings", label: "Settings" }]} /></div>
 
       {tab === "activity" && (
         <div style={{ position: "relative" }}>
@@ -154,6 +158,7 @@ export default function DocumentPage() {
         </div>
       )}
 
+      {tab === "versions" && <Versions doc={doc} links={links} visits={visits} onRestored={reload} />}
       {tab === "settings" && <DocSettings doc={doc} onSaved={reload} />}
 
       {linkModal && <LinkModal documentId={doc.id} docName={doc.name} existing={linkModal.existing} defaultName="" onClose={() => setLinkModal(null)} onSaved={() => { setLinkModal(null); reload(); setTab((t) => (t === "performance" || t === "settings" ? "links" : t)); }} />}

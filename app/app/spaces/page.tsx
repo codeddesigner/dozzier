@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, House } from "lucide-react";
 import { supabase, Space } from "@/lib/supabase";
@@ -10,6 +10,7 @@ import { timeAgo } from "@/lib/format";
 export default function Spaces() {
   const router = useRouter();
   const [picker, setPicker] = useState(false);
+  useEffect(() => { if (new URLSearchParams(window.location.search).get("new")) setPicker(true); }, []);
   const { data, loading } = useLoad(async () => {
     const [s, i, l] = await Promise.all([
       supabase.from("spaces").select("*").order("updated_at", { ascending: false }),
@@ -23,10 +24,10 @@ export default function Spaces() {
 
   return (
     <div className="content">
-      <div className="page-head"><h1 className="page-title grow">Spaces</h1><button className="btn btn-dark" onClick={() => setPicker(true)}><Plus size={16} />New data room</button></div>
+      <div className="page-head"><h1 className="page-title grow">Spaces</h1><button className="btn btn-dark" onClick={() => setPicker(true)}><Plus size={16} />Create a Space</button></div>
       {loading && !data ? <Loading /> : data!.spaces.length === 0 ? (
         <Empty art={<House size={40} className="brand" />} title="Create your first data room" body="Spaces bundle many documents behind one secure link — perfect for fundraising, M&A and client portals.">
-          <button className="btn btn-dark" onClick={() => setPicker(true)}>New data room</button>
+          <button className="btn btn-dark" onClick={() => setPicker(true)}>Create a Space</button>
         </Empty>
       ) : (
         <div className="grid-3 mt-24" style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 20 }}>

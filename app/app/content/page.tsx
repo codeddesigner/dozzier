@@ -1,5 +1,5 @@
 "use client";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Folder as FolderIcon, ChevronDown, Plus, Upload, Share2, FolderPlus, FileInput, ArrowDown, Trash2, RotateCcw, Pencil, Search } from "lucide-react";
 import { supabase, Doc, Folder } from "@/lib/supabase";
@@ -22,6 +22,12 @@ export default function ContentLibrary() {
   const [share, setShare] = useState(false);
   const [q, setQ] = useState("");
   const [asc, setAsc] = useState(false);
+  useEffect(() => {
+    const p = new URLSearchParams(window.location.search);
+    if (p.get("new") === "link") setShare(true);
+    if (p.get("upload")) setUpload(true);
+    if (p.toString()) window.history.replaceState(null, "", "/app/content");
+  }, []);
 
   const { data, loading, reload } = useLoad(async () => {
     const [d, f, v] = await Promise.all([

@@ -1,5 +1,6 @@
 "use client";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { Pipeline } from "@/components/Pipeline";
 import { useRouter } from "next/navigation";
 import { Building2, Archive, ArchiveRestore, Trash2 } from "lucide-react";
 import { supabase, Account } from "@/lib/supabase";
@@ -9,6 +10,13 @@ import { timeAgo, intentScore, intentLevel } from "@/lib/format";
 type V = { account_id: string; visitor_email: string | null; started_at: string; duration_seconds: number; downloaded: boolean };
 
 export default function Accounts() {
+  const [view, setView] = useState<"pipeline" | "list">("pipeline");
+  useEffect(() => { try { if (localStorage.getItem("dz-accounts-view") === "list") setView("list"); } catch {} }, []);
+  const pick = (v: "pipeline" | "list") => { setView(v); try { localStorage.setItem("dz-accounts-view", v); } catch {} };
+  return view === "pipeline" ? <div className="content content-wide"><Pipeline onList={() => pick("list")} /></div> : <AccountList onPipeline={() => pick("pipeline")} />;
+}
+
+function AccountList({ onPipeline }: { onPipeline: () => void }) {
   const router = useRouter();
   const [activity, setActivity] = useState<"active" | "idle" | "all">("active");
   const [archived, setArchived] = useState(false);
@@ -33,7 +41,7 @@ export default function Accounts() {
 
   return (
     <div className="content">
-      <div className="page-head"><h1 className="page-title">Accounts</h1><span className="stat-pill"><Building2 size={14} />{data?.accounts.filter((a) => !a.archived).length ?? "–"}</span></div>
+      <div className="page-head"><h1 className="page-title">Accounts</h1><span className="stat-pill"><Building2 size={14} />{data?.accounts.filter((a) => !a.archived).length ?? "–"}</span><span className="grow" /><button className="btn btn-secondary" onClick={onPipeline}>Pipeline view</button></div>
       <div className="row gap-8 mt-24 wrap">
         {(["active", "idle", "all"] as const).map((f) => <button key={f} className={`chip ${activity === f ? "active" : ""}`} onClick={() => setActivity(f)}>{f[0].toUpperCase() + f.slice(1)}</button>)}
         <span style={{ width: 1, height: 20, background: "var(--dz-border-default)" }} />

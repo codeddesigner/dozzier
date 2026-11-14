@@ -125,7 +125,7 @@ export function NotificationsMenu() {
               );
             })}
           </div>
-          <Link href="/app/settings/notifications" className="notif-foot" onClick={() => setOpen(false)}>Notification settings</Link>
+          <div className="row notif-foot-row"><Link href="/app/inbox" className="notif-foot grow" onClick={() => setOpen(false)}>Open inbox</Link><Link href="/app/settings/notifications" className="notif-foot grow" onClick={() => setOpen(false)}>Settings</Link></div>
         </div>
       )}
     </div>
