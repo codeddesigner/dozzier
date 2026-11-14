@@ -6,6 +6,7 @@ import { supabase, Link } from "@/lib/supabase";
 import { slugify } from "@/lib/format";
 import { useApp } from "@/components/AppContext";
 import { standardPreset } from "@/lib/linkDefaults";
+import { LinkReady } from "./LinkReady";
 
 export function linkUrl(slug: string) {
   return `${typeof window !== "undefined" ? window.location.origin : "https://dozzier.vercel.app"}/v/${slug}`;
@@ -13,8 +14,8 @@ export function linkUrl(slug: string) {
 
 type Draft = Omit<Link, "id" | "created_at" | "document_id" | "space_id">;
 
-export function LinkModal({ documentId, spaceId, existing, defaultName, onClose, onSaved }: {
-  documentId?: string; spaceId?: string; existing?: Link | null; defaultName?: string; onClose: () => void; onSaved: (l: Link) => void;
+export function LinkModal({ documentId, spaceId, existing, defaultName, docName, onClose, onSaved }: {
+  documentId?: string; spaceId?: string; existing?: Link | null; defaultName?: string; docName?: string; onClose: () => void; onSaved: (l: Link) => void;
 }) {
   const { profile } = useApp();
   const preset = standardPreset(profile.settings);
@@ -29,6 +30,7 @@ export function LinkModal({ documentId, spaceId, existing, defaultName, onClose,
   const [tab, setTab] = useState<"access" | "security" | "branding" | "notifications">("access");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [ready, setReady] = useState<Link | null>(null);
   const set = <K extends keyof Draft>(k: K, v: Draft[K]) => setD((p) => ({ ...p, [k]: v }));
 
   async function save() {
@@ -44,8 +46,8 @@ export function LinkModal({ documentId, spaceId, existing, defaultName, onClose,
       : await supabase.from("links").insert({ ...payload, document_id: documentId || null, space_id: spaceId || null }).select("*").single();
     setBusy(false);
     if (res.error) return setErr(res.error.message.includes("duplicate") ? "That link address is taken — try another" : res.error.message);
-    if (!existing) copy(linkUrl(res.data.slug), "Link created and copied to clipboard");
-    else toast("Link settings saved");
+    if (!existing) { copy(linkUrl(res.data.slug), "Link created and copied to clipboard"); setReady(res.data as Link); return; }
+    toast("Link settings saved");
     onSaved(res.data as Link);
   }
 
@@ -69,6 +71,7 @@ export function LinkModal({ documentId, spaceId, existing, defaultName, onClose,
   ];
   const visible = tab === "access" ? rows.slice(0, 7) : tab === "security" ? [rows[2], rows[6], rows[7]] : tab === "notifications" ? [rows[8]] : [];
 
+  if (ready) return <LinkReady link={ready} docName={docName || defaultName} documentId={documentId} onDone={() => onSaved(ready)} />;
   return (
     <Modal title={existing ? "Link settings" : "Create link"} onClose={onClose}
       footer={<><span className="caption faint grow">Changes apply to this link only</span><button className="btn btn-ghost" onClick={onClose}>Cancel</button>

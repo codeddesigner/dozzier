@@ -151,7 +151,7 @@ function RenameModal({ doc, onClose, onDone }: { doc: Doc; onClose: () => void; 
 function ShareModal({ docs, onClose }: { docs: Doc[]; onClose: () => void }) {
   const [pick, setPick] = useState<Doc | null>(null);
   const router = useRouter();
-  if (pick) return <LinkModal documentId={pick.id} defaultName="" onClose={onClose} onSaved={() => router.push(`/app/content/${pick.id}?tab=links`)} />;
+  if (pick) return <LinkModal documentId={pick.id} docName={pick.name} defaultName="" onClose={onClose} onSaved={() => router.push(`/app/content/${pick.id}?tab=links`)} />;
   return (
     <Modal title="Share which document?" onClose={onClose} width={480}>
       <div className="col">{docs.map((d) => (

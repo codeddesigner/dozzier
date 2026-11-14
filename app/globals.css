@@ -1091,3 +1091,36 @@ html[data-theme="dark"] .app-logo:not(.mono) { background: #fff; }
 @media (max-width: 900px) { .dd-grid, .fu-grid { grid-template-columns: 1fr; } }
 html[data-theme="dark"]:has(.app) .heat-cell.skimmed { background: #1e3a8a; border-color: #1e40af; }
 html[data-theme="dark"]:has(.app) .tl-dot { background: var(--dz-bg-surface); }
+
+/* ===== Link ready + personalise ===== */
+.lr-hero { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 10px; background: var(--dz-bg-success-subtle, #ecfdf5); }
+.lr-check { width: 34px; height: 34px; border-radius: 50%; background: #10b981; color: #fff; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; animation: pop-in .45s cubic-bezier(.2,1.6,.4,1) both; }
+@keyframes pop-in { from { transform: scale(.4); opacity: 0; } to { transform: none; opacity: 1; } }
+.lr-url { display: flex; align-items: center; gap: 10px; padding: 6px 6px 6px 14px; border: 1px solid var(--dz-border-focus); border-radius: 10px; box-shadow: 0 0 0 3px color-mix(in srgb, var(--dz-bg-brand) 12%, transparent); font-size: 14px; }
+.lr-preview { border: 1px solid var(--dz-border-default); border-radius: 10px; padding: 12px 14px; display: flex; flex-direction: column; gap: 4px; background: var(--dz-bg-surface); }
+.lr-preview pre { white-space: pre-wrap; font-family: inherit; font-size: 13px; line-height: 1.55; color: var(--dz-text-secondary); margin: 6px 0 0; max-height: 220px; overflow: auto; }
+.lr-qr { width: 176px; height: 176px; flex-shrink: 0; border: 1px solid var(--dz-border-default); border-radius: 12px; display: flex; align-items: center; justify-content: center; background: #fff; animation: rise .35s ease both; }
+.lr-code { margin: 0; padding: 12px; border-radius: 10px; background: #111827; color: #e5e7eb; font-size: 12px; white-space: pre-wrap; word-break: break-all; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+.pz-grid { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+.pz-inline { border: 1px solid transparent; background: transparent; border-radius: 6px; padding: 2px 6px; margin-left: -6px; font: inherit; color: inherit; width: 100%; min-width: 0; }
+.pz-inline:hover { border-color: var(--dz-border-default); }
+.pz-inline:focus { outline: none; border-color: var(--dz-border-focus); background: var(--dz-bg-surface); }
+@media (max-width: 900px) { .pz-grid { grid-template-columns: 1fr; } }
+
+/* ===== Processing card ===== */
+.proc-card { border: 1px solid var(--dz-border-default); border-radius: 12px; padding: 18px 20px; background: var(--dz-bg-surface); display: flex; flex-direction: column; gap: 14px; animation: rise .4s ease both; }
+.proc-body { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: 20px; align-items: center; }
+.proc-steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+.proc-steps li { display: flex; gap: 10px; align-items: flex-start; transition: opacity .3s; }
+.proc-steps li.wait { opacity: .45; }
+.proc-ico { width: 24px; height: 24px; border-radius: 50%; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--dz-border-default); color: var(--dz-text-brand); }
+.proc-steps li.done .proc-ico { background: #10b981; border-color: #10b981; color: #fff; animation: pop-in .35s cubic-bezier(.2,1.6,.4,1); }
+.proc-steps li.warn .proc-ico { background: #fffbeb; border-color: #fde68a; color: #b45309; }
+.proc-thumbs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; }
+.proc-thumbs img, .proc-ghost { width: 88px; flex-shrink: 0; border-radius: 6px; border: 1px solid var(--dz-border-default); animation: rise .35s ease both; }
+.proc-ghost { height: 64px; background: linear-gradient(90deg, var(--dz-bg-muted) 25%, var(--dz-bg-surface) 50%, var(--dz-bg-muted) 75%); background-size: 200% 100%; animation: shimmer 1.4s linear infinite; }
+@keyframes shimmer { to { background-position: -200% 0; } }
+.proc-suggest { border-top: 1px solid var(--dz-border-subtle); padding-top: 12px; }
+.spin { animation: spin-r 1s linear infinite; }
+@keyframes spin-r { to { transform: rotate(360deg); } }
+@media (max-width: 760px) { .proc-body { grid-template-columns: 1fr; } }

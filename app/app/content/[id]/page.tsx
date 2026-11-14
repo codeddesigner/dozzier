@@ -8,6 +8,7 @@ import { supabase, Doc, Link as LinkT, BUCKET } from "@/lib/supabase";
 import { Avatar, Kpi, Loading, Menu, Modal, Tabs, Toggle, copy, toast, useLoad } from "@/components/ui";
 import { PageBars, LineChart, dailySeries } from "@/components/charts";
 import { LinkModal, linkUrl } from "@/components/LinkModal";
+import { ProcessingCard } from "@/components/ProcessingCard";
 import { DocRenderer, sourceFor } from "@/components/DocRenderer";
 import { displayName, duration, timeAgo, fileKind } from "@/lib/format";
 import { countPdfPages } from "@/lib/pdf";
@@ -101,6 +102,7 @@ export default function DocumentPage() {
       </div>
       <div className="row gap-8 caption muted mt-8"><Avatar name="You" size={20} />Last updated {timeAgo(doc.updated_at)} · {doc.page_count} page{doc.page_count === 1 ? "" : "s"}</div>
 
+      {links.length === 0 && Date.now() - new Date(doc.created_at).getTime() < 3 * 86400000 && <ProcessingCard doc={doc} onCreateLink={() => setLinkModal({})} />}
       <div className="mt-24"><Tabs value={tab} onChange={setTab} tabs={[{ id: "activity", label: "Activity" }, { id: "performance", label: "Performance" }, { id: "links", label: "Links" }, { id: "settings", label: "Settings" }]} /></div>
 
       {tab === "activity" && (
@@ -154,7 +156,7 @@ export default function DocumentPage() {
 
       {tab === "settings" && <DocSettings doc={doc} onSaved={reload} />}
 
-      {linkModal && <LinkModal documentId={doc.id} existing={linkModal.existing} defaultName="" onClose={() => setLinkModal(null)} onSaved={() => { setLinkModal(null); reload(); setTab((t) => (t === "performance" || t === "settings" ? "links" : t)); }} />}
+      {linkModal && <LinkModal documentId={doc.id} docName={doc.name} existing={linkModal.existing} defaultName="" onClose={() => setLinkModal(null)} onSaved={() => { setLinkModal(null); reload(); setTab((t) => (t === "performance" || t === "settings" ? "links" : t)); }} />}
       {preview && <PreviewOverlay doc={doc} onClose={() => setPreview(false)} />}
     </div>
   );
