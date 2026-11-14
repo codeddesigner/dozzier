@@ -382,9 +382,9 @@ button.card:hover, a.card:hover { border-color: var(--dz-border-strong); box-sha
 .ob-step.upcoming { color: var(--dz-text-tertiary); }
 .ob-step.upcoming .dot { background: var(--dz-bg-muted); color: var(--dz-text-tertiary); }
 .ob-body { flex: 1; display: flex; justify-content: center; padding: 56px 24px 48px; }
-.ob-inner { width: 500px; max-width: 100%; display: flex; flex-direction: column; gap: 24px; animation: rise .28s cubic-bezier(.2,.7,.3,1) both; }
+.ob-inner { width: 720px; max-width: 100%; display: flex; flex-direction: column; gap: 24px; animation: rise .28s cubic-bezier(.2,.7,.3,1) both; }
 .ob-inner.wide { width: 800px; }
-.ob-inner.brand { width: 1064px; }
+.ob-inner.ob-brand { width: 1064px; }
 .ob-progress { width: 200px; height: 6px; border-radius: 999px; background: var(--dz-bg-emphasis); overflow: hidden; }
 .ob-progress > span { display: block; height: 100%; border-radius: 999px; background: var(--dz-bg-brand); transition: width .4s cubic-bezier(.3,.7,.4,1); }
 .ob-progress.complete > span { background: var(--dz-bg-success); }

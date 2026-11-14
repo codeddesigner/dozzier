@@ -207,7 +207,7 @@ export default function Onboarding() {
         )}
 
         {step === 4 && (
-          <div className="ob-inner brand" key="brand">
+          <div className="ob-inner ob-brand" key="brand">
             <div className="row gap-32" style={{ alignItems: "flex-start", flexWrap: "wrap" }}>
               <div className="col gap-24" style={{ width: 400, maxWidth: "100%" }}>
                 <div className="col gap-16"><h1 className="display-l">Make it yours</h1><p className="body-l muted">Visitors see your brand, not ours.</p></div>
