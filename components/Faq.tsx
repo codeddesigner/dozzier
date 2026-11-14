@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 
 const FAQS = [
   ["How is Dozzier different from DocSend?", "You get the same secure links and analytics, plus live alerts, page-pinned Q&A, AI follow-ups, version compare and a deal pipeline — at a lower price."],
@@ -18,9 +18,9 @@ export function Faq() {
         <div className="faq-item" key={q}>
           <button className="faq-q" aria-expanded={open === i} onClick={() => setOpen(open === i ? -1 : i)}>
             <span className="grow">{q}</span>
-            {open === i ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+            <ChevronDown size={20} />
           </button>
-          {open === i && <p className="body-m muted" style={{ marginTop: 10 }}>{a}</p>}
+          <div className={`faq-a ${open === i ? "open" : ""}`}><div><p className="body-m muted" style={{ paddingTop: 10 }}>{a}</p></div></div>
         </div>
       ))}
     </div>

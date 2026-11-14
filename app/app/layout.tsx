@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Search, Bell, CircleHelp, ChevronLeft, ChevronRight, ChevronDown, LogOut, Settings, FileText, Users, Zap } from "lucide-react";
@@ -145,6 +145,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<{ userId: string; email: string; profile: Profile } | null>(null);
   const [collapsed, setCollapsed] = useState(false);
   const checklist = useChecklist(state?.userId || null, state?.profile || null);
+  const sideRef = useRef<HTMLElement>(null);
+  const [ind, setInd] = useState<{ y: number; h: number } | null>(null);
+  useLayoutEffect(() => {
+    const el = sideRef.current?.querySelector<HTMLElement>(".nav-item.active");
+    setInd(el ? { y: el.offsetTop, h: el.offsetHeight } : null);
+  }, [path, state, collapsed]);
 
   const loadProfile = useCallback(async () => {
     const { data: { session } } = await supabase.auth.getSession();
@@ -201,7 +207,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <UserMenu profile={state.profile} email={state.email} />
         </nav>
         <div className="shell">
-          <aside className={`sidebar ${collapsed ? "collapsed" : ""}`}>
+          <aside ref={sideRef} className={`sidebar ${collapsed ? "collapsed" : ""}`}>
+            <span className="nav-indicator" style={{ transform: `translateY(${ind?.y ?? 0}px)`, height: ind?.h ?? 40, opacity: ind ? 1 : 0 }} />
             <Link href="/app/settings" className="ws"><span className="h3 ellipsis">{ws}</span><ChevronDown size={16} /></Link>
             {NAV_GROUPS.map((g) => (
               <div key={g.label} className="nav-group">

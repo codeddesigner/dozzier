@@ -1,5 +1,6 @@
 "use client";
-import { ReactNode, useEffect, useRef, useState, useCallback } from "react";
+import { ReactNode, useEffect, useLayoutEffect, useRef, useState, useCallback } from "react";
+import { CountUp } from "@/components/Motion";
 import { X, MoreHorizontal, CheckCircle2 } from "lucide-react";
 import { initials, pct, colorFor } from "@/lib/format";
 
@@ -19,25 +20,32 @@ export function Toggle({ on, onChange, disabled }: { on: boolean; onChange?: (v:
 }
 
 export function Tabs<T extends string>({ tabs, value, onChange }: { tabs: { id: T; label: string }[]; value: T; onChange: (v: T) => void }) {
+  const wrap = useRef<HTMLDivElement>(null);
+  const [ind, setInd] = useState<{ x: number; w: number } | null>(null);
+  useLayoutEffect(() => {
+    const el = wrap.current?.querySelector<HTMLElement>('[aria-selected="true"]');
+    if (el) setInd({ x: el.offsetLeft, w: el.offsetWidth });
+  }, [value, tabs.length]);
   return (
-    <div className="tabs" role="tablist">
+    <div className={`tabs ${ind ? "has-indicator" : ""}`} role="tablist" ref={wrap}>
       {tabs.map((t) => (
         <button key={t.id} role="tab" aria-selected={value === t.id} className={`tab ${value === t.id ? "active" : ""}`} onClick={() => onChange(t.id)}>
           {t.label}
         </button>
       ))}
+      {ind && <span className="tab-indicator" style={{ width: ind.w, transform: `translateX(${ind.x}px)` }} />}
     </div>
   );
 }
 
-export function Kpi({ label, value, cur, prev, invert }: { label: string; value: ReactNode; cur?: number; prev?: number; invert?: boolean }) {
+export function Kpi({ label, value, cur, prev, invert, format }: { label: string; value: ReactNode; cur?: number; prev?: number; invert?: boolean; format?: (n: number) => string }) {
   const d = cur !== undefined && prev !== undefined ? pct(cur, prev) : null;
   const tone = d ? (invert && d.tone !== "flat" ? (d.tone === "up" ? "down" : "up") : d.tone) : "flat";
   return (
     <div className="kpi">
       <div className="kpi-label">{label}</div>
       <div className="kpi-card">
-        <div className="value">{value}</div>
+        <div className="value">{typeof value === "number" ? <CountUp to={value} /> : format && cur !== undefined ? <CountUp to={cur} format={format} /> : value}</div>
         {d && (
           <div className="row gap-6">
             <span className={`delta ${tone}`}>{d.label}</span>
@@ -126,7 +134,7 @@ export function Empty({ art, title, body, children }: { art?: ReactNode; title: 
 }
 
 export function Loading() {
-  return <div className="loading"><span className="spinner" /></div>;
+  return <div className="skeleton" aria-label="Loading"><span /><span /><span /><span /><span /></div>;
 }
 
 /** Simple async loader with reload. */

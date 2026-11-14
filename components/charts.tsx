@@ -11,7 +11,7 @@ export function PageBars({ values, height = 140, compact = false }: { values: nu
       {values.map((v, i) => (
         <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 6, minWidth: 0 }}>
           <div className="micro faint" style={{ fontSize: 10 }}>{shortDur(v)}</div>
-          <div title={`Page ${i + 1}: ${shortDur(v)}`} style={{ width: "100%", height: Math.max(6, (v / max) * height), borderRadius: 4, background: i === maxIdx && v > 0 ? "var(--dz-bg-brand)" : "var(--dz-bg-brand-subtle)", border: i === maxIdx && v > 0 ? "1px solid var(--dz-bg-brand)" : "1px solid #c9dafb" }} />
+          <div className="bar" title={`Page ${i + 1}: ${shortDur(v)}`} style={{ ["--i" as string]: i, width: "100%", height: Math.max(6, (v / max) * height), borderRadius: 4, background: i === maxIdx && v > 0 ? "var(--dz-bg-brand)" : "var(--dz-bg-brand-subtle)", border: i === maxIdx && v > 0 ? "1px solid var(--dz-bg-brand)" : "1px solid #c9dafb" }} />
           {!compact && (
             <div style={{ width: "100%", maxWidth: 44, height: 30, border: "1px solid var(--dz-border-default)", borderRadius: 4, padding: "5px 6px", display: "flex", flexDirection: "column", gap: 2 }}>
               <span style={{ height: 2, width: "60%", background: "#111827", borderRadius: 2 }} />
@@ -55,8 +55,8 @@ export function LineChart({ points, labels, height = 200 }: { points: number[]; 
           <text x={0} y={y(k * step) + 4} fontSize="11" fill="#6b7280">{k * step}</text>
         </g>
       ))}
-      <path d={area} fill="url(#lcg)" />
-      <path d={d} fill="none" stroke="#4D94F7" strokeWidth="2" vectorEffect="non-scaling-stroke" strokeLinejoin="round" />
+      <path className="area-fade" d={area} fill="url(#lcg)" />
+      <path key={d} className="line-draw" pathLength={1} d={d} fill="none" stroke="#4D94F7" strokeWidth="2" vectorEffect="non-scaling-stroke" strokeLinejoin="round" />
       {labels.map((l, i) => (i % tickEvery === 0 || i === labels.length - 1) && (
         <text key={i} x={x(i)} y={H - 6} fontSize="11" fill="#6b7280" textAnchor="middle">{l}</text>
       ))}

@@ -1,11 +1,29 @@
+"use client";
 import Link from "next/link";
-import { ReactNode } from "react";
+import { ReactNode, useEffect, useState } from "react";
+import { CountUp, Cycle } from "@/components/Motion";
 import { Flame, Lock, Check, Plus } from "lucide-react";
 import { Logo, LogoMark } from "@/components/Logo";
 
 /** Right-hand "Auth bento" panel from the Figma auth screens. */
+const VIEWERS = [
+  { n: "Daniel", i: "Da", c: "#a66bff", d: "Series A Deck · page 11", s: 92, t: "Hot" },
+  { n: "Priya", i: "Pr", c: "#3b8bff", d: "Data room · Financials · p.4", s: 81, t: "Hot" },
+  { n: "Marcus", i: "Ma", c: "#14c7b0", d: "Proposal v3 · page 6", s: 64, t: "Warm" },
+];
+const BARS = [34, 52, 22, 96, 44, 30, 18, 66, 26, 14];
+
+/** Right-hand "Auth bento" panel from the Figma auth screens — alive. */
 export function AuthBento({ title }: { title: ReactNode }) {
-  const bars = [34, 52, 22, 96, 44, 30, 18, 66, 26, 14];
+  const [peak, setPeak] = useState(3);
+  useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const order = [3, 7, 1, 3, 4, 7];
+    let k = 0;
+    const t = setInterval(() => { k = (k + 1) % order.length; setPeak(order[k]); }, 2400);
+    return () => clearInterval(t);
+  }, []);
+  const heights = BARS.map((h, i) => (i === peak ? 96 : i === 3 ? 58 : h));
   return (
     <aside className="bento" aria-hidden="true">
       <div className="bento-hero">
@@ -15,29 +33,33 @@ export function AuthBento({ title }: { title: ReactNode }) {
       <div className="bento-row" style={{ height: 170 }}>
         <div className="bento-card grow">
           <span className="row gap-6 caption medium" style={{ color: "var(--dz-text-success)" }}><span className="live-dot" />Viewing now</span>
-          <div className="row gap-10">
-            <span className="avatar" style={{ width: 40, height: 40, fontSize: 16, background: "#a66bff" }}>Da</span>
-            <div className="col"><span className="body-m medium">Daniel</span><span className="caption muted">Series A Deck · page 11</span></div>
-          </div>
-          <span className="intent danger" style={{ alignSelf: "flex-start" }}><Flame size={12} />Hot · 92</span>
+          <Cycle items={VIEWERS} every={3000} render={(v) => (
+            <div className="col gap-10">
+              <div className="row gap-10">
+                <span className="avatar" style={{ width: 40, height: 40, fontSize: 16, background: v.c }}>{v.i}</span>
+                <div className="col"><span className="body-m medium">{v.n}</span><span className="caption muted">{v.d}</span></div>
+              </div>
+              <span className={`intent ${v.t === "Hot" ? "danger" : "warn"}`} style={{ alignSelf: "flex-start" }}><span className="flame"><Flame size={12} /></span>{v.t} · {v.s}</span>
+            </div>
+          )} />
         </div>
         <div className="bento-card brand-tint" style={{ width: 200, justifyContent: "space-between" }}>
-          <svg width="36" height="36" viewBox="0 0 36 36"><circle cx="18" cy="18" r="14" fill="none" stroke="#d6e6fd" strokeWidth="4" /><circle cx="18" cy="18" r="14" fill="none" stroke="#4d94f7" strokeWidth="4" strokeLinecap="round" strokeDasharray={`${0.75 * 88} 88`} transform="rotate(-90 18 18)" /></svg>
-          <div className="col"><span style={{ fontSize: 36, lineHeight: "40px", fontWeight: 600, letterSpacing: "-0.015em", color: "var(--dz-text-brand)" }}>82%</span><span className="caption muted">avg. completion</span></div>
+          <svg width="36" height="36" viewBox="0 0 36 36"><circle cx="18" cy="18" r="14" fill="none" stroke="#d6e6fd" strokeWidth="4" /><circle className="ring-anim" cx="18" cy="18" r="14" fill="none" stroke="#4d94f7" strokeWidth="4" strokeLinecap="round" strokeDasharray={`${0.82 * 88} 88`} transform="rotate(-90 18 18)" /></svg>
+          <div className="col"><span style={{ fontSize: 36, lineHeight: "40px", fontWeight: 600, letterSpacing: "-0.015em", color: "var(--dz-text-brand)" }}><CountUp to={82} duration={1600} />%</span><span className="caption muted">avg. completion</span></div>
         </div>
       </div>
       <div className="bento-row" style={{ height: 210 }}>
         <div className="bento-card grow" style={{ justifyContent: "space-between" }}>
-          <div className="row"><span className="medium grow">Time per page</span><span className="caption faint">p.4 peak</span></div>
-          <div className="row gap-6" style={{ alignItems: "flex-end" }}>
-            {bars.map((h, i) => <span key={i} style={{ flex: 1, height: h, borderRadius: "5px 5px 0 0", background: i === 3 ? "var(--dz-bg-brand)" : "var(--dz-bg-brand-subtle)" }} />)}
+          <div className="row"><span className="medium grow">Time per page</span><span key={peak} className="caption faint cycle-item">p.{peak + 1} peak</span></div>
+          <div className="row gap-6" style={{ alignItems: "flex-end", height: 96 }}>
+            {heights.map((h, i) => <span key={i} className="bar bar-peak" style={{ ["--i" as string]: i, flex: 1, height: h, borderRadius: "5px 5px 0 0", background: i === peak ? "var(--dz-bg-brand)" : "var(--dz-bg-brand-subtle)" }} />)}
           </div>
         </div>
         <div className="bento-card ink" style={{ width: 200, justifyContent: "space-between" }}>
           <Lock size={24} />
           <div className="col gap-6">
             <span className="h3">Locked down</span>
-            {["Email gate", "NDA", "Watermark"].map((t) => <span key={t} className="row gap-6 caption" style={{ opacity: 0.8 }}><Check size={12} />{t}</span>)}
+            {["Email gate", "NDA", "Watermark"].map((t, i) => <span key={t} className="row gap-6 caption bento-check" style={{ opacity: 0.8, animationDelay: `${700 + i * 180}ms` }}><Check size={12} />{t}</span>)}
           </div>
         </div>
       </div>
@@ -46,7 +68,7 @@ export function AuthBento({ title }: { title: ReactNode }) {
           {[["Ab", "#ff5a5a"], ["Pa", "#3b8bff"], ["Cy", "#ff4f8b"]].map(([t, c]) => <span key={t} className="avatar" style={{ width: 40, height: 40, fontSize: 16, background: c }}>{t}</span>)}
           <span className="avatar" style={{ width: 32, height: 32, background: "#fff", border: "1px solid var(--dz-border-default)", color: "var(--dz-text-primary)", alignSelf: "center" }}><Plus size={16} /></span>
         </div>
-        <span className="medium muted">Trusted by 2,400+ teams for fundraising, sales and M&amp;A</span>
+        <span className="medium muted">Trusted by <CountUp to={2400} duration={1800} />+ teams for fundraising, sales and M&amp;A</span>
       </div>
     </aside>
   );

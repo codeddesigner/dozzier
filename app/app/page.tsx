@@ -96,7 +96,7 @@ export default function Dashboard() {
           <div className="kpis mt-24">
             <Kpi label="Total visits" value={s.visits} cur={s.visits} prev={p.visits} />
             <Kpi label="Unique visitors" value={s.unique} cur={s.unique} prev={p.unique} />
-            <Kpi label="Avg. time per visit" value={duration(s.avg)} cur={s.avg} prev={p.avg} />
+            <Kpi label="Avg. time per visit" value={duration(s.avg)} cur={s.avg} prev={p.avg} format={duration} />
             <Kpi label="Downloads" value={s.downloads} cur={s.downloads} prev={p.downloads} />
           </div>
           <div className="mt-24"><Tabs value={tab} onChange={setTab} tabs={[{ id: "visitors", label: "Visitor activity" }, { id: "content", label: "Popular content" }, { id: "links", label: "Top groups & links" }, { id: "spaces", label: "Top Spaces" }, { id: "chart", label: "Visit chart" }]} /></div>

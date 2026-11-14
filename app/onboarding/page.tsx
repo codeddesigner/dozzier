@@ -28,6 +28,7 @@ export default function Onboarding() {
   const [email, setEmail] = useState("");
   const [step, setStep] = useState(1); // index into STEPS; Account (0) is done at sign-up
   const [busy, setBusy] = useState(false);
+  const [dir, setDir] = useState<"fwd" | "back">("fwd");
   // workspace
   const [ws, setWs] = useState("");
   const [size, setSize] = useState("2–10");
@@ -101,8 +102,8 @@ export default function Onboarding() {
         router.replace("/app");
         return;
       }
-      setStep((s) => s + 1);
-      window.scrollTo({ top: 0 });
+      setDir("fwd"); setStep((s) => s + 1);
+      window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (e: unknown) {
       toast(e instanceof Error ? e.message : "Couldn’t save — try again");
     }
@@ -133,7 +134,7 @@ export default function Onboarding() {
         <nav className="ob-steps" aria-label="Setup progress">
           {STEPS.map((s, i) => (
             <span key={s} className="row" style={{ gap: 12 }}>
-              {i > 0 && <span className="line" />}
+              {i > 0 && <span className={`line ${i <= step ? "filled" : ""}`} />}
               <span className={`ob-step ${i < step ? "done" : i === step ? "current" : "upcoming"}`}>
                 <span className="dot">{i < step ? <Check size={14} strokeWidth={2.5} /> : i + 1}</span><span className="lbl">{s}</span>
               </span>
@@ -145,7 +146,7 @@ export default function Onboarding() {
 
       <main className="ob-body">
         {step === 1 && (
-          <div className="ob-inner" key="ws">
+          <div className={`ob-inner ${dir}`} key="ws">
             <h1 className="display-l">Set up your workspace</h1>
             <p className="body-l muted" style={{ marginTop: -8 }}>This is where your team’s content, links and data rooms live.</p>
             <label className="field"><span className="label">Workspace name</span>
@@ -162,7 +163,7 @@ export default function Onboarding() {
         )}
 
         {step === 2 && (
-          <div className="ob-inner wide" key="use">
+          <div className={`ob-inner wide ${dir}`} key="use">
             <h1 className="display-l">What will you use Dozzier for?</h1>
             <p className="body-l muted" style={{ marginTop: -8 }}>Pick all that apply — we’ll set up the right templates.</p>
             <div className="row wrap" style={{ gap: 16, alignItems: "stretch" }}>
@@ -182,7 +183,7 @@ export default function Onboarding() {
         )}
 
         {step === 3 && (
-          <div className="ob-inner" key="team">
+          <div className={`ob-inner ${dir}`} key="team">
             <h1 className="display-l">Invite your team</h1>
             <p className="body-l muted" style={{ marginTop: -8 }}>Teammates can share content, see shared analytics and co-manage data rooms.</p>
             {invites.map((inv, i) => (
@@ -207,7 +208,7 @@ export default function Onboarding() {
         )}
 
         {step === 4 && (
-          <div className="ob-inner ob-brand" key="brand">
+          <div className={`ob-inner ob-brand ${dir}`} key="brand">
             <div className="row gap-32" style={{ alignItems: "flex-start", flexWrap: "wrap" }}>
               <div className="col gap-24" style={{ width: 400, maxWidth: "100%" }}>
                 <div className="col gap-16"><h1 className="display-l">Make it yours</h1><p className="body-l muted">Visitors see your brand, not ours.</p></div>
@@ -242,13 +243,13 @@ export default function Onboarding() {
                 <div className="preview-browser">
                   <div className="bar"><span className="dot" style={{ background: "#ff5f57" }} /><span className="dot" style={{ background: "#febc2e" }} /><span className="dot" style={{ background: "#28c840" }} /><span className="url">{domain.trim() || `docs.${domainPart}`}/series-a</span></div>
                   <div style={{ padding: "40px 32px 0", display: "flex", justifyContent: "center", minHeight: 400 }}>
-                    <div className="col gap-12" style={{ width: 360, background: "#fff", borderRadius: "16px 16px 0 0", padding: "32px 24px 24px", boxShadow: "var(--shadow-lg)", textAlign: "center", alignItems: "center" }}>
+                    <div className="col gap-12 preview-gate" style={{ width: 360, background: "#fff", borderRadius: "16px 16px 0 0", padding: "32px 24px 24px", boxShadow: "var(--shadow-lg)", textAlign: "center", alignItems: "center" }}>
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       {logoUrl ? <img src={logoUrl} alt="" style={{ height: 32, maxWidth: 140, objectFit: "contain" }} /> : <LogoMark size={32} color={color} />}
                       <div className="h3">{wsName} shared “Dozzier Intro”</div>
                       <p className="caption muted">Enter your email to view. The sender will see that you opened it.</p>
                       <label className="field" style={{ width: "100%", textAlign: "left" }}><span className="label">Email</span><input className="input" placeholder="you@company.com" readOnly tabIndex={-1} /></label>
-                      <span className="btn btn-block" style={{ background: color, color: "#fff" }}>Continue</span>
+                      <span className="btn btn-block" style={{ background: color, color: "#fff", transition: "background-color .4s ease" }}>Continue</span>
                       {!hide && <span className="caption faint row gap-6"><ShieldCheck size={13} />Secured by Dozzier</span>}
                     </div>
                   </div>
@@ -260,7 +261,7 @@ export default function Onboarding() {
       </main>
 
       <footer className="ob-foot">
-        <div className="ob-side">{step > 1 && <button className="btn btn-ghost" onClick={() => setStep((s) => s - 1)}>Back</button>}</div>
+        <div className="ob-side">{step > 1 && <button className="btn btn-ghost" onClick={() => { setDir("back"); setStep((s) => s - 1); }}>Back</button>}</div>
         <div className={`ob-progress ${step === 4 ? "complete" : ""}`} role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}><span style={{ width: `${pct}%` }} /></div>
         <div className="ob-side" style={{ justifyContent: "flex-end" }}>
           <button className="btn btn-primary" disabled={busy || !uid} onClick={next}>
