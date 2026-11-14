@@ -41,7 +41,7 @@ export default function RequestUpload() {
     try { const e = new URLSearchParams(window.location.search).get("email"); if (e) setEmail(e); } catch {}
   }, [slug]);
 
-  const add = (fs: FileList | File[]) => setItems((xs) => [...xs, ...Array.from(fs).map((file) => ({ id: crypto.randomUUID(), file, pct: 0, state: (file.size > MAX ? "error" : "queued") as Item["state"], err: file.size > MAX ? "Larger than 50 MB" : undefined }))]);
+  const add = (fs: FileList | File[]) => { const list = Array.from(fs); setItems((xs) => [...xs, ...list.map((file) => ({ id: crypto.randomUUID(), file, pct: 0, state: (file.size > MAX ? "error" : "queued") as Item["state"], err: file.size > MAX ? "Larger than 50 MB" : undefined }))]); };
   const upd = (id: string, p: Partial<Item>) => setItems((xs) => xs.map((x) => (x.id === id ? { ...x, ...p } : x)));
   const ready = items.filter((i) => i.state === "queued" || i.state === "done");
 
