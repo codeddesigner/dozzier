@@ -23,28 +23,28 @@ export function SampleSlide({ index }: { index: number }) {
     return (
       <div style={{ width: "100%", height: "100%", background: "#0061fe", color: "#fff", display: "flex", flexDirection: "column", justifyContent: "center", padding: "7%", gap: 16 }}>
         <LogoMark size={56} color="#fff" />
-        <div style={{ fontSize: "clamp(28px,5vw,56px)", fontWeight: 700, letterSpacing: -1.5 }}>{s.title}</div>
-        <div style={{ fontSize: "clamp(14px,2vw,22px)", opacity: 0.9 }}>{s.body}</div>
+        <div style={{ fontSize: "clamp(28px,5vw,56px)", fontWeight: 600, letterSpacing: "-0.025em", lineHeight: 1.05 }}>{s.title}</div>
+        <div style={{ fontSize: "clamp(14px,2vw,22px)", opacity: 0.9, lineHeight: 1.4 }}>{s.body}</div>
       </div>
     );
   }
   return (
     <div style={{ width: "100%", height: "100%", padding: "6% 7%", display: "flex", flexDirection: "column", gap: "4%" }}>
       <div className="overline">{s.kicker}</div>
-      <div style={{ fontSize: "clamp(18px,2.6vw,32px)", fontWeight: 600, letterSpacing: -0.6, lineHeight: 1.2 }}>{s.title}</div>
-      {s.body && <div style={{ fontSize: "clamp(13px,1.5vw,18px)", color: "#5c5953", maxWidth: "70%" }}>{s.body}</div>}
+      <div style={{ fontSize: "clamp(18px,2.6vw,32px)", fontWeight: 600, letterSpacing: "-0.015em", lineHeight: 1.2 }}>{s.title}</div>
+      {s.body && <div style={{ fontSize: "clamp(13px,1.5vw,18px)", color: "#5c5953", maxWidth: "70%", lineHeight: 1.5 }}>{s.body}</div>}
       {s.stats && (
-        <div style={{ display: "flex", gap: "6%", marginTop: "1%" }}>
+        <div style={{ display: "flex", gap: "6%", marginTop: "2%" }}>
           {s.stats.map(([v, l]) => (
             <div key={l}>
-              <div style={{ fontSize: "clamp(24px,3.6vw,46px)", fontWeight: 600, color: "#0061fe", letterSpacing: -1 }}>{v}</div>
-              <div style={{ fontSize: "clamp(11px,1.2vw,15px)", color: "#5c5953" }}>{l}</div>
+              <div style={{ fontSize: "clamp(24px,3.6vw,46px)", fontWeight: 600, color: "#0061fe", letterSpacing: "-0.02em", lineHeight: 1.1, marginBottom: 6 }}>{v}</div>
+              <div style={{ fontSize: "clamp(11px,1.2vw,15px)", color: "#5c5953", lineHeight: 1.4 }}>{l}</div>
             </div>
           ))}
         </div>
       )}
       {s.bullets && (
-        <ul style={{ margin: 0, paddingLeft: 20, display: "flex", flexDirection: "column", gap: 8, fontSize: "clamp(13px,1.5vw,18px)", color: "#1a1918" }}>
+        <ul style={{ margin: 0, paddingLeft: 20, display: "flex", flexDirection: "column", gap: 8, fontSize: "clamp(13px,1.5vw,18px)", color: "#1a1918", lineHeight: 1.5 }}>
           {s.bullets.map((b) => <li key={b}>{b}</li>)}
         </ul>
       )}
