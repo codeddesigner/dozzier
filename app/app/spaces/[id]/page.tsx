@@ -31,6 +31,7 @@ export default function SpacePage() {
   const [linkModal, setLinkModal] = useState<{ existing?: LinkT } | null>(null);
   const [renaming, setRenaming] = useState(false);
   const [invite, setInvite] = useState(false);
+  const [nonce, setNonce] = useState(0);
   useEffect(() => { const t = new URLSearchParams(window.location.search).get("tab") as Tab | null; if (t && TABS.includes(t)) setTab(t); }, []);
   const go = (t: Tab) => { setTab(t); window.history.replaceState(null, "", t === "content" ? `/app/spaces/${id}` : `/app/spaces/${id}?tab=${t}`); };
 
@@ -125,7 +126,7 @@ export default function SpacePage() {
           <div className="card" style={{ padding: "0 8px" }}><LinksTable links={links} visitCounts={counts} lastVisit={last} onChange={reload} onEdit={(l) => setLinkModal({ existing: l })} /></div>
         </div>
       )}
-      {tab === "permissions" && <Permissions spaceId={id} folders={topFolders} defaultLevel={defaultLevel} onInvite={() => setInvite(true)} />}
+      {tab === "permissions" && <Permissions key={nonce} spaceId={id} folders={topFolders} defaultLevel={defaultLevel} onInvite={() => setInvite(true)} />}
       {tab === "visitors" && <Visitors spaceId={id} linkIds={linkIds} />}
       {tab === "qa" && <SpaceQA linkIds={linkIds} />}
       {tab === "requests" && <Requests spaceId={id} folders={topFolders} />}
@@ -146,7 +147,7 @@ export default function SpacePage() {
           setAddDocs(false); toast(`${sel.length} document${sel.length === 1 ? "" : "s"} added`); reload();
         }} />}
       {linkModal && <LinkModal spaceId={id} existing={linkModal.existing} defaultName={linkModal.existing ? "" : space.name} docName={space.name} onClose={() => setLinkModal(null)} onSaved={() => { setLinkModal(null); reload(); }} />}
-      {invite && <InviteModal space={space} onClose={() => { setInvite(false); reload(); }} />}
+      {invite && <InviteModal space={space} onClose={() => { setInvite(false); setNonce((n) => n + 1); reload(); }} />}
     </div>
   );
 }
