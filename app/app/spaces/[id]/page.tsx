@@ -78,8 +78,8 @@ export default function SpacePage() {
   return (
     <div className="content">
       <div className="row gap-6 body-m"><Link href="/app/spaces" className="muted">Spaces</Link><ChevronRight size={14} className="faint" /><span className="semibold ellipsis">{space.name}</span></div>
-      <div className="row gap-12 mt-24" style={{ alignItems: "center", flexWrap: "wrap" }}>
-        <div className="row gap-8 grow" style={{ minWidth: 0 }}>{renaming
+      <div className="row gap-12 mt-24 head-row" style={{ alignItems: "center", flexWrap: "wrap" }}>
+        <div className="row gap-8 grow head-main" style={{ minWidth: 0 }}>{renaming
           ? <input className="input" style={{ fontSize: 22, height: 44, maxWidth: 520 }} autoFocus defaultValue={space.name} onKeyDown={(e) => e.key === "Enter" && (e.target as HTMLInputElement).blur()} onBlur={async (e) => { const n = e.target.value.trim(); if (n && n !== space.name) { await supabase.from("spaces").update({ name: n }).eq("id", id); audit(id, email, `Renamed Space to “${n}”`); } setRenaming(false); reload(); }} />
           : <><h1 className="page-title ellipsis">{space.name}</h1><button className="icon-btn s" onClick={() => setRenaming(true)} aria-label="Rename"><Pencil size={14} /></button>{space.status !== "active" && <span className="badge badge-muted">Archived</span>}</>}</div>
         <button className="btn btn-secondary" onClick={preview}><Eye size={16} />Visitor view</button>
@@ -92,7 +92,7 @@ export default function SpacePage() {
         <div className="space-content mt-24">
           <div className="card space-card">
             <div className="space-banner" style={{ background: space.banner, borderRadius: 0 }}><span className="badge" style={{ position: "absolute", top: 12, left: 12, background: "#fff" }}>Preview</span></div>
-            <div className="row gap-16" style={{ padding: "0 20px", alignItems: "flex-end", marginTop: -40 }}>
+            <div className="row gap-16 space-head-row" style={{ padding: "0 20px", alignItems: "flex-end", marginTop: -40 }}>
               <div className="space-logo"><ImageIcon size={24} className="muted" /></div>
               <div className="col gap-4 grow" style={{ paddingTop: 48 }}>
                 <span className="caption muted">{space.subtitle || "Data room"} · Updated {timeAgo(space.updated_at)} <span className={`badge ${space.status === "active" ? "badge-success" : "badge-muted"}`}>{space.status === "active" ? "Active" : "Archived"}</span></span>

@@ -94,7 +94,7 @@ export default function ContentLibrary() {
         ))}
       </aside>
       <div className="content grow" style={{ maxWidth: 1000 }}>
-        <div className="row gap-12 wrap"><h1 className="page-title grow">{title}</h1>
+        <div className="row gap-12 wrap head-row"><h1 className="page-title grow head-main">{title}</h1>
           <div className="search"><Search size={16} /><input placeholder="Filter" value={q} onChange={(e) => setQ(e.target.value)} /></div></div>
         <div className="row gap-8 mt-24 wrap">
           <button className="btn btn-dark" onClick={() => setUpload(true)}><Upload size={16} />Add content<ChevronDown size={14} /></button>

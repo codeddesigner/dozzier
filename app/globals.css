@@ -1444,3 +1444,30 @@ html[data-theme="dark"]:has(.app) .inbox-item.unread { background: rgba(77,148,2
   .es-pnum { display: none; }
   .es-canvas { padding: 16px 8px; }
 }
+
+/* ===== Mobile layout fixes ===== */
+body { overflow-x: clip; }
+.page-title { overflow-wrap: anywhere; }
+@media (max-width: 760px) {
+  .page-head { row-gap: 12px; }
+  .page-head > .page-title, .page-head > h1 { flex: 1 1 100%; }
+  .head-row { row-gap: 12px; }
+  .head-row > .head-main { flex: 1 1 100%; min-width: 0; }
+  .head-row > .head-main.with-avatar { flex: 1 1 calc(100% - 72px); }
+  .head-row .page-title { white-space: normal; overflow: visible; text-overflow: clip; }
+  .head-row > .search { flex: 1 1 100%; width: 100%; }
+  .space-head-row { flex-wrap: wrap; }
+  .space-head-row > .col { flex: 1 1 calc(100% - 112px); min-width: 0; }
+  .space-head-row > .row:last-child { flex: 1 1 100%; padding-bottom: 0 !important; }
+  .coachmark { display: none !important; }
+  .notif-table { display: block; overflow-x: auto; }
+  .member-row .col { min-width: 0; }
+  .lp-nav-inner { height: 64px !important; gap: 12px; }
+  .lp-nav-inner > a:first-child svg { height: 24px; width: auto; }
+  .lp-signin { white-space: nowrap; font-size: 14px; }
+  .lp-signin svg { display: none; }
+  .lp-nav-inner .btn { height: 36px; padding: 0 12px; font-size: 13px; white-space: nowrap; }
+  .auth2-form > .row { gap: 12px; align-items: flex-start; }
+  .auth2-form > .row > a:first-child svg { height: 24px; width: auto; }
+  .auth2-top { flex-wrap: wrap; justify-content: flex-end; text-align: right; font-size: 13px; column-gap: 4px; }
+}

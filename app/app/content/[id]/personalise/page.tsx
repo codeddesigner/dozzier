@@ -76,8 +76,8 @@ export default function Personalise() {
   return (
     <div className="content">
       <div className="row gap-6 body-m"><Link href="/app/content" className="muted">Content</Link><ChevronRight size={14} className="faint" /><Link href={`/app/content/${doc.id}`} className="muted ellipsis">{doc.name}</Link><ChevronRight size={14} className="faint" /><span className="semibold">Personalise links</span></div>
-      <div className="row gap-12 mt-24" style={{ alignItems: "flex-end", flexWrap: "wrap" }}>
-        <div className="col gap-4 grow"><span className="page-title">Personalise links</span><span className="muted body-m">One unique link per recipient, so you know exactly who opened what.</span></div>
+      <div className="row gap-12 mt-24 head-row" style={{ alignItems: "flex-end", flexWrap: "wrap" }}>
+        <div className="col gap-4 grow head-main"><span className="page-title">Personalise links</span><span className="muted body-m">One unique link per recipient, so you know exactly who opened what.</span></div>
         <button className="btn btn-primary" disabled={busy || rows.length === created} onClick={createAll}><Users size={16} />{busy ? "Creating…" : rows.length - created > 0 ? `Create ${rows.length - created} link${rows.length - created === 1 ? "" : "s"}` : "Create links"}</button>
       </div>
 

@@ -34,10 +34,10 @@ export default function ContactPage() {
   return (
     <div className="content">
       <div className="row gap-6 body-m"><Link href="/app/contacts" className="muted">Contacts</Link><ChevronRight size={14} className="faint" /><span className="semibold">{name}</span></div>
-      <div className="row gap-16 mt-24" style={{ alignItems: "center", flexWrap: "wrap" }}>
+      <div className="row gap-16 mt-24 head-row" style={{ alignItems: "center", flexWrap: "wrap" }}>
         <Avatar name={name} email={c.email} size={56} />
-        <div className="col gap-4 grow">
-          <div className="row gap-12"><span className="page-title" style={{ fontSize: 28 }}>{name}</span><span className={`intent ${lvl.tone}`}><span className="flame"><Flame size={12} /></span>{lvl.label} · {score}</span></div>
+        <div className="col gap-4 grow head-main with-avatar">
+          <div className="row gap-12 wrap"><span className="page-title" style={{ fontSize: 28 }}>{name}</span><span className={`intent ${lvl.tone}`}><span className="flame"><Flame size={12} /></span>{lvl.label} · {score}</span></div>
           <span className="muted body-m">{[c.title && `${c.title}${c.accounts ? `, ${c.accounts.name}` : ""}`, !c.title && c.accounts?.name, c.email, loc].filter(Boolean).join(" · ")}</span>
         </div>
         <a className="btn btn-secondary" href={`mailto:${c.email}`}><Mail size={16} />Email</a>
