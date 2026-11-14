@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://dozzier.co"),
   title: "Dozzier | Cheaper and better than Docsend",
   description: "Secure document sharing with page-by-page analytics, live alerts, data rooms and AI follow-ups.",
-  icons: { icon: "/favicon.svg" },
+  icons: { icon: [{ url: "/favicon.svg", type: "image/svg+xml" }, { url: "/favicon.ico", sizes: "48x48" }], apple: "/apple-touch-icon.png" },
   openGraph: { title: "Dozzier | Cheaper and better than Docsend", siteName: "Dozzier", url: "https://dozzier.co", type: "website" },
 };
 
