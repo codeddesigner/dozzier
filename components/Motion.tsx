@@ -1,5 +1,5 @@
 "use client";
-import { ReactNode, useEffect, useRef, useState } from "react";
+import { Fragment, ReactNode, useEffect, useRef, useState } from "react";
 
 /**
  * Global motion engine (mounted once in the root layout).
@@ -149,8 +149,11 @@ export function Cycle<T>({ items, every = 3000, render }: { items: T[]; every?: 
 export function WordReveal({ text, className, delay = 0, step = 55 }: { text: string; className?: string; delay?: number; step?: number }) {
   return (
     <span className={className} aria-label={text}>
-      {text.split(" ").map((w, i) => (
-        <span key={i} className="word" aria-hidden="true"><span style={{ animationDelay: `${delay + i * step}ms` }}>{w}</span>{" "}</span>
+      {text.split(" ").map((w, i, all) => (
+        <Fragment key={i}>
+          <span className="word" aria-hidden="true"><span style={{ animationDelay: `${delay + i * step}ms` }}>{w}</span></span>
+          {i < all.length - 1 ? " " : null}
+        </Fragment>
       ))}
     </span>
   );
