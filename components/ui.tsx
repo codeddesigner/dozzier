@@ -83,21 +83,29 @@ export function Modal({ title, onClose, children, footer, width = 600 }: { title
 }
 
 export function Menu({ items }: { items: { label: string; onClick: () => void; danger?: boolean; icon?: ReactNode }[] }) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState<{ top?: number; bottom?: number; right: number } | null>(null);
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!open) return;
-    const h = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };
-    document.addEventListener("mousedown", h);
-    return () => document.removeEventListener("mousedown", h);
+    const h = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(null); };
+    const close = () => setOpen(null);
+    document.addEventListener("mousedown", h); window.addEventListener("resize", close); window.addEventListener("scroll", close, true);
+    return () => { document.removeEventListener("mousedown", h); window.removeEventListener("resize", close); window.removeEventListener("scroll", close, true); };
   }, [open]);
+  function toggle(e: React.MouseEvent<HTMLButtonElement>) {
+    if (open) return setOpen(null);
+    // Fixed positioning keeps the menu above neighbouring rows and outside scroll containers.
+    const r = e.currentTarget.getBoundingClientRect();
+    const up = r.bottom + items.length * 40 + 16 > window.innerHeight;
+    setOpen({ right: window.innerWidth - r.right, ...(up ? { bottom: window.innerHeight - r.top + 4 } : { top: r.bottom + 4 }) });
+  }
   return (
     <div ref={ref} style={{ position: "relative", display: "inline-block" }} onClick={(e) => e.stopPropagation()}>
-      <button className="icon-btn s" aria-label="More actions" onClick={() => setOpen((o) => !o)}><MoreHorizontal size={16} /></button>
+      <button className="icon-btn s" aria-label="More actions" aria-expanded={!!open} onClick={toggle}><MoreHorizontal size={16} /></button>
       {open && (
-        <div className="menu">
+        <div className="menu" style={{ position: "fixed", top: open.top, bottom: open.bottom, right: open.right, zIndex: 90 }}>
           {items.map((it) => (
-            <button key={it.label} className={it.danger ? "danger" : ""} onClick={() => { setOpen(false); it.onClick(); }}>
+            <button key={it.label} className={it.danger ? "danger" : ""} onClick={() => { setOpen(null); it.onClick(); }}>
               {it.icon}{it.label}
             </button>
           ))}

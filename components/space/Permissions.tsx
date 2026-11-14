@@ -10,13 +10,13 @@ import { audit, Group, LEVELS, Level, levelLabel, Member, Perm } from "@/lib/spa
 const ICON = { download: Download, view: Eye, view_watermark: Droplets, hidden: EyeOff };
 
 function LevelPick({ value, onChange }: { value: Level; onChange: (l: Level) => void }) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState<{ x: number; y: number } | null>(null);
   const I = ICON[value];
   return (
-    <span style={{ position: "relative" }}>
-      <button className={`perm-pill ${value}`} onClick={() => setOpen((o) => !o)} onBlur={() => setTimeout(() => setOpen(false), 150)}><I size={14} />{levelLabel(value)}<ChevronDown size={13} /></button>
-      {open && <div className="menu" style={{ top: "calc(100% + 4px)", left: 0, right: "auto", zIndex: 20, minWidth: 180, transformOrigin: "top left" }}>
-        {LEVELS.map((l) => { const LI = ICON[l.id]; return <button key={l.id} className={`menu-item ${l.id === value ? "active" : ""}`} onMouseDown={(e) => e.preventDefault()} onClick={() => { onChange(l.id); setOpen(false); }}><LI size={14} />{l.label}</button>; })}
+    <span>
+      <button className={`perm-pill ${value}`} onClick={(e) => { const r = e.currentTarget.getBoundingClientRect(); const up = r.bottom + 190 > window.innerHeight; setOpen((o) => (o ? null : { x: r.left, y: up ? r.top - 188 : r.bottom + 4 })); }} onBlur={() => setTimeout(() => setOpen(null), 150)}><I size={14} />{levelLabel(value)}<ChevronDown size={13} /></button>
+      {open && <div className="menu" style={{ position: "fixed", top: open.y, left: open.x, right: "auto", zIndex: 90, minWidth: 180, transformOrigin: "top left" }}>
+        {LEVELS.map((l) => { const LI = ICON[l.id]; return <button key={l.id} className={`menu-item ${l.id === value ? "active" : ""}`} onMouseDown={(e) => e.preventDefault()} onClick={() => { onChange(l.id); setOpen(null); }}><LI size={14} />{l.label}</button>; })}
       </div>}
     </span>
   );
