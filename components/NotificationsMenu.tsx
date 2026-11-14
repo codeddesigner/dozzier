@@ -10,15 +10,19 @@ type Visit = { id: string; visitor_email: string | null; started_at: string; las
   documents: { name: string; page_count: number } | null; accounts: { name: string } | null };
 type Q = { id: string; body: string; page_number: number; created_at: string; asker_email: string | null; contact_id: string | null; documents: { name: string } | null };
 type LinkRow = { id: string; name: string; expires_at: string | null };
-export type Note = { id: string; kind: "live" | "visit" | "question" | "forward" | "finished" | "expiring"; at: string; who: string; email: string | null; text: string; sub: string; href: string; hot: boolean };
+export type Note = { id: string; kind: "live" | "visit" | "question" | "forward" | "finished" | "expiring" | "upload" | "reminder" | "request"; at: string; who: string; email: string | null; text: string; sub: string; href: string; hot: boolean };
 
 /** Builds the notification feed from visits, questions and links. */
 export async function loadNotes(): Promise<Note[]> {
   const since = new Date(Date.now() - 14 * 86400000).toISOString();
-  const [v, q, l] = await Promise.all([
+  const me = (await supabase.auth.getSession()).data.session?.user.email?.toLowerCase();
+  const [v, q, l, fr, fu, sr] = await Promise.all([
     supabase.from("visits").select("id,visitor_email,started_at,last_seen_at,duration_seconds,pages_viewed,link_id,contact_id,document_id,documents(name,page_count),accounts(name)").gte("started_at", since).order("started_at", { ascending: false }).limit(60),
     supabase.from("doc_questions").select("id,body,page_number,created_at,asker_email,contact_id,documents(name)").order("created_at", { ascending: false }).limit(15),
     supabase.from("links").select("id,name,expires_at").not("expires_at", "is", null).gt("expires_at", new Date().toISOString()).lt("expires_at", new Date(Date.now() + 3 * 86400000).toISOString()),
+    supabase.from("file_requests").select("id,title,recipients,due_date,remind,notify,status").eq("status", "open"),
+    supabase.from("file_request_uploads").select("id,request_id,uploader_email,file_name,created_at").gte("created_at", since).order("created_at", { ascending: false }).limit(20),
+    supabase.from("space_requests").select("id,space_id,title,requested_by,created_at").gte("created_at", since).neq("requested_by", "").order("created_at", { ascending: false }).limit(10),
   ]);
   const visits = (v.data || []) as unknown as Visit[];
   const notes: Note[] = [];
@@ -48,6 +52,28 @@ export async function loadNotes(): Promise<Note[]> {
   }
   for (const x of (l.data || []) as LinkRow[]) {
     notes.push({ id: `e-${x.id}`, kind: "expiring", at: new Date().toISOString(), who: x.name, email: null, text: `Link “${x.name}” expires in ${Math.max(1, Math.ceil((new Date(x.expires_at!).getTime() - Date.now()) / 86400000))} day(s)`, sub: "", href: "/app/content", hot: false });
+  }
+  type FR = { id: string; title: string; recipients: string[]; due_date: string | null; remind: boolean; notify: boolean };
+  const reqs = (fr.data || []) as FR[];
+  const ups = (fu.data || []) as { id: string; request_id: string; uploader_email: string | null; file_name: string; created_at: string }[];
+  for (const u of ups) {
+    const r = reqs.find((x) => x.id === u.request_id);
+    if (r && !r.notify) continue;
+    const who = displayName(u.uploader_email) || "Someone";
+    notes.push({ id: `u-${u.id}`, kind: "upload", at: u.created_at, who, email: u.uploader_email, text: `${who} uploaded ${u.file_name}`, sub: r?.title || "File request", href: "/app/file-requests", hot: false });
+  }
+  for (const r of reqs) {
+    if (!r.remind || !r.due_date || !r.recipients.length) continue;
+    const days = Math.ceil((new Date(r.due_date + "T23:59:59").getTime() - Date.now()) / 86400000);
+    if (days < 0 || days > 2) continue;
+    const done = new Set(ups.filter((u) => u.request_id === r.id).map((u) => u.uploader_email));
+    const left = r.recipients.filter((e) => !done.has(e)).length;
+    if (left) notes.push({ id: `r-${r.id}`, kind: "reminder", at: new Date().toISOString(), who: r.title, email: null, text: `“${r.title}” is due ${days === 0 ? "today" : `in ${days} day${days === 1 ? "" : "s"}`} — ${left} still to upload`, sub: "Send a reminder", href: "/app/file-requests", hot: false });
+  }
+  for (const x of (sr.data || []) as { id: string; space_id: string; title: string; requested_by: string | null; created_at: string }[]) {
+    if (!x.requested_by?.includes("@") || x.requested_by === me) continue;
+    const who = displayName(x.requested_by);
+    notes.push({ id: `s-${x.id}`, kind: "request", at: x.created_at, who, email: x.requested_by, text: `${who} requested “${x.title}”`, sub: "Data room", href: `/app/spaces/${x.space_id}?tab=requests`, hot: false });
   }
   return notes.sort((a, b) => +new Date(b.at) - +new Date(a.at)).slice(0, 30);
 }

@@ -9,6 +9,8 @@ export const supabase = createClient(url, key, {
 });
 
 export const BUCKET = "documents";
+export const SUPABASE_URL = url;
+export const SUPABASE_KEY = key;
 
 export type Doc = {
   id: string; owner_id: string; folder_id: string | null; name: string; note: string | null;
