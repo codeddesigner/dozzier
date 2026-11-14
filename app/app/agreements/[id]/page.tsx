@@ -8,10 +8,17 @@ import { Avatar, Loading, Modal, copy, toast, useLoad } from "@/components/ui";
 import { useApp } from "@/components/AppContext";
 import { displayName, timeAgo } from "@/lib/format";
 import { Pages, startDrag } from "@/components/esign/Pages";
+import { sendEach, sendEmail, type EmailInput } from "@/lib/sendEmail";
 import { FIELD_META, Field, FieldKind, Signer, buildSignedPdf, colorOf, docId, saveBytes, sha256 } from "@/lib/esign";
 
 type A = { id: string; name: string; file_path: string | null; body: string | null; kind: string; status: "draft" | "sent" | "completed" | "voided"; sent_at: string | null; completed_at: string | null; doc_hash: string | null; sender_email: string | null; space_id: string | null; page_count: number; is_template: boolean; created_at: string };
 const KIND_ICON: Record<FieldKind, typeof PenLine> = { signature: PenLine, initials: Pencil, date: CalendarDays, name: User, company: Building2, text: Type };
+function signEmail(s: Signer, title: string, sender: string, reminder = false): EmailInput {
+  return { kind: reminder ? "reminder" : "sign", to: [s.email], subject: reminder ? `Reminder: please sign “${title}”` : `${sender} sent you “${title}” to sign`,
+    heading: reminder ? `“${title}” is waiting for your signature` : `Please sign “${title}”`,
+    message: `Hi ${s.name.split(" ")[0]},\n\n${reminder ? `A quick reminder that “${title}” is still waiting for your signature.` : `${sender} has asked you to review and sign “${title}”.`} It takes about a minute and you don’t need an account.`,
+    cta: { label: "Review and sign", url: `${typeof window !== "undefined" ? window.location.origin : "https://dozzier.co"}/s/${s.token}` } };
+}
 const signUrl = (t: string) => `${window.location.origin}/s/${t}`;
 
 export default function AgreementPage() {
@@ -40,6 +47,7 @@ function Prepare({ a, signers, fields: initial, spaces, url, reload }: { a: A; s
   const [page, setPage] = useState(1);
   const [adding, setAdding] = useState<{ id?: string; name: string; email: string } | null>(null);
   const [sent, setSent] = useState<Signer[] | null>(null);
+  const [mailState, setMailState] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
   const [name, setName] = useState(a.name);
   useEffect(() => setFields(initial), [initial]);
@@ -98,7 +106,14 @@ function Prepare({ a, signers, fields: initial, spaces, url, reload }: { a: A; s
     setBusy(false);
     if (error) return toast(error.message);
     const fresh = await supabase.from("agreement_signers").select("*").eq("agreement_id", a.id).order("position");
-    setSent((fresh.data || []) as Signer[]);
+    const list = (fresh.data || []) as Signer[];
+    setSent(list);
+    const others = list.filter((x) => !x.is_owner);
+    if (others.length) {
+      setMailState(Object.fromEntries(others.map((x) => [x.id, "sending"])));
+      const r = await sendEach(others, (x) => signEmail(x, name.trim() || a.name, profile.full_name || displayName(email)), (x, err) => setMailState((m) => ({ ...m, [x.id]: err || "sent" })));
+      if (r.failed) toast(`${r.failed} email${r.failed === 1 ? "" : "s"} didn’t send${r.error ? `: ${r.error}` : ""} — copy the link instead`);
+    }
   }
 
   return (
@@ -159,15 +174,15 @@ function Prepare({ a, signers, fields: initial, spaces, url, reload }: { a: A; s
       {sent && (
         <Modal title="Sent for signature" onClose={() => { setSent(null); reload(); }} width={540} footer={<><span className="grow" /><button className="btn btn-primary" onClick={() => { setSent(null); reload(); }}>Done</button></>}>
           <div className="col gap-12">
-            <p className="muted" style={{ fontSize: 14 }}>Send each signer their private link. You’ll see when they open and sign it.</p>
+            <p className="muted" style={{ fontSize: 14 }}>We’ve emailed each signer their private link. You’ll be notified as they sign.</p>
             {sent.map((s, i) => {
-              const body = `Hi ${s.name.split(" ")[0]},\n\nPlease review and sign “${name}”: ${signUrl(s.token!)}\n\nIt takes about a minute — no account needed.\n\nThanks,\n${profile.full_name || displayName(email)}`;
               return (
                 <div key={s.id} className="row gap-10 member-row" style={{ padding: "8px 0" }}>
                   <span className="es-dot" style={{ "--c": colorOf(i) } as React.CSSProperties} /><span className="col grow" style={{ minWidth: 0 }}><span className="medium">{s.name}</span><span className="caption muted ellipsis">{s.email}</span></span>
                   {s.is_owner ? <a className="btn btn-dark btn-s" href={signUrl(s.token!)} target="_blank" rel="noreferrer">Sign now</a> : <>
                     <button className="icon-btn s" aria-label="Copy signing link" onClick={() => copy(signUrl(s.token!), "Signing link copied")}><Copy size={14} /></button>
-                    <a className="btn btn-secondary btn-s" target="_blank" rel="noreferrer" href={`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(s.email)}&su=${encodeURIComponent(`Please sign: ${name}`)}&body=${encodeURIComponent(body)}`}><Mail size={14} />Gmail</a></>}
+                    {mailState[s.id] === "sent" ? <span className="badge badge-success">Emailed</span> : mailState[s.id] === "sending" ? <span className="caption muted">Sending…</span>
+                      : <button className="btn btn-secondary btn-s" title={mailState[s.id]} onClick={async () => { setMailState((m) => ({ ...m, [s.id]: "sending" })); const err = await sendEmail(signEmail(s, name.trim() || a.name, profile.full_name || displayName(email))); setMailState((m) => ({ ...m, [s.id]: err || "sent" })); }}><Mail size={14} />{mailState[s.id] ? "Retry" : "Email"}</button>}</>}
                 </div>
               );
             })}
@@ -219,7 +234,7 @@ function Status({ a, signers, fields, spaces, url, reload }: { a: A; signers: Si
                 {s.signed_at ? <span className="badge badge-success">Signed</span> : a.status === "sent" ? <>
                   <button className="icon-btn s" aria-label="Copy signing link" onClick={() => copy(signUrl(s.token!), "Signing link copied")}><Copy size={13} /></button>
                   {s.is_owner ? <a className="btn btn-dark btn-s" href={signUrl(s.token!)} target="_blank" rel="noreferrer">Sign</a>
-                    : <a className="btn btn-ghost btn-s" target="_blank" rel="noreferrer" href={`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(s.email)}&su=${encodeURIComponent(`Reminder: please sign ${a.name}`)}&body=${encodeURIComponent(`Hi ${s.name.split(" ")[0]},\n\nA quick reminder to sign “${a.name}”: ${signUrl(s.token!)}\n\nThanks,\n${profile.full_name || displayName(email)}`)}`}>Remind</a>}
+                    : <RemindBtn onSend={() => sendEmail(signEmail(s, a.name, profile.full_name || displayName(email), true))} />}
                 </> : <span className="badge badge-muted">—</span>}
               </div>
             ))}
@@ -229,4 +244,10 @@ function Status({ a, signers, fields, spaces, url, reload }: { a: A; signers: Si
       </div>
     </div>
   );
+}
+
+function RemindBtn({ onSend }: { onSend: () => Promise<string | null> }) {
+  const [st, setSt] = useState<"idle" | "sending" | "sent">("idle");
+  if (st === "sent") return <span className="caption" style={{ color: "var(--dz-text-success)" }}>Reminded</span>;
+  return <button className="btn btn-ghost btn-s" disabled={st === "sending"} onClick={async () => { setSt("sending"); const err = await onSend(); if (err) { toast(err); setSt("idle"); } else setSt("sent"); }}>{st === "sending" ? "Sending…" : "Remind"}</button>;
 }

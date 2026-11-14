@@ -2,7 +2,8 @@
 import { useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { ChevronRight, Plus, Trash2, Upload, ClipboardPaste, Copy, Mail, Check, Users } from "lucide-react";
+import { ChevronRight, Plus, Trash2, Upload, ClipboardPaste, Copy, Mail, Check, Users, Send } from "lucide-react";
+import { sendEach } from "@/lib/sendEmail";
 import { supabase, Doc } from "@/lib/supabase";
 import { Avatar, Loading, Toggle, copy, toast, useLoad } from "@/components/ui";
 import { useApp } from "@/components/AppContext";
@@ -45,6 +46,7 @@ export default function Personalise() {
   const fileRef = useRef<HTMLInputElement>(null);
   const tpls = (profile.settings?.email?.templates as { name: string; subject: string; body: string }[] | undefined) || [];
   const [tplIdx, setTplIdx] = useState(0);
+  const [mail, setMail] = useState<Record<string, "sending" | "sent" | "failed">>({});
   const tpl = tpls[tplIdx] || { name: "Default", subject: "{{document}} for {{company}}", body: "Hi {{first_name}},\n\nHere’s {{document}}, tailored for {{company}}: {{link}}\n\nIt’s private to you — feel free to forward it to your team.\n\n{{signature}}" };
   const sender = profile.full_name || me.split("@")[0];
 
@@ -53,6 +55,15 @@ export default function Personalise() {
   const sample = rows[0] || { email: "alex@acme.com", name: "Alex Rivera", company: "Acme" };
   const varsFor = (r: R) => ({ first_name: r.name.split(" ")[0], company: r.company || r.name, document: doc?.name || "", link: r.slug ? linkUrlOf(r.slug) + (opts.lock_email ? `?email=${encodeURIComponent(r.email)}` : "") : "[unique link]", signature: profile.settings?.email?.signature || sender });
   const preview = useMemo(() => ({ subject: fillTemplate(tpl.subject, varsFor(sample)), body: fillTemplate(tpl.body, varsFor(sample)) }), [tpl, sample, doc, opts]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  async function emailRows(list: R[]) {
+    if (!list.length) return;
+    setMail((m) => ({ ...m, ...Object.fromEntries(list.map((r) => [r.email, "sending" as const])) }));
+    const res = await sendEach(list, (r) => { const v = varsFor(r); return { kind: "share" as const, to: [r.email], subject: fillTemplate(tpl.subject, v), message: fillTemplate(tpl.body, v), cta: { label: `Open ${doc?.name || "document"}`, url: v.link } }; },
+      (r, err) => setMail((m) => ({ ...m, [r.email]: err ? "failed" : "sent" })));
+    toast(res.failed ? `${res.ok} sent, ${res.failed} failed${res.error ? ` — ${res.error}` : ""}` : `Emailed ${res.ok} recipient${res.ok === 1 ? "" : "s"}`);
+  }
+  const unsent = rows.filter((r) => r.slug && mail[r.email] !== "sent" && mail[r.email] !== "sending");
 
   async function createAll() {
     if (!doc) return;
@@ -114,15 +125,17 @@ export default function Personalise() {
                     <td className="hide-sm"><input className="pz-inline" value={r.company} placeholder="—" onChange={(e) => setRows((rs) => rs.map((x, j) => (j === i ? { ...x, company: e.target.value } : x)))} aria-label="Company" /></td>
                     <td>{r.slug ? <span className="row gap-4">
                       <button className="icon-btn s" aria-label="Copy link" onClick={() => copy(url, "Link copied")}><Copy size={14} /></button>
-                      <a className="icon-btn s" aria-label="Email" href={`mailto:${r.email}?subject=${encodeURIComponent(fillTemplate(tpl.subject, v))}&body=${encodeURIComponent(fillTemplate(tpl.body, v))}`}><Mail size={14} /></a>
-                      <span className="badge badge-success"><Check size={12} />Ready</span></span> : <span className="caption faint">Not created</span>}</td>
+                      <a className="icon-btn s hide-sm" aria-label="Open in mail app" href={`mailto:${r.email}?subject=${encodeURIComponent(fillTemplate(tpl.subject, v))}&body=${encodeURIComponent(fillTemplate(tpl.body, v))}`}><Mail size={14} /></a>
+                      {mail[r.email] === "sent" ? <span className="badge badge-success"><Check size={12} />Emailed</span>
+                        : mail[r.email] === "sending" ? <span className="caption muted">Sending…</span>
+                        : <button className="btn btn-secondary btn-s" onClick={() => emailRows([r])}><Send size={12} />{mail[r.email] === "failed" ? "Retry" : "Send"}</button>}</span> : <span className="caption faint">Not created</span>}</td>
                     <td>{!r.slug && <button className="icon-btn s" aria-label="Remove" onClick={() => setRows((rs) => rs.filter((_, j) => j !== i))}><Trash2 size={14} /></button>}</td>
                   </tr>
                 );
               })}
             </tbody>
           </table>
-          {created > 0 && <div className="row gap-8 mt-16"><button className="btn btn-secondary btn-s" onClick={() => copy(rows.filter((r) => r.slug).map((r) => `${r.name} <${r.email}>: ${linkUrlOf(r.slug!)}${opts.lock_email ? `?email=${encodeURIComponent(r.email)}` : ""}`).join("\n"), "All links copied")}><Copy size={14} />Copy all links</button><Link className="btn btn-ghost btn-s" href={`/app/content/${doc.id}?tab=links`}>View in Links</Link></div>}
+          {created > 0 && <div className="row gap-8 mt-16 wrap">{unsent.length > 0 && <button className="btn btn-primary btn-s" onClick={() => emailRows(unsent)}><Send size={14} />Email {unsent.length === created ? "all " : ""}{unsent.length}</button>}<button className="btn btn-secondary btn-s" onClick={() => copy(rows.filter((r) => r.slug).map((r) => `${r.name} <${r.email}>: ${linkUrlOf(r.slug!)}${opts.lock_email ? `?email=${encodeURIComponent(r.email)}` : ""}`).join("\n"), "All links copied")}><Copy size={14} />Copy all links</button><Link className="btn btn-ghost btn-s" href={`/app/content/${doc.id}?tab=links`}>View in Links</Link></div>}
         </section>
 
         <div className="col gap-16">

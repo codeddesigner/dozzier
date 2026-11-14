@@ -7,6 +7,7 @@ import { useApp } from "@/components/AppContext";
 import { displayName } from "@/lib/format";
 import { linkUrlOf } from "@/components/LinkReady";
 import { audit, Group, spaceLink } from "@/lib/space";
+import { sendEach } from "@/lib/sendEmail";
 
 const RE = /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi;
 
@@ -19,6 +20,8 @@ export function InviteModal({ space, onClose }: { space: Space; onClose: () => v
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState<{ emails: string[]; slug: string } | null>(null);
+  const [notify, setNotify] = useState(true);
+  const [sent, setSent] = useState<Record<string, "sending" | "sent" | string>>({});
   const emails = [...new Set((raw.match(RE) || []).map((e) => e.toLowerCase()))];
   const g = group || groups?.[0]?.id || "";
   const sender = profile.full_name || displayName(me);
@@ -32,6 +35,17 @@ export function InviteModal({ space, onClose }: { space: Space; onClose: () => v
     const gname = groups?.find((x) => x.id === g)?.name;
     audit(space.id, me, `Invited ${emails.length === 1 ? emails[0] : `${emails.length} people`}${gname ? ` to ${gname}` : ""}`, "permission");
     setBusy(false); setDone({ emails, slug });
+    if (notify && slug) emailAll(emails, slug);
+  }
+
+  const inviteEmail = (e: string, slug: string) => ({
+    kind: "invite" as const, to: [e], subject: `${sender} invited you to ${space.name}`, heading: `You’re invited to ${space.name}`,
+    message: `Hi ${displayName(e).split(" ")[0]},\n\n${note ? note + "\n\n" : ""}${sender} has given you access to “${space.name}”${space.subtitle ? ` — ${space.subtitle}` : ""}. The link below is personal to you.`,
+    cta: { label: "Open the data room", url: `${linkUrlOf(slug)}?email=${encodeURIComponent(e)}` },
+  });
+  async function emailAll(list: string[], slug: string) {
+    setSent((s) => ({ ...s, ...Object.fromEntries(list.map((e) => [e, "sending"])) }));
+    await sendEach(list, (e) => inviteEmail(e, slug), (e, err) => setSent((s) => ({ ...s, [e]: err || "sent" })));
   }
 
   if (done) {
@@ -40,12 +54,14 @@ export function InviteModal({ space, onClose }: { space: Space; onClose: () => v
     return (
       <Modal title="People added" onClose={onClose} width={520} footer={<><span className="grow" /><button className="btn btn-primary" onClick={onClose}>Done</button></>}>
         <div className="col gap-12">
-          <div className="lr-hero"><span className="lr-check"><Check size={18} /></span><span className="col"><span className="medium">{done.emails.length} {done.emails.length === 1 ? "person" : "people"} can now enter</span><span className="caption muted">Send each one their personal link — their visits are tracked by name.</span></span></div>
+          <div className="lr-hero"><span className="lr-check"><Check size={18} /></span><span className="col"><span className="medium">{done.emails.length} {done.emails.length === 1 ? "person" : "people"} can now enter</span><span className="caption muted">{notify ? "We’ve emailed each one their personal link from Dozzier — replies come to you." : "Send each one their personal link — their visits are tracked by name."}</span></span></div>
           {done.emails.map((e) => (
             <div key={e} className="row gap-10 member-row" style={{ padding: "8px 0" }}><Avatar email={e} size={28} /><span className="grow ellipsis">{e}</span>
               <button className="icon-btn s" aria-label="Copy link" onClick={() => copy(`${linkUrlOf(done.slug)}?email=${encodeURIComponent(e)}`, "Personal link copied")}><Copy size={14} /></button>
-              <a className="btn btn-secondary btn-s" href={`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(e)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body(e))}`} target="_blank" rel="noreferrer"><Mail size={14} />Gmail</a>
-              <a className="btn btn-ghost btn-s" href={`mailto:${e}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body(e))}`}>Mail app</a></div>
+              {sent[e] === "sent" ? <span className="badge badge-success"><Check size={12} />Emailed</span>
+                : sent[e] === "sending" ? <span className="caption muted">Sending…</span>
+                : <><button className="btn btn-secondary btn-s" title={sent[e] || undefined} onClick={() => emailAll([e], done.slug)}><Mail size={14} />{sent[e] ? "Retry" : "Email"}</button>
+                  <a className="btn btn-ghost btn-s hide-sm" href={`mailto:${e}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body(e))}`}>Mail app</a></>}</div>
           ))}
         </div>
       </Modal>
@@ -60,6 +76,7 @@ export function InviteModal({ space, onClose }: { space: Space; onClose: () => v
           <label className="field" style={{ width: 150 }}><span className="label">Role</span><select className="input" value={role} onChange={(e) => setRole(e.target.value as "viewer" | "editor")}><option value="viewer">Viewer</option><option value="editor">Editor</option></select></label>
         </div>
         <label className="field"><span className="label">Message (optional)</span><textarea className="input" rows={2} value={note} onChange={(e) => setNote(e.target.value)} placeholder="Here’s everything for diligence — shout if anything’s missing." /></label>
+        <label className="checkbox caption"><input type="checkbox" checked={notify} onChange={(e) => setNotify(e.target.checked)} />Email them their personal link now</label>
         <span className="caption faint">Group permissions decide which folders they see. Editors are tracked like viewers today; edit access for guests is coming.</span>
       </div>
     </Modal>

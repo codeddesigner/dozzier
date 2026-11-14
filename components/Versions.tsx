@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Bell, RotateCcw } from "lucide-react";
 import { supabase, BUCKET, Doc, Link as LinkT } from "@/lib/supabase";
 import { DocThumb, Modal, copy, toast, useLoad } from "@/components/ui";
+import { sendEmail } from "@/lib/sendEmail";
 import { useApp } from "@/components/AppContext";
 import { loadPdfJs } from "@/lib/pdf";
 import { displayName } from "@/lib/format";
@@ -45,6 +46,7 @@ export function Versions({ doc, links, visits, onRestored }: { doc: Doc; links: 
   const [thumbs, setThumbs] = useState<Thumb[] | null>(null);
   const [cmpErr, setCmpErr] = useState<string | null>(null);
   const [notify, setNotify] = useState(false);
+  const [notifying, setNotifying] = useState<"idle" | "sending" | "sent">("idle");
 
   const rows: Row[] = vers ? [
     { v: vers.length + 1, label: doc.name, file_path: doc.file_path, file_type: doc.file_type, pages: doc.page_count, from: vers[0]?.replaced_at || doc.created_at, to: null, by: vers[0]?.replaced_by || null, current: true, mime: doc.mime_type, size: doc.size_bytes },
@@ -114,8 +116,16 @@ export function Versions({ doc, links, visits, onRestored }: { doc: Doc; links: 
             <pre className="lr-preview" style={{ whiteSpace: "pre-wrap", fontFamily: "inherit", fontSize: 14, margin: 0 }}>{note}</pre>
             <span className="caption muted">Sent as one email with everyone in Bcc, so recipients don’t see each other.</span>
             <div className="row gap-8">
-              <a className="btn btn-dark btn-s" target="_blank" rel="noreferrer" href={`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(email)}&bcc=${encodeURIComponent(past.join(","))}&su=${encodeURIComponent(`Updated: ${doc.name}`)}&body=${encodeURIComponent(note)}`}>Open in Gmail</a>
-              <a className="btn btn-secondary btn-s" href={`mailto:${email}?bcc=${encodeURIComponent(past.join(","))}&subject=${encodeURIComponent(`Updated: ${doc.name}`)}&body=${encodeURIComponent(note)}`}>Mail app</a>
+              <button className="btn btn-primary btn-s" disabled={notifying !== "idle"} onClick={async () => {
+                setNotifying("sending");
+                for (let i = 0; i < past.length; i += 45) {
+                  const err = await sendEmail({ kind: "update", to: [email], bcc: past.slice(i, i + 45), subject: `Updated: ${doc.name}`, message: note });
+                  if (err) { toast(err); setNotifying("idle"); return; }
+                }
+                setNotifying("sent"); toast(`Sent to ${past.length} past visitor${past.length === 1 ? "" : "s"}`); setNotify(false);
+              }}><Bell size={14} />{notifying === "sending" ? "Sending…" : notifying === "sent" ? "Sent" : `Send to ${past.length}`}</button>
+              <a className="btn btn-secondary btn-s" target="_blank" rel="noreferrer" href={`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(email)}&bcc=${encodeURIComponent(past.join(","))}&su=${encodeURIComponent(`Updated: ${doc.name}`)}&body=${encodeURIComponent(note)}`}>Gmail</a>
+              <a className="btn btn-ghost btn-s hide-sm" href={`mailto:${email}?bcc=${encodeURIComponent(past.join(","))}&subject=${encodeURIComponent(`Updated: ${doc.name}`)}&body=${encodeURIComponent(note)}`}>Mail app</a>
               <button className="btn btn-ghost btn-s" onClick={() => copy(note, "Message copied")}>Copy text</button>
             </div>
           </div>

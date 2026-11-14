@@ -2,7 +2,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { ChevronRight, Sparkles, RefreshCw, Copy, Mail, Scissors, Briefcase, BarChart3, Inbox } from "lucide-react";
+import { ChevronRight, Sparkles, RefreshCw, Copy, Mail, Send, Scissors, Briefcase, BarChart3, Inbox } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { Avatar, Loading, Tabs, copy, toast } from "@/components/ui";
 import { useApp } from "@/components/AppContext";
@@ -10,6 +10,7 @@ import { displayName, timeAgo } from "@/lib/format";
 import { draftFollowUp, insights, tone } from "@/lib/insights";
 import { useContact } from "@/components/contact/useContact";
 import { Timeline } from "@/components/contact/Timeline";
+import { sendEmail } from "@/lib/sendEmail";
 
 export default function FollowUpPage() {
   const { id } = useParams<{ id: string }>();
@@ -22,6 +23,7 @@ export default function FollowUpPage() {
   const [cc, setCc] = useState("");
   const [applied, setApplied] = useState<string[]>([]);
   const [notes, setNotes] = useState<string | null>(null);
+  const [sending, setSending] = useState<"idle" | "sending" | "sent">("idle");
 
   const name = data ? displayName(data.contact.email, data.contact.name) : "";
   const ins = useMemo(() => data && insights(name, data.visits, data.pages, data.questions, data.forwards), [data, name]);
@@ -90,11 +92,17 @@ export default function FollowUpPage() {
             ))}
           </div>
           <div className="row gap-8 mt-8 wrap">
-            <a className="btn btn-primary" href={gmail} target="_blank" rel="noreferrer" onClick={logSent}><Mail size={16} />Send with Gmail</a>
-            <a className="btn btn-secondary" href={mailto} onClick={logSent}>Open in mail app</a>
+            <button className="btn btn-primary" disabled={sending !== "idle" || !subject.trim() || !body.trim()} onClick={async () => {
+              setSending("sending");
+              const err = await sendEmail({ kind: "follow_up", to: [c.email], cc: cc.split(/[,\s]+/).filter(Boolean), subject, message: body });
+              if (err) { toast(err); setSending("idle"); return; }
+              await logSent(); setSending("sent"); toast(`Sent to ${c.email} — replies come to your inbox`);
+            }}><Send size={16} />{sending === "sending" ? "Sending…" : sending === "sent" ? "Sent" : "Send"}</button>
+            <a className="btn btn-secondary" href={gmail} target="_blank" rel="noreferrer" onClick={logSent}><Mail size={16} />Gmail</a>
+            <a className="btn btn-ghost hide-sm" href={mailto} onClick={logSent}>Mail app</a>
             <button className="btn btn-ghost" onClick={() => { copy(`Subject: ${subject}\n\n${body}`); toast("Draft copied"); }}><Copy size={14} />Copy</button>
           </div>
-          <span className="caption faint">Drafted from {name.split(" ")[0]}’s activity. Review before sending.</span>
+          <span className="caption faint">Drafted from {name.split(" ")[0]}’s activity. Sent from Dozzier on your behalf — replies come to {me}.</span>
         </section>
       </div>
     </div>

@@ -1,8 +1,9 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Check, Copy, Mail, Code2, QrCode, Users, Download, MessageSquare } from "lucide-react";
-import { Modal, Tabs, copy } from "./ui";
+import { Check, Copy, Mail, Code2, QrCode, Users, Download, MessageSquare, Send } from "lucide-react";
+import { Modal, Tabs, copy, toast } from "./ui";
+import { sendEmail } from "@/lib/sendEmail";
 import { useApp } from "@/components/AppContext";
 import type { Link } from "@/lib/supabase";
 
@@ -32,6 +33,8 @@ export function LinkReady({ link, docName, documentId, onDone }: { link: Link; d
   const url = linkUrlOf(link.slug);
   const [tab, setTab] = useState<"email" | "slack" | "qr" | "embed">("email");
   const [copied, setCopied] = useState(false);
+  const [to, setTo] = useState("");
+  const [sent, setSent] = useState<"idle" | "sending" | "sent">("idle");
   const qr = useQr(url, 220);
   const sender = profile.full_name || email.split("@")[0];
   const tpl = (profile.settings?.email?.templates as { subject: string; body: string }[] | undefined)?.[0];
@@ -57,10 +60,22 @@ export function LinkReady({ link, docName, documentId, onDone }: { link: Link; d
         <Tabs value={tab} onChange={setTab} tabs={[{ id: "email", label: "Email" }, { id: "slack", label: "Slack" }, { id: "qr", label: "QR code" }, { id: "embed", label: "Embed" }]} />
         {tab === "email" && (
           <div className="col gap-8">
+            <form className="row gap-8" onSubmit={async (ev) => {
+              ev.preventDefault();
+              const list = to.split(/[,;\s]+/).map((x) => x.trim()).filter(Boolean);
+              if (!list.length) return;
+              setSent("sending");
+              const err = await sendEmail({ kind: "share", to: list, subject, message: body, cta: { label: `Open ${docName || link.name}`, url } });
+              if (err) { toast(err); setSent("idle"); return; }
+              setSent("sent"); toast(`Sent to ${list.length === 1 ? list[0] : `${list.length} people`}`);
+            }}>
+              <input className="input grow" type="text" inputMode="email" placeholder="To: name@company.com" value={to} onChange={(e) => { setTo(e.target.value); setSent("idle"); }} aria-label="Recipient email" />
+              <button className="btn btn-primary" type="submit" disabled={!to.trim() || sent === "sending"}><Send size={14} />{sent === "sending" ? "Sending…" : sent === "sent" ? "Sent" : "Send"}</button>
+            </form>
             <div className="lr-preview"><span className="caption muted">Subject</span><span className="medium">{subject}</span><pre>{body}</pre></div>
-            <div className="row gap-8">
-              <a className="btn btn-primary btn-s" href={`https://mail.google.com/mail/?view=cm&fs=1&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`} target="_blank" rel="noreferrer"><Mail size={14} />Open in Gmail</a>
-              <a className="btn btn-secondary btn-s" href={`mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`}>Mail app</a>
+            <div className="row gap-8 wrap">
+              <a className="btn btn-secondary btn-s" href={`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(to)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`} target="_blank" rel="noreferrer"><Mail size={14} />Gmail</a>
+              <a className="btn btn-ghost btn-s" href={`mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`}>Mail app</a>
               <button className="btn btn-ghost btn-s" onClick={() => copy(body, "Email copied")}><Copy size={14} />Copy text</button>
             </div>
           </div>

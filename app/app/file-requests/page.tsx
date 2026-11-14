@@ -5,6 +5,7 @@ import { supabase, BUCKET } from "@/lib/supabase";
 import { Avatar, Empty, Loading, Menu, Modal, Tabs, Toggle, copy, toast, useLoad } from "@/components/ui";
 import { useApp } from "@/components/AppContext";
 import { displayName, fileKind, slugify, timeAgo } from "@/lib/format";
+import { sendEach, type EmailInput } from "@/lib/sendEmail";
 
 type Req = { id: string; title: string; description: string | null; slug: string; status: "open" | "closed"; created_at: string; recipients: string[]; due_date: string | null;
   save_space_id: string | null; save_folder_id: string | null; remind: boolean; notify: boolean; allow_late: boolean };
@@ -13,6 +14,12 @@ type Dest = { space_id: string; space: string; folder_id: string | null; folder:
 
 const reqUrl = (slug: string, email?: string) => `${window.location.origin}/r/${slug}${email ? `?email=${encodeURIComponent(email)}` : ""}`;
 const RE = /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi;
+function requestEmail(r: { title: string; description: string | null; due_date: string | null; slug: string }, e: string, sender: string, reminder = false): EmailInput {
+  const due = r.due_date ? ` by ${new Date(r.due_date + "T12:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "long" })}` : "";
+  return { kind: reminder ? "reminder" : "file_request", to: [e], subject: reminder ? `Reminder: ${r.title}` : `${sender} requested files: ${r.title}`, heading: reminder ? `A quick reminder about “${r.title}”` : `${sender} requested files from you`,
+    message: `Hi ${displayName(e).split(" ")[0]},\n\n${reminder ? `Just a reminder to upload ${r.title}${due}.` : `Could you upload ${r.title}${due}?`}${r.description ? `\n\n${r.description}` : ""}\n\nNo account needed — the link below is private to you.`,
+    cta: { label: "Upload files", url: reqUrl(r.slug, e) } };
+}
 const dueLabel = (d: string | null) => { if (!d) return null; const n = Math.ceil((new Date(d + "T23:59:59").getTime() - Date.now()) / 86400000); return { text: `Due ${new Date(d + "T12:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "short" })}`, late: n < 0, soon: n >= 0 && n <= 2 }; };
 
 function useDests() {
@@ -78,6 +85,7 @@ export default function FileRequests() {
 
 function CreateReq({ onClose, onDone }: { onClose: () => void; onDone: (id: string) => void }) {
   const { data: dests } = useDests();
+  const { profile, email: me } = useApp();
   const [f, setF] = useState({ title: "", description: "", recipients: "", due_date: new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10), dest: "", remind: true, notify: true, allow_late: false });
   const [busy, setBusy] = useState(false);
   const emails = [...new Set((f.recipients.match(RE) || []).map((e) => e.toLowerCase()))];
@@ -86,9 +94,13 @@ function CreateReq({ onClose, onDone }: { onClose: () => void; onDone: (id: stri
     setBusy(true);
     const d = dests?.find((x) => `${x.space_id}:${x.folder_id || ""}` === f.dest);
     const { data, error } = await supabase.from("file_requests").insert({ title: f.title.trim(), description: f.description.trim() || null, slug: slugify(f.title), recipients: emails, due_date: f.due_date || null,
-      save_space_id: d?.space_id || null, save_folder_id: d?.folder_id || null, remind: f.remind, notify: f.notify, allow_late: f.allow_late }).select("id").single();
+      save_space_id: d?.space_id || null, save_folder_id: d?.folder_id || null, remind: f.remind, notify: f.notify, allow_late: f.allow_late }).select("id,slug").single();
+    if (error) { setBusy(false); return toast(error.message); }
+    if (emails.length) {
+      const r = await sendEach(emails, (e) => requestEmail({ title: f.title.trim(), description: f.description.trim() || null, due_date: f.due_date || null, slug: data.slug }, e, profile.full_name || displayName(me)));
+      toast(r.failed ? `Request created — ${r.ok} sent, ${r.failed} failed${r.error ? `: ${r.error}` : ""}` : `Request sent to ${r.ok} ${r.ok === 1 ? "person" : "people"}`);
+    }
     setBusy(false);
-    if (error) return toast(error.message);
     onDone(data.id);
   }
   return (
@@ -97,7 +109,7 @@ function CreateReq({ onClose, onDone }: { onClose: () => void; onDone: (id: stri
         <label className="field"><span className="label">Request title</span><input className="input" autoFocus value={f.title} onChange={(e) => setF({ ...f, title: e.target.value })} placeholder="Q3 bank statements & tax filings" /></label>
         <label className="field"><span className="label">Instructions for recipients</span><input className="input" value={f.description} onChange={(e) => setF({ ...f, description: e.target.value })} placeholder="Please upload PDFs. Name files by month." /></label>
         <label className="field"><span className="label">Recipients</span><input className="input" value={f.recipients} onChange={(e) => setF({ ...f, recipients: e.target.value })} placeholder="ngozi@lawfirm.ng, finance@acme.com" />
-          <span className="caption faint">Each person gets a private upload link. Leave empty for a link anyone can use.</span></label>
+          <span className="caption faint">We email each person a private upload link. Leave empty for a link anyone can use.</span></label>
         <div className="row gap-12">
           <label className="field grow"><span className="label">Deadline</span><input className="input" type="date" value={f.due_date} onChange={(e) => setF({ ...f, due_date: e.target.value })} /></label>
           <label className="field grow" style={{ minWidth: 0 }}><span className="label">Save to</span><select className="input" value={f.dest} onChange={(e) => setF({ ...f, dest: e.target.value })}>
@@ -115,13 +127,17 @@ function ReqDetail({ r, ups, onClose, onChange }: { r: Req; ups: Up[]; onClose: 
   const { userId, profile, email: me } = useApp();
   const { data: dests } = useDests();
   const [saving, setSaving] = useState<string | null>(null);
+  const [mail, setMail] = useState<Record<string, string>>({});
+  async function send(list: string[], reminder: boolean) {
+    setMail((m) => ({ ...m, ...Object.fromEntries(list.map((e) => [e, "sending"])) }));
+    const res = await sendEach(list, (e) => requestEmail(r, e, sender, reminder), (e, err) => setMail((m) => ({ ...m, [e]: err || "sent" })));
+    toast(res.failed ? `${res.ok} sent, ${res.failed} failed${res.error ? `: ${res.error}` : ""}` : `${reminder ? "Reminder" : "Request"} sent to ${res.ok} ${res.ok === 1 ? "person" : "people"}`);
+  }
   const dest = dests?.find((d) => d.space_id === r.save_space_id && (d.folder_id || null) === (r.save_folder_id || null));
   const from = useMemo(() => new Set(ups.map((u) => u.uploader_email)), [ups]);
   const pending = r.recipients.filter((e) => !from.has(e));
   const sender = profile.full_name || displayName(me);
   const due = dueLabel(r.due_date);
-  const body = (e?: string) => `Hi${e ? " " + displayName(e).split(" ")[0] : ""},\n\nCould you upload ${r.title}${r.due_date ? ` by ${new Date(r.due_date + "T12:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "long" })}` : ""}?${r.description ? `\n\n${r.description}` : ""}\n\nUpload here (no account needed): ${reqUrl(r.slug, e)}\n\nThanks,\n${sender}`;
-  const gmail = (to: string, su: string, b: string, bcc = "") => `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(to)}${bcc ? `&bcc=${encodeURIComponent(bcc)}` : ""}&su=${encodeURIComponent(su)}&body=${encodeURIComponent(b)}`;
 
   async function saveToSpace(list: Up[]) {
     if (!dest) return;
@@ -159,13 +175,14 @@ function ReqDetail({ r, ups, onClose, onChange }: { r: Req; ups: Up[]; onClose: 
         {r.recipients.length > 0 && (
           <div>
             <div className="row" style={{ marginBottom: 8 }}><span className="h3 grow">Recipients</span>
-              {pending.length > 0 && <a className="btn btn-secondary btn-s" href={gmail(me, `Reminder: ${r.title}`, body(), pending.join(","))} target="_blank" rel="noreferrer"><Bell size={14} />Remind {pending.length}</a>}</div>
+              {pending.length > 0 && <button className="btn btn-secondary btn-s" disabled={pending.some((e) => mail[e] === "sending")} onClick={() => send(pending, true)}><Bell size={14} />Remind {pending.length}</button>}</div>
             <div className="card">{r.recipients.map((e) => (
               <div key={e} className="member-row">
                 <Avatar email={e} size={28} /><span className="col grow" style={{ minWidth: 0 }}><span className="medium ellipsis">{displayName(e)}</span><span className="caption muted ellipsis">{e}</span></span>
                 {from.has(e) ? <span className="badge badge-success"><Check size={12} />Uploaded</span> : <span className="badge badge-muted">Waiting</span>}
                 <button className="icon-btn s" aria-label="Copy personal link" onClick={() => copy(reqUrl(r.slug, e), "Personal link copied")}><Copy size={14} /></button>
-                <a className="btn btn-ghost btn-s" href={gmail(e, `${sender} requested files: ${r.title}`, body(e))} target="_blank" rel="noreferrer"><Mail size={14} />Send</a>
+                {mail[e] === "sending" ? <span className="caption muted">Sending…</span> : mail[e] === "sent" ? <span className="caption" style={{ color: "var(--dz-text-success)" }}>Sent</span>
+                  : <button className="btn btn-ghost btn-s" title={mail[e] || undefined} onClick={() => send([e], from.has(e) ? false : !!r.created_at && Date.now() - +new Date(r.created_at) > 3600000)}><Mail size={14} />{mail[e] ? "Retry" : "Send"}</button>}
               </div>
             ))}</div>
           </div>
