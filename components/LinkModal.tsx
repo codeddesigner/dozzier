@@ -4,6 +4,8 @@ import { Mail, Download, Lock, Calendar, FileCheck2, FileSignature, Users, Scan,
 import { Modal, Tabs, Toggle, copy, toast } from "./ui";
 import { supabase, Link } from "@/lib/supabase";
 import { slugify } from "@/lib/format";
+import { useApp } from "@/components/AppContext";
+import { standardPreset } from "@/lib/linkDefaults";
 
 export function linkUrl(slug: string) {
   return `${typeof window !== "undefined" ? window.location.origin : "https://dozzier.vercel.app"}/v/${slug}`;
@@ -14,9 +16,14 @@ type Draft = Omit<Link, "id" | "created_at" | "document_id" | "space_id">;
 export function LinkModal({ documentId, spaceId, existing, defaultName, onClose, onSaved }: {
   documentId?: string; spaceId?: string; existing?: Link | null; defaultName?: string; onClose: () => void; onSaved: (l: Link) => void;
 }) {
+  const { profile } = useApp();
+  const preset = standardPreset(profile.settings);
   const initial = useMemo<Draft>(() => existing ? { ...existing } : {
-    name: defaultName || "", slug: slugify(defaultName || "link"), enabled: true, require_email: true, allow_download: false, passcode: null,
-    expires_at: null, watermark: false, require_nda: false, allowed_domains: null, screenshot_protection: false, notify: true,
+    name: defaultName || "", slug: slugify(defaultName || "link"), enabled: true,
+    require_email: preset.require_email.on, allow_download: preset.allow_download.on, passcode: null,
+    expires_at: preset.expiry.on ? new Date(Date.now() + 30 * 86400000).toISOString() : null,
+    watermark: preset.watermark.on, require_nda: preset.require_nda.on, allowed_domains: null, screenshot_protection: false, notify: preset.notify.on,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [existing, defaultName]);
   const [d, setD] = useState<Draft>(initial);
   const [tab, setTab] = useState<"access" | "security" | "branding" | "notifications">("access");
@@ -42,6 +49,8 @@ export function LinkModal({ documentId, spaceId, existing, defaultName, onClose,
     onSaved(res.data as Link);
   }
 
+  const lockKey: Record<string, string> = { "Require email to view": "require_email", "Allow downloads": "allow_download", "Dynamic watermark": "watermark", "Require NDA": "require_nda", "Link expiration": "expiry", "Notify me on every visit": "notify" };
+  const locked = (title: string) => !!preset[lockKey[title]]?.locked;
   const rows: { icon: typeof Mail; title: string; desc: string; on: boolean; set: (v: boolean) => void; extra?: React.ReactNode }[] = [
     { icon: Mail, title: "Require email to view", desc: "Visitors verify their email before the document opens.", on: d.require_email, set: (v) => set("require_email", v) },
     { icon: Download, title: "Allow downloads", desc: "Let visitors download a copy of the file.", on: d.allow_download, set: (v) => set("allow_download", v) },
@@ -72,13 +81,14 @@ export function LinkModal({ documentId, spaceId, existing, defaultName, onClose,
       </div>
       <div className="mt-16"><Tabs tabs={[{ id: "access", label: "Access" }, { id: "security", label: "Security" }, { id: "branding", label: "Branding" }, { id: "notifications", label: "Notifications" }]} value={tab} onChange={setTab} /></div>
       <div className="col mt-8">
-        {tab === "branding" && <p className="muted" style={{ padding: "16px 0" }}>Links use your workspace name and the Dozzier viewer. Custom logos and domains are part of the Standard plan.</p>}
+        {tab === "branding" && <p className="muted" style={{ padding: "16px 0" }}>Links use your workspace branding from Settings → Branding (logo, accent colour and welcome message).</p>}
         {visible.map((r) => (
           <div key={r.title} className="col gap-8" style={{ padding: "12px 0", borderBottom: "1px solid var(--dz-border-subtle)" }}>
             <div className="row gap-12">
               <span className="icon-tile" style={{ width: 28, height: 28, borderRadius: 8, background: r.on ? "var(--dz-bg-brand-subtle)" : "var(--dz-bg-muted)", color: r.on ? "var(--dz-text-brand)" : "var(--dz-text-secondary)" }}><r.icon size={14} /></span>
               <div className="grow"><div className="medium">{r.title}</div><div className="caption muted">{r.desc}</div></div>
-              <Toggle on={r.on} onChange={r.set} />
+              {locked(r.title) && <span className="caption faint row gap-6" title="Locked in Settings → Link defaults"><Lock size={12} />Locked</span>}
+              <Toggle on={r.on} onChange={r.set} disabled={locked(r.title)} />
             </div>
             {r.extra && <div style={{ paddingLeft: 40 }}>{r.extra}</div>}
           </div>

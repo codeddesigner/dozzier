@@ -2,7 +2,8 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Search, Bell, CircleHelp, ChevronLeft, ChevronRight, ChevronDown, LogOut, Settings, FileText, Users, Zap } from "lucide-react";
+import { Search, Bell, CircleHelp, ChevronLeft, ChevronRight, ChevronDown, LogOut, FileText, Users, Zap, Moon, User as UserIcon, Check, Sparkles } from "lucide-react";
+import { applyTheme, type Theme } from "@/components/Theme";
 import { supabase } from "@/lib/supabase";
 import { LogoMark } from "@/components/Logo";
 import { Avatar, ToastHost, toast, DocThumb } from "@/components/ui";
@@ -110,20 +111,56 @@ function Notifications() {
   );
 }
 
-function UserMenu({ profile, email }: { profile: Profile; email: string }) {
+function UserMenu({ profile, email, onHelp }: { profile: Profile; email: string; onHelp: () => void }) {
   const [open, setOpen] = useState(false);
+  const [theme, setThemeState] = useState<Theme>("light");
+  const ref = useRef<HTMLDivElement>(null);
   const router = useRouter();
+  useEffect(() => { try { setThemeState((localStorage.getItem("dz-theme") as Theme) || "light"); } catch {} }, []);
+  useEffect(() => {
+    if (!open) return;
+    const h = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };
+    const k = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
+    document.addEventListener("mousedown", h); window.addEventListener("keydown", k);
+    return () => { document.removeEventListener("mousedown", h); window.removeEventListener("keydown", k); };
+  }, [open]);
+  const go = (href: string) => { setOpen(false); router.push(href); };
+  const pick = (t: Theme) => {
+    setThemeState(t); applyTheme(t);
+    supabase.from("profiles").select("settings").eq("id", profile.id).maybeSingle().then(({ data }) => {
+      const st = (data?.settings || {}) as Record<string, Record<string, unknown>>;
+      supabase.from("profiles").update({ settings: { ...st, prefs: { ...(st.prefs || {}), theme: t } } }).eq("id", profile.id);
+    });
+  };
+  const ws = profile.workspace_name || "My workspace";
   return (
-    <div style={{ position: "relative" }}>
-      <button className="rail-avatar" aria-label="Account" onClick={() => setOpen((o) => !o)}>
+    <div style={{ position: "relative" }} ref={ref}>
+      <button className="rail-avatar" aria-label="Account menu" aria-expanded={open} onClick={() => setOpen((o) => !o)}>
         <Avatar name={profile.full_name} email={email} size={32} color="#ff7a3d" />
       </button>
       {open && (
-        <div className="menu rail-menu" onMouseLeave={() => setOpen(false)}>
-          <div style={{ padding: "8px 10px" }}><div className="medium">{profile.full_name || displayName(email)}</div><div className="micro faint">{email}</div><div className="micro faint">{PLAN_LABEL[profile.plan] || profile.plan}</div></div>
-          <Link href="/app/settings" onClick={() => setOpen(false)}><Settings size={16} />Settings</Link>
-          <Link href="/app/upgrade" onClick={() => setOpen(false)}><Zap size={16} />Upgrade plan</Link>
-          <button onClick={async () => { await supabase.auth.signOut(); router.replace("/login"); }}><LogOut size={16} />Log out</button>
+        <div className="menu rail-menu acct-menu">
+          <div className="row gap-10" style={{ padding: "10px 10px 12px" }}>
+            <Avatar name={profile.full_name} email={email} size={36} color="#ff7a3d" />
+            <div className="col" style={{ minWidth: 0 }}><span className="medium ellipsis">{profile.full_name || displayName(email)}</span><span className="caption muted ellipsis">{email}</span></div>
+          </div>
+          <div className="acct-sep" />
+          <button onClick={() => go("/app/settings/profile")}><UserIcon size={16} />View profile</button>
+          <button onClick={() => go("/app/settings/preferences")}><Moon size={16} /><span className="grow">Preferences</span><span className="caption faint">⌘,</span></button>
+          <button onClick={() => go("/app/settings/notifications")}><Bell size={16} />Notification settings</button>
+          <div className="acct-sep" />
+          <div style={{ padding: "6px 10px 8px" }}>
+            <div className="caption muted" style={{ marginBottom: 6 }}>Theme</div>
+            <div className="segmented acct-theme">{(["light", "dark", "system"] as Theme[]).map((t) => <button key={t} className={theme === t ? "active" : ""} onClick={() => pick(t)}>{t[0].toUpperCase() + t.slice(1)}</button>)}</div>
+          </div>
+          <div className="acct-sep" />
+          <div className="acct-label">Workspaces</div>
+          <button className="acct-ws on" onClick={() => go("/app/settings/general")}><span className="acct-ws-badge">{ws.slice(0, 1).toUpperCase()}</span><span className="grow">{ws}</span><span className="caption faint">{PLAN_LABEL[profile.plan] || profile.plan}</span><Check size={14} className="brand" /></button>
+          <button onClick={() => go("/app/upgrade")}><Zap size={16} />Upgrade plan</button>
+          <div className="acct-sep" />
+          <button onClick={() => { setOpen(false); onHelp(); }}><CircleHelp size={16} />Help &amp; docs</button>
+          <a href="/docs/changelog" target="_blank" rel="noreferrer" onClick={() => setOpen(false)}><Sparkles size={16} />What’s new</a>
+          <button onClick={async () => { await supabase.auth.signOut(); router.replace("/login"); }}><LogOut size={16} />Sign out</button>
         </div>
       )}
     </div>
@@ -162,6 +199,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     } catch {}
     const { data } = await supabase.from("profiles").select("*").eq("id", session.user.id).maybeSingle();
     if (data && !(data as Profile).onboarded_at) { router.replace("/onboarding"); return; }
+    const prefs = ((data as Profile)?.settings || {}).prefs || {};
+    try { if (prefs.theme && !localStorage.getItem("dz-theme")) applyTheme(prefs.theme); } catch {}
+    document.documentElement.classList.toggle("compact", !!prefs.compact);
     setState({ userId: session.user.id, email: session.user.email || "", profile: (data as Profile) || { id: session.user.id, full_name: null, workspace_name: null, plan: "trial", created_at: "" } });
   }, [router]);
 
@@ -191,6 +231,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         const key = e.key.toLowerCase();
         if (key === "l") { e.preventDefault(); router.push("/app/content?new=link"); }
         else if (key === "j") { e.preventDefault(); router.push("/app/ask"); }
+        else if (key === ",") { e.preventDefault(); router.push("/app/settings/preferences"); }
         else if (key === "\\") { e.preventDefault(); setCollapsed((c) => { try { localStorage.setItem("dz-sidebar", c ? "0" : "1"); } catch {} return !c; }); }
       } else if (e.key === "?" && !typing) { setHelp((h) => !h); }
     };
@@ -221,12 +262,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <span className="spacer" />
           <button className="rail-btn" data-label="Search" aria-label="Search" onClick={() => document.getElementById("dz-search")?.focus()}><Search size={18} /></button>
           <button className={`rail-btn ${help ? "on" : ""}`} data-label="Help" aria-label="Help" onClick={() => setHelp((h) => !h)}><CircleHelp size={18} /></button>
-          <UserMenu profile={state.profile} email={state.email} />
+          <UserMenu profile={state.profile} email={state.email} onHelp={() => setHelp(true)} />
         </nav>
         <div className="shell">
           <aside ref={sideRef} className={`sidebar ${collapsed ? "collapsed" : ""}`}>
             <span className="nav-indicator" style={{ transform: `translateY(${ind?.y ?? 0}px)`, height: ind?.h ?? 40, opacity: ind ? 1 : 0 }} />
-            <Link href="/app/settings" className="ws"><span className="h3 ellipsis">{ws}</span><ChevronDown size={16} /></Link>
+            <Link href="/app/settings/general" className="ws"><span className="h3 ellipsis">{ws}</span><ChevronDown size={16} /></Link>
             {NAV_GROUPS.map((g) => (
               <div key={g.label} className="nav-group">
                 <div className="nav-label">{g.label}</div>
@@ -240,7 +281,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               <button className="setup-btn" onClick={async () => { if (state.profile.checklist_dismissed) { await supabase.from("profiles").update({ checklist_dismissed: false }).eq("id", state.userId); await loadProfile(); } router.push("/app"); }}>
                 <SetupRing done={d} total={checklist.length} /><span className="grow" style={{ textAlign: "left" }}>Setup guide</span><span className="faint">{d}/{checklist.length}</span>
               </button>); })()}
-            <Link href="/app/settings" className="invite-btn"><Users size={16} />Invite member</Link>
+            <Link href="/app/settings/members" className="invite-btn"><Users size={16} />Invite member</Link>
           </aside>
           <div className="shell-main">
             <header className="page-header">

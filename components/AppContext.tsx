@@ -6,6 +6,7 @@ export type Profile = {
   team_size?: string | null; job_role?: string | null; use_cases?: string[]; brand_color?: string | null; brand_logo_path?: string | null;
   custom_domain?: string | null; hide_branding?: boolean; invite_link_enabled?: boolean; notify_visits?: boolean; crm_connected?: boolean;
   checklist_dismissed?: boolean; onboarded_at?: string | null;
+  settings?: Record<string, any>; avatar_path?: string | null; job_title?: string | null; bio?: string | null; booking_url?: string | null;
 };
 export type AppCtx = { userId: string; email: string; profile: Profile; refreshProfile: () => Promise<void> };
 

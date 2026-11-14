@@ -10,7 +10,15 @@ import { NDA_TEMPLATE } from "@/components/nda";
 
 type Pub = { link_id: string; name: string; require_email: boolean; has_passcode: boolean; allow_download: boolean; watermark: boolean; require_nda: boolean;
   screenshot_protection: boolean; document_name: string | null; file_type: string | null; page_count: number | null; is_sample: boolean | null; sender: string;
-  space_id: string | null; space_name: string | null; nda_text: string | null };
+  space_id: string | null; space_name: string | null; nda_text: string | null;
+  brand?: { color: string | null; logo_path: string | null; hide_branding: boolean | null; viewer: string; welcome: string | null; show_shared_by: boolean; sender_name: string | null; sender_title: string | null; avatar_path: string | null; booking_url: string | null } };
+
+function BrandAsset({ path, alt, style }: { path: string | null | undefined; alt: string; style?: React.CSSProperties }) {
+  const [url, setUrl] = useState<string | null>(null);
+  useEffect(() => { if (path) supabase.storage.from(BUCKET).createSignedUrl(path, 3600).then(({ data }) => setUrl(data?.signedUrl || null)); }, [path]);
+  // eslint-disable-next-line @next/next/no-img-element
+  return url ? <img src={url} alt={alt} style={style} /> : null;
+}
 type Started = { visit_id: string; file_path: string | null; mime_type: string | null; file_type: string; page_count: number; is_sample: boolean; email: string | null; name: string; note: string | null };
 type SpaceItem = { id: string; kind: "folder" | "document"; name: string; parent_id: string | null; document_id: string | null; file_path: string | null; mime_type: string | null; file_type: string; note: string | null; page_count: number; is_sample: boolean };
 type SpaceData = { name: string; subtitle: string | null; banner: string; items: SpaceItem[] };
@@ -74,14 +82,17 @@ export default function Viewer() {
 
   if (!visit) {
     const title = pub.space_id ? pub.space_name : pub.document_name;
+    const b = pub.brand;
+    const accent = b?.color && /^#[0-9a-f]{6}$/i.test(b.color) ? b.color : undefined;
     return (
-      <div className="viewer">
+      <div className={`viewer ${b?.viewer === "light" ? "viewer-light" : ""}`}>
         <Bar counter={pub.page_count ? `1 / ${pub.is_sample ? 12 : pub.page_count}` : undefined} />
         <div className="viewer-stage">
           <div className="blurred-page" />
           <form className="gate" style={{ position: "relative" }} onSubmit={(e) => { e.preventDefault(); if (pub.require_nda && !nda) return setErr("Please accept the agreement to continue"); start(pub, email, pass); }}>
-            <div style={{ alignSelf: "center" }}><AppIcon size={36} /></div>
+            <div style={{ alignSelf: "center" }}>{b?.logo_path ? <BrandAsset path={b.logo_path} alt={pub.sender} style={{ height: 36, maxWidth: 160, objectFit: "contain" }} /> : <AppIcon size={36} />}</div>
             <div className="h3 center" style={{ fontSize: 19 }}>{pub.sender} shared “{title}”</div>
+            {b?.welcome && <p className="caption center" style={{ color: "var(--dz-text-secondary)" }}>{b.welcome}</p>}
             <p className="caption muted center">{pub.require_email ? "Enter your email to view. The sender will see that you opened it." : "Enter the details below to view."}</p>
             {pub.require_email && <label className="field"><span className="label">Email</span><input className="input" type="email" required autoFocus value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@company.com" /></label>}
             {pub.has_passcode && <label className="field"><span className="label">Passcode</span><input className="input" type="password" required value={pass} onChange={(e) => setPass(e.target.value)} /></label>}
@@ -92,8 +103,15 @@ export default function Viewer() {
               </div>
             )}
             {err && <p className="error-text">{err}</p>}
-            <button className="btn btn-primary btn-block" disabled={busy}>{busy ? "Opening…" : "Continue"}</button>
-            <p className="caption faint row gap-6" style={{ justifyContent: "center" }}><ShieldCheck size={14} />Secured by Dozzier</p>
+            <button className="btn btn-primary btn-block" disabled={busy} style={accent ? { background: accent } : undefined}>{busy ? "Opening…" : "Continue"}</button>
+            {b?.show_shared_by && b.sender_name && (
+              <div className="row gap-10" style={{ borderTop: "1px solid var(--dz-border-subtle)", paddingTop: 12 }}>
+                {b.avatar_path ? <BrandAsset path={b.avatar_path} alt="" style={{ width: 32, height: 32, borderRadius: 999, objectFit: "cover" }} /> : <Avatar name={b.sender_name} size={32} color="#ff7a3d" />}
+                <div className="col grow"><span className="medium caption">{b.sender_name}</span><span className="micro faint">{[b.sender_title, pub.sender].filter(Boolean).join(" · ")}</span></div>
+                {b.booking_url && <a href={b.booking_url} target="_blank" rel="noreferrer" className="btn btn-secondary btn-s">Book a call</a>}
+              </div>
+            )}
+            {!b?.hide_branding && <p className="caption faint row gap-6" style={{ justifyContent: "center" }}><ShieldCheck size={14} />Secured by Dozzier</p>}
           </form>
         </div>
       </div>

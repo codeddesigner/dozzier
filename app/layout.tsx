@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { MotionRoot } from "@/components/Motion";
+import { THEME_BOOT } from "@/lib/theme";
 
 export const metadata: Metadata = {
   title: "Dozzier — Share documents. Know what happens next.",
@@ -15,7 +16,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="preload" href="/fonts/Kolosa-Regular.woff" as="font" type="font/woff" crossOrigin="" />
         <link rel="preload" href="/fonts/Kolosa-Medium.woff" as="font" type="font/woff" crossOrigin="" />
         <link rel="preload" href="/fonts/Kolosa-SemiBold.woff" as="font" type="font/woff" crossOrigin="" />
-        <script dangerouslySetInnerHTML={{ __html: "document.documentElement.classList.add('motion')" }} />
+        <script dangerouslySetInnerHTML={{ __html: "document.documentElement.classList.add('motion');" + THEME_BOOT }} />
       </head>
       <body><MotionRoot />{children}</body>
     </html>
