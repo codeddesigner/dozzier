@@ -1,4 +1,5 @@
 "use client";
+import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { User, Moon, Bell, Mail, KeyRound, Settings2, Users, Link2, Palette, Globe, Plug, Code2, CreditCard, ShieldCheck } from "lucide-react";
@@ -26,8 +27,15 @@ const SETTINGS_NAV = [
 
 export default function SettingsLayout({ children }: { children: React.ReactNode }) {
   const path = usePathname();
+  const strip = useRef<HTMLDivElement>(null);
+  useEffect(() => { strip.current?.querySelector<HTMLElement>(".on")?.scrollIntoView({ inline: "center", block: "nearest" }); }, [path]);
   return (
     <div className="set-shell">
+      <nav className="set-mnav" aria-label="Settings sections" ref={strip}>
+        {SETTINGS_NAV.flatMap((g) => g.items).map((i) => (
+          <Link key={i.href} href={i.href} className={path.startsWith(i.href) ? "on" : ""}><i.icon size={14} />{i.label}</Link>
+        ))}
+      </nav>
       <nav className="set-nav" aria-label="Settings">
         <div className="h2" style={{ padding: "0 8px 12px" }}>Settings</div>
         {SETTINGS_NAV.map((g) => (

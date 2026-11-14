@@ -34,8 +34,8 @@ export default async function Legal({ params }: { params: Promise<{ slug: string
   if (!p) return notFound();
   return (
     <div style={{ minHeight: "100vh" }}>
-      <header className="docs-head" style={{ height: 88 }}><Link href="/"><Logo height={28} /></Link><span className="spacer" />
-        {Object.entries(PAGES).map(([k, v]) => <Link key={k} href={`/legal/${k}`} className={k === slug ? "medium" : "muted"} style={{ fontSize: 14 }}>{v.title === "Data Processing Agreement" ? "DPA" : v.title}</Link>)}
+      <header className="docs-head legal-head" style={{ height: 88 }}><Link href="/"><Logo height={28} /></Link><span className="spacer" />
+        <nav className="legal-nav">{Object.entries(PAGES).map(([k, v]) => <Link key={k} href={`/legal/${k}`} className={k === slug ? "medium" : "muted"} style={{ fontSize: 14 }}>{v.title === "Data Processing Agreement" ? "DPA" : v.title}</Link>)}</nav>
       </header>
       <main className="cl-wrap">
         <h1 className="display-l h-in">{p.title}</h1>

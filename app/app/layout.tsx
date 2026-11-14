@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Inbox as InboxIcon, Folder as FolderIcon, Building2, Settings as SettingsIcon, Search, Bell, CircleHelp, ChevronLeft, ChevronRight, ChevronDown, LogOut, FileText, Users, Zap, Moon, User as UserIcon, Check, Sparkles } from "lucide-react";
+import { LayoutGrid, Inbox as InboxIcon, Folder as FolderIcon, Building2, Settings as SettingsIcon, Search, Bell, CircleHelp, ChevronLeft, ChevronRight, ChevronDown, LogOut, FileText, Users, Zap, Moon, User as UserIcon, Check, Sparkles } from "lucide-react";
 import { applyTheme, type Theme } from "@/components/Theme";
 import { supabase } from "@/lib/supabase";
 import { LogoMark } from "@/components/Logo";
@@ -97,6 +97,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<{ userId: string; email: string; profile: Profile } | null>(null);
   const [collapsed, setCollapsed] = useState(false);
   const [help, setHelp] = useState(false);
+  const [more, setMore] = useState(false);
+  useEffect(() => setMore(false), [path]);
   const checklist = useChecklist(state?.userId || null, state?.profile || null);
   const sideRef = useRef<HTMLElement>(null);
   const [ind, setInd] = useState<{ y: number; h: number } | null>(null);
@@ -214,7 +216,29 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               {[{ href: "/app/inbox", label: "Inbox", I: InboxIcon }, { href: "/app/content", label: "Content", I: FolderIcon }, { href: "/app/accounts", label: "Accounts", I: Building2 }, { href: "/app/settings", label: "Settings", I: SettingsIcon }].map((t) => (
                 <Link key={t.href} href={t.href} className={path.startsWith(t.href) || (t.href === "/app/inbox" && path === "/app") ? "on" : ""}><t.I size={20} /><span>{t.label}</span></Link>
               ))}
+              <button className={more ? "on" : ""} onClick={() => setMore((m) => !m)} aria-expanded={more}><LayoutGrid size={20} /><span>More</span></button>
             </nav>
+            {more && (
+              <div className="mob-sheet-back" onClick={() => setMore(false)}>
+                <div className="mob-sheet" onClick={(e) => e.stopPropagation()} role="dialog" aria-label="All sections">
+                  <span className="mob-grab" />
+                  <div className="row gap-10" style={{ padding: "4px 4px 12px" }}><span className="h3 grow ellipsis">{ws}</span><button className="btn btn-secondary btn-s" onClick={() => { setMore(false); openPalette(); }}><Search size={14} />Search</button></div>
+                  {NAV_GROUPS.map((g) => (
+                    <div key={g.label} className="mob-sheet-group">
+                      <div className="nav-label">{g.label}</div>
+                      <div className="mob-sheet-grid">
+                        {g.items.map((n) => <Link key={n.href} href={n.href} className={isActive(n.href) ? "on" : ""}><n.icon size={20} /><span>{n.label}</span></Link>)}
+                      </div>
+                    </div>
+                  ))}
+                  <div className="mob-sheet-foot">
+                    <button onClick={() => { setMore(false); setHelp(true); }}><CircleHelp size={16} />Help</button>
+                    <Link href="/app/upgrade"><Zap size={16} />Upgrade</Link>
+                    <button onClick={async () => { await supabase.auth.signOut(); router.replace("/login"); }}><LogOut size={16} />Sign out</button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
         <HelpPanel open={help} onClose={() => setHelp(false)} />

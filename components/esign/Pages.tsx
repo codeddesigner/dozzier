@@ -1,5 +1,5 @@
 "use client";
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { DocRenderer } from "@/components/DocRenderer";
 
 /** Renders every page of an agreement PDF at a fixed width, with an overlay layer per page (coords in 0–1). */
@@ -10,14 +10,20 @@ export function Pages({ url, count, width = 640, overlay, onDrop, onPageDown }: 
   onPageDown?: (page: number) => void;
 }) {
   const refs = useRef<(HTMLDivElement | null)[]>([]);
+  const box = useRef<HTMLDivElement>(null);
+  const [w, setW] = useState(width);
+  useEffect(() => {
+    const fit = () => { const cw = box.current?.parentElement?.clientWidth || width; setW(Math.max(260, Math.min(width, cw - 24))); };
+    fit(); window.addEventListener("resize", fit); return () => window.removeEventListener("resize", fit);
+  }, [width]);
   return (
-    <div className="es-pages">
+    <div className="es-pages" ref={box}>
       {Array.from({ length: Math.min(count, 30) }, (_, i) => (
         <div key={i} className="es-page" data-page={i + 1} ref={(el) => { refs.current[i] = el; }}
           onPointerDown={() => onPageDown?.(i + 1)}
           onDragOver={(e) => onDrop && e.preventDefault()}
           onDrop={(e) => { if (!onDrop) return; e.preventDefault(); const r = refs.current[i]!.getBoundingClientRect(); onDrop(i + 1, (e.clientX - r.left) / r.width, (e.clientY - r.top) / r.height, e); }}>
-          <DocRenderer source={{ kind: "pdf", url }} page={i} maxW={width} maxH={width * 3} />
+          <DocRenderer source={{ kind: "pdf", url }} page={i} maxW={w} maxH={w * 3} />
           <div className="es-overlay">{overlay(i + 1)}</div>
           <span className="es-pnum">{i + 1}</span>
         </div>

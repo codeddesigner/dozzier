@@ -245,7 +245,7 @@ function Integrations() {
           ))}
           <div><Link href="/signup" className="btn btn-secondary">See all integrations</Link></div>
         </div>
-        <div className="int-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4, 100px)", gap: 16 }} data-stagger="45" data-stagger-variant="pop">
+        <div className="int-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 100px))", gap: 16 }} data-stagger="45" data-stagger-variant="pop">
           {INTEGRATIONS.map((n) => (
             <div className="int-tile" key={n}><AppLogo name={n} /><span>{n}</span></div>
           ))}
