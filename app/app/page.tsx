@@ -9,6 +9,7 @@ import { Avatar, Kpi, Loading, Tabs, useLoad, DocThumb } from "@/components/ui";
 import { LineChart, dailySeries } from "@/components/charts";
 import { displayName, duration, timeAgo, intentScore, intentLevel } from "@/lib/format";
 import { UploadModal } from "@/components/UploadModal";
+import { GettingStarted, useChecklist } from "@/components/GettingStarted";
 
 type V = {
   id: string; visitor_email: string | null; duration_seconds: number; downloaded: boolean; started_at: string; link_id: string | null; document_id: string | null;
@@ -22,7 +23,9 @@ function greeting() {
 }
 
 export default function Dashboard() {
-  const { profile } = useApp();
+  const { profile, userId } = useApp();
+  const checklist = useChecklist(userId, profile);
+  const onboarding = !profile.checklist_dismissed && !!checklist && checklist.some((i) => !i.done);
   const router = useRouter();
   const [days, setDays] = useState(30);
   const [tab, setTab] = useState<"visitors" | "content" | "links" | "spaces" | "chart">("visitors");
@@ -78,8 +81,9 @@ export default function Dashboard() {
 
   return (
     <div className="content">
-      <div className="muted body-m">{greeting()}{first ? `, ${first}` : ""}</div>
-      <div className="row gap-12 wrap"><h1 className="page-title grow">See what’s new</h1><button className="btn btn-dark" onClick={() => setUpload(true)}><Upload size={16} />Upload</button></div>
+      <div className="muted body-m">{onboarding ? `Welcome to Dozzier${first ? `, ${first}` : ""}` : `${greeting()}${first ? `, ${first}` : ""}`}</div>
+      <div className="row gap-12 wrap"><h1 className="page-title grow">{onboarding ? "Let’s get your first link out" : "See what’s new"}</h1><button className="btn btn-dark" onClick={() => setUpload(true)}><Upload size={16} />Upload</button></div>
+      {onboarding && <GettingStarted onUpload={() => setUpload(true)} />}
       <div className="row gap-8 mt-24">
         <label className="chip"><Calendar size={16} />
           <select value={days} onChange={(e) => setDays(+e.target.value)} aria-label="Date range">

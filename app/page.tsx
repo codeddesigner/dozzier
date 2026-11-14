@@ -11,6 +11,7 @@ import { NAV_GROUPS, APPS } from "@/components/nav";
 import { LogoMark } from "@/components/Logo";
 import { PricingCards } from "@/components/Pricing";
 import { Avatar } from "@/components/ui";
+import { AppLogo, INTEGRATIONS } from "@/components/AppLogo";
 
 const DEMO = "mailto:sales@dozzier.io?subject=Dozzier%20demo";
 
@@ -144,14 +145,14 @@ function AiCardBody({ title, body }: { title: string; body: string }) {
 
 function Logos() {
   const items: [string, React.CSSProperties][] = [
-    ["northwind", { fontSize: 28, fontWeight: 700, letterSpacing: -1 }], ["Halcyon Capital", { fontSize: 22, fontFamily: "Georgia, serif" }],
-    ["LUMEN BIO", { fontSize: 20, fontWeight: 600, letterSpacing: 3 }], ["arcadia", { fontSize: 28, fontStyle: "italic", fontFamily: "Georgia, serif" }],
-    ["Foundry & Co.", { fontSize: 24, fontWeight: 600 }], ["KESTREL", { fontSize: 22, fontWeight: 800, letterSpacing: 2 }],
+    ["northwind", { fontSize: 24, fontWeight: 700, letterSpacing: "-0.03em" }], ["Halcyon Capital", { fontSize: 20, fontWeight: 600, letterSpacing: "-0.02em" }],
+    ["LUMEN BIO", { fontSize: 18, fontWeight: 300, letterSpacing: "0.18em" }], ["arcadia", { fontSize: 24, fontWeight: 600, letterSpacing: "-0.03em" }],
+    ["Foundry & Co.", { fontSize: 22, fontWeight: 400, letterSpacing: "-0.02em" }], ["KESTREL", { fontSize: 20, fontWeight: 700, letterSpacing: "0.16em" }],
   ];
   return (
     <section style={{ padding: "56px 24px", borderTop: "1px solid var(--dz-border-subtle)", borderBottom: "1px solid var(--dz-border-subtle)" }}>
-      <p className="center muted medium" style={{ marginBottom: 28 }}>Trusted by founders, sales teams and dealmakers at 4,000+ companies</p>
-      <div className="logos" style={{ maxWidth: 1032, margin: "0 auto" }}>{items.map(([n, s]) => <span key={n} style={s}>{n}</span>)}</div>
+      <p className="center muted" style={{ marginBottom: 28 }}>Trusted by founders, sales teams and dealmakers at 4,000+ companies</p>
+      <div className="logos" style={{ maxWidth: 1018, margin: "0 auto", color: "#6b7280" }}>{items.map(([n, s]) => <span key={n} style={s}>{n}</span>)}</div>
     </section>
   );
 }
@@ -267,12 +268,6 @@ function Features() {
 }
 
 function Integrations() {
-  const apps: [string, string, string][] = [
-    ["HubSpot", "#ff7a59", "Hs"], ["Salesforce", "#00a1e0", "Sf"], ["Pipedrive", "", "Pd"], ["Slack", "#4a154b", "Sl"],
-    ["Teams", "", "Mt"], ["Gmail", "#ea4335", "M"], ["Outlook", "", "Ol"], ["Zoom", "", "Zm"],
-    ["Zapier", "#ff4f00", "Z"], ["Notion", "", "No"], ["Google Drive", "#1fa463", "▲"], ["Dropbox", "", "Db"],
-    ["Box", "", "Bx"], ["OneDrive", "", "Od"], ["SharePoint", "", "Sp"],
-  ];
   return (
     <section className="lp-section" id="integrations">
       <div className="lp-container grid-2" style={{ display: "grid", gridTemplateColumns: "560px 1fr", gap: 80, alignItems: "center" }}>
@@ -286,11 +281,8 @@ function Integrations() {
           <div><Link href="/signup" className="btn btn-secondary">See all integrations</Link></div>
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 100px)", gap: 16 }}>
-          {apps.map(([n, c, ab]) => (
-            <div className="int-tile" key={n}>
-              <span className="int-logo" style={c ? { color: c } : { border: "1.5px dashed var(--dz-border-strong)", color: "var(--dz-text-tertiary)" }}>{ab}</span>
-              <span className="micro muted">{n}</span>
-            </div>
+          {INTEGRATIONS.map((n) => (
+            <div className="int-tile" key={n}><AppLogo name={n} /><span>{n}</span></div>
           ))}
         </div>
       </div>

@@ -8,6 +8,7 @@ import { LogoMark } from "@/components/Logo";
 import { Avatar, ToastHost, toast, DocThumb } from "@/components/ui";
 import { NAV_GROUPS, NAV_ALL, APPS } from "@/components/nav";
 import { Ctx, Profile } from "@/components/AppContext";
+import { useChecklist } from "@/components/GettingStarted";
 import { displayName, timeAgo } from "@/lib/format";
 
 const PLAN_LABEL: Record<string, string> = { trial: "Free trial", personal: "Personal", standard: "Standard", datarooms: "Advanced Data Rooms" };
@@ -143,11 +144,16 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const path = usePathname();
   const [state, setState] = useState<{ userId: string; email: string; profile: Profile } | null>(null);
   const [collapsed, setCollapsed] = useState(false);
+  const checklist = useChecklist(state?.userId || null, state?.profile || null);
 
   const loadProfile = useCallback(async () => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) { router.replace("/login"); return; }
+    try {
+      if (localStorage.getItem("dz-session-only") && !sessionStorage.getItem("dz-alive")) { await supabase.auth.signOut(); router.replace("/login"); return; }
+    } catch {}
     const { data } = await supabase.from("profiles").select("*").eq("id", session.user.id).maybeSingle();
+    if (data && !(data as Profile).onboarded_at) { router.replace("/onboarding"); return; }
     setState({ userId: session.user.id, email: session.user.email || "", profile: (data as Profile) || { id: session.user.id, full_name: null, workspace_name: null, plan: "trial", created_at: "" } });
   }, [router]);
 
@@ -206,7 +212,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               </div>
             ))}
             <div className="spacer" />
-            <Link href="/app/help" className="setup-btn"><SetupRing done={3} total={5} /><span className="grow">Setup guide</span><span className="faint">3/5</span></Link>
+            {checklist && (() => { const d = checklist.filter((i) => i.done).length; return (
+              <button className="setup-btn" onClick={async () => { if (state.profile.checklist_dismissed) { await supabase.from("profiles").update({ checklist_dismissed: false }).eq("id", state.userId); await loadProfile(); } router.push("/app"); }}>
+                <SetupRing done={d} total={checklist.length} /><span className="grow" style={{ textAlign: "left" }}>Setup guide</span><span className="faint">{d}/{checklist.length}</span>
+              </button>); })()}
             <Link href="/app/settings" className="invite-btn"><Users size={16} />Invite member</Link>
           </aside>
           <div className="shell-main">
