@@ -1,7 +1,7 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
-import { ChevronLeft, ChevronRight, Maximize, ZoomIn, ZoomOut, Download, Printer, Flag, CircleHelp, ShieldCheck, Folder, ArrowLeft, FileText } from "lucide-react";
+import { ChevronLeft, ChevronRight, Maximize, ZoomIn, ZoomOut, Download, Printer, Flag, CircleHelp, ShieldCheck, Folder, ArrowLeft, FileText, MessageSquare, CalendarDays, X } from "lucide-react";
 import { supabase, BUCKET } from "@/lib/supabase";
 import { Logo, AppIcon } from "@/components/Logo";
 import { Avatar } from "@/components/ui";
@@ -40,7 +40,11 @@ export default function Viewer() {
     supabase.rpc("get_public_link", { p_slug: slug }).then(({ data }) => {
       const p = (data as Pub) || null;
       setPub(p);
-      try { const saved = localStorage.getItem("dz-viewer-email"); if (saved) setEmail(saved); } catch {}
+      try {
+        const pre = new URLSearchParams(window.location.search).get("email");
+        const saved = localStorage.getItem("dz-viewer-email");
+        if (pre) setEmail(pre); else if (saved) setEmail(saved);
+      } catch {}
       if (p && !p.require_email && !p.has_passcode && !p.require_nda) start(p, "", "");
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -167,6 +171,8 @@ function Reader({ pub, visit, doc, onBack }: { pub: Pub; visit: Started; doc: { 
   const [zoom, setZoom] = useState(1);
   const [box, setBox] = useState({ w: 1040, h: 585 });
   const [hidden, setHidden] = useState(false);
+  const [qOpen, setQOpen] = useState(false);
+  useEffect(() => { if (window.innerWidth > 1100) setQOpen(true); }, []);
   const last = useRef(Date.now());
   const pageRef = useRef(0);
 
@@ -188,7 +194,7 @@ function Reader({ pub, visit, doc, onBack }: { pub: Pub; visit: Started; doc: { 
   const go = useCallback((n: number) => { flush(); const p = Math.max(0, Math.min(pages - 1, n)); pageRef.current = p; setPage(p); }, [flush, pages]);
 
   useEffect(() => {
-    const fit = () => setBox({ w: Math.min(1100, window.innerWidth - (window.innerWidth < 700 ? 32 : 220)), h: window.innerHeight - 200 });
+    const fit = () => setBox({ w: Math.min(1100, window.innerWidth - (window.innerWidth < 700 ? 32 : 220) - (qOpen && window.innerWidth > 900 ? 320 : 0)), h: window.innerHeight - 200 });
     fit(); window.addEventListener("resize", fit);
     const k = (e: KeyboardEvent) => { if (e.key === "ArrowRight" || e.key === " ") go(pageRef.current + 1); if (e.key === "ArrowLeft") go(pageRef.current - 1); };
     window.addEventListener("keydown", k);
@@ -196,7 +202,7 @@ function Reader({ pub, visit, doc, onBack }: { pub: Pub; visit: Started; doc: { 
     const focus = () => setHidden(false);
     window.addEventListener("blur", blur); window.addEventListener("focus", focus);
     return () => { window.removeEventListener("resize", fit); window.removeEventListener("keydown", k); window.removeEventListener("blur", blur); window.removeEventListener("focus", focus); };
-  }, [go, pub.screenshot_protection]);
+  }, [go, pub.screenshot_protection, qOpen]);
 
   async function download() {
     if (!doc.path) return;
@@ -220,6 +226,7 @@ function Reader({ pub, visit, doc, onBack }: { pub: Pub; visit: Started; doc: { 
           {pub.allow_download && <button className="vb-icon hide-sm" aria-label="Print" onClick={() => window.print()}><Printer size={18} /></button>}
           <span className="hide-sm" style={{ width: 1, height: 22, background: "#374151", margin: "0 8px" }} />
           {visit.email && <Avatar email={visit.email} size={30} />}
+          <button className={`vb-icon ${qOpen ? "on" : ""}`} aria-label="Questions" aria-pressed={qOpen} onClick={() => setQOpen((o) => !o)}><MessageSquare size={18} /></button>
           <a className="vb-icon hide-sm" aria-label="Report" href={`mailto:abuse@dozzier.io?subject=Report%20link%20${encodeURIComponent(location.pathname)}`}><Flag size={18} /></a>
           <a className="vb-icon hide-sm" aria-label="Help" href="/" target="_blank" rel="noreferrer"><CircleHelp size={18} /></a>
         </div>
@@ -232,8 +239,60 @@ function Reader({ pub, visit, doc, onBack }: { pub: Pub; visit: Started; doc: { 
         {multi && <button className="viewer-nav hide-sm" disabled={page >= pages - 1} onClick={() => go(page + 1)} aria-label="Next page"><ChevronRight size={18} /></button>}
       </div>
       {multi && pages <= 40 && (
-        <div className="viewer-thumbs">{Array.from({ length: pages }, (_, i) => <button key={i} className={i === page ? "active" : ""} onClick={() => go(i)} aria-label={`Page ${i + 1}`} />)}</div>
+        <div className="viewer-thumbs" style={qOpen ? { paddingRight: 320 } : undefined}>{Array.from({ length: pages }, (_, i) => <button key={i} className={i === page ? "active" : ""} onClick={() => go(i)} aria-label={`Page ${i + 1}`} />)}</div>
       )}
+      {qOpen && <QuestionsPanel visitId={visit.visit_id} page={page + 1} brand={pub.brand} sender={pub.sender} onClose={() => setQOpen(false)} onJump={(n) => go(n - 1)} />}
     </div>
+  );
+}
+
+type Q = { id: string; page_number: number; body: string; answer: string | null; created_at: string; mine: boolean; asker: string; answerer: string | null };
+
+function QuestionsPanel({ visitId, page, brand, sender, onClose, onJump }: { visitId: string; page: number; brand?: Pub["brand"]; sender: string; onClose: () => void; onJump: (n: number) => void }) {
+  const [qs, setQs] = useState<Q[]>([]);
+  const [scope, setScope] = useState<"page" | "all">("all");
+  const [text, setText] = useState("");
+  const [anon, setAnon] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [sent, setSent] = useState(false);
+  const load = useCallback(() => supabase.rpc("visit_questions", { p_visit_id: visitId }).then(({ data }) => setQs((data as Q[]) || [])), [visitId]);
+  useEffect(() => { load(); const t = setInterval(load, 15000); return () => clearInterval(t); }, [load]);
+  const list = scope === "page" ? qs.filter((q) => q.page_number === page) : qs;
+  async function ask() {
+    if (!text.trim()) return;
+    setBusy(true);
+    const { error } = await supabase.rpc("ask_question", { p_visit_id: visitId, p_page: page, p_body: text.trim(), p_anonymous: anon });
+    setBusy(false);
+    if (error) return;
+    setText(""); setSent(true); setTimeout(() => setSent(false), 3000); load();
+  }
+  const who = brand?.sender_name?.split(" ")[0] || sender;
+  return (
+    <aside className="q-panel" aria-label="Questions">
+      <div className="row" style={{ padding: "18px 18px 10px" }}><span className="h3 grow">Questions</span><button className="icon-btn s" aria-label="Close questions" onClick={onClose}><X size={16} /></button></div>
+      <div style={{ padding: "0 18px" }}>
+        <div className="segmented">{(["page", "all"] as const).map((sc) => <button key={sc} className={scope === sc ? "active" : ""} onClick={() => setScope(sc)}>{sc === "page" ? "This page" : `All${qs.length ? ` (${qs.length})` : ""}`}</button>)}</div>
+      </div>
+      <div className="q-list">
+        {list.length === 0 && <p className="caption muted" style={{ padding: "8px 2px" }}>{scope === "page" ? `No questions on page ${page} yet.` : "No questions yet — ask anything about this document."}</p>}
+        {list.map((q) => (
+          <div key={q.id} className="q-card">
+            <div className="row"><button className="tag" onClick={() => onJump(q.page_number)}>Page {q.page_number}</button><span className="spacer" />{q.answer ? <span className="badge badge-success">Answered</span> : <span className="badge badge-muted">Waiting</span>}</div>
+            <div className="caption medium">{q.mine ? "You" : q.asker}</div>
+            <p style={{ fontSize: 14 }}>{q.body}</p>
+            {q.answer && <div className="q-answer"><span className="caption medium">{q.answerer || sender}</span><p style={{ fontSize: 14 }}>{q.answer}</p></div>}
+          </div>
+        ))}
+      </div>
+      <div className="q-ask">
+        <textarea className="input" rows={3} placeholder={`Ask about page ${page}…`} value={text} onChange={(e) => setText(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) ask(); }} />
+        <div className="row"><label className="checkbox caption grow"><input type="checkbox" checked={anon} onChange={(e) => setAnon(e.target.checked)} />Ask anonymously</label>
+          <button className="btn btn-primary btn-s" disabled={busy || !text.trim()} onClick={ask}>{busy ? "Sending…" : "Ask"}</button></div>
+        {sent && <span className="caption cycle-item" style={{ color: "var(--dz-text-success)" }}>Sent — {who} will reply right here.</span>}
+      </div>
+      {brand?.booking_url && (
+        <a className="q-book" href={brand.booking_url} target="_blank" rel="noreferrer"><CalendarDays size={16} /><span className="col grow"><span className="medium">Talk to {who}</span><span className="caption muted">Book a call</span></span><span className="btn btn-primary btn-s">Book</span></a>
+      )}
+    </aside>
   );
 }

@@ -1033,3 +1033,61 @@ html[data-theme="dark"] .app-logo:not(.mono) { background: #fff; }
   .motion [data-reveal] { opacity: 1; transform: none; filter: none; }
   .marquee-track { animation: none; }
 }
+
+/* ===== Visitor Q&A panel (viewer) ===== */
+.viewer-bar .vb-icon.on { background: rgba(255,255,255,.14); color: #fff; }
+.q-panel { position: fixed; top: 60px; right: 0; bottom: 0; width: 320px; background: var(--dz-bg-surface); color: var(--dz-text-primary); border-left: 1px solid var(--dz-border-default); display: flex; flex-direction: column; z-index: 30; box-shadow: -12px 0 32px rgba(17,24,39,.18); animation: q-in .32s cubic-bezier(.2,.8,.2,1); }
+@keyframes q-in { from { transform: translateX(24px); opacity: 0; } to { transform: none; opacity: 1; } }
+.q-panel .segmented { margin: 0 18px 8px; }
+.q-list { flex: 1; overflow-y: auto; padding: 4px 18px 12px; display: flex; flex-direction: column; gap: 10px; }
+.q-card { border: 1px solid var(--dz-border-default); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 6px; background: var(--dz-bg-surface); animation: rise .35s ease both; }
+.q-card .tag { cursor: pointer; }
+.q-answer { border-left: 2px solid var(--dz-bg-brand); background: var(--dz-bg-subtle, #f9fafb); border-radius: 0 8px 8px 0; padding: 8px 10px; display: flex; flex-direction: column; gap: 2px; }
+.q-ask { border-top: 1px solid var(--dz-border-default); padding: 12px 18px; display: flex; flex-direction: column; gap: 8px; }
+.q-ask textarea { resize: none; }
+.q-book { margin: 0 18px 16px; display: flex; align-items: center; gap: 10px; padding: 12px; border-radius: 10px; border: 1px solid var(--dz-border-default); color: inherit; text-decoration: none; transition: border-color .2s, transform .2s; }
+.q-book:hover { border-color: var(--dz-border-focus); transform: translateY(-1px); }
+.viewer-light .q-panel { box-shadow: -12px 0 32px rgba(17,24,39,.08); }
+@media (max-width: 720px) { .q-panel { width: 100%; } }
+
+/* ===== Notifications menu ===== */
+.hdr-icon { position: relative; }
+.notif-dot { position: absolute; top: 6px; right: 6px; width: 8px; height: 8px; border-radius: 50%; background: #ef4444; box-shadow: 0 0 0 2px var(--dz-bg-surface); animation: pulse-dot 2s ease-in-out infinite; }
+@keyframes pulse-dot { 0%,100% { transform: scale(1); } 50% { transform: scale(1.25); } }
+.notif-menu { position: absolute; right: 0; top: calc(100% + 8px); width: 400px; max-width: calc(100vw - 24px); padding: 0; z-index: 60; display: flex; flex-direction: column; animation: menu-in .2s ease; transform-origin: top right; }
+@keyframes menu-in { from { opacity: 0; transform: translateY(-4px) scale(.98); } to { opacity: 1; transform: none; } }
+.notif-list { max-height: 420px; overflow-y: auto; border-top: 1px solid var(--dz-border-default); }
+.notif-item { display: flex; align-items: flex-start; gap: 10px; padding: 12px 14px; color: inherit; text-decoration: none; border-bottom: 1px solid var(--dz-border-default); transition: background .15s; animation: rise .3s ease both; }
+.notif-item:hover { background: var(--dz-bg-hover, #f9fafb); }
+.notif-item.unread { background: color-mix(in srgb, var(--dz-bg-brand) 5%, transparent); }
+.notif-unread { width: 8px; height: 8px; border-radius: 50%; background: var(--dz-bg-brand); flex-shrink: 0; margin-top: 6px; }
+.notif-foot { display: block; text-align: center; padding: 10px; font-size: 13px; color: var(--dz-text-brand); text-decoration: none; }
+.notif-foot:hover { background: var(--dz-bg-hover, #f9fafb); }
+
+/* ===== Visitor deep-dive ===== */
+.dd-grid { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+.heatmap { display: grid; grid-template-columns: repeat(auto-fill, minmax(64px, 1fr)); gap: 10px; }
+.heat-cell-wrap { display: flex; flex-direction: column; gap: 4px; animation: rise .4s ease both; }
+.heat-cell { aspect-ratio: 3 / 4; border-radius: 6px; border: 1px solid var(--dz-border-default); background: var(--dz-bg-surface); transition: transform .2s; }
+.heat-cell:hover { transform: translateY(-2px); }
+.heat-cell.skimmed, .heat-key.skimmed { background: #dbeafe; border-color: #bfdbfe; }
+.heat-cell.read, .heat-key.read { background: #60a5fa; border-color: #3b82f6; }
+.heat-cell.studied, .heat-key.studied { background: #1d4ed8; border-color: #1e40af; }
+.heat-key { width: 12px; height: 12px; border-radius: 3px; display: inline-block; border: 1px solid; }
+.timeline { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 14px; position: relative; }
+.timeline::before { content: ""; position: absolute; left: 13px; top: 6px; bottom: 6px; width: 1px; background: var(--dz-border-default); }
+.timeline li { display: flex; gap: 12px; align-items: flex-start; position: relative; animation: rise .35s ease both; }
+.tl-dot { width: 27px; height: 27px; flex-shrink: 0; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; background: var(--dz-bg-surface); border: 1px solid var(--dz-border-default); color: var(--dz-text-secondary); }
+.tl-dot.forward { color: #7c3aed; border-color: #ddd6fe; background: #f5f3ff; }
+.tl-dot.question { color: #b45309; border-color: #fde68a; background: #fffbeb; }
+.tl-dot.download { color: #047857; border-color: #a7f3d0; background: #ecfdf5; }
+.tl-dot.page { color: var(--dz-text-brand); border-color: #bfdbfe; background: #eff6ff; }
+.fu-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: 16px; align-items: start; }
+.fu-draft { padding: 20px; gap: 12px; }
+.fu-draft .input { background: var(--dz-bg-surface); }
+.fu-body { font-family: inherit; line-height: 1.55; resize: vertical; min-height: 240px; }
+.empty-mini { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px; padding: 28px 12px; color: var(--dz-text-secondary); }
+@keyframes rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@media (max-width: 900px) { .dd-grid, .fu-grid { grid-template-columns: 1fr; } }
+html[data-theme="dark"]:has(.app) .heat-cell.skimmed { background: #1e3a8a; border-color: #1e40af; }
+html[data-theme="dark"]:has(.app) .tl-dot { background: var(--dz-bg-surface); }

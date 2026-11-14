@@ -11,6 +11,7 @@ import { NAV_GROUPS, NAV_ALL, APPS } from "@/components/nav";
 import { Ctx, Profile } from "@/components/AppContext";
 import { useChecklist } from "@/components/GettingStarted";
 import { HelpPanel } from "@/components/HelpPanel";
+import { NotificationsMenu } from "@/components/NotificationsMenu";
 import { displayName, timeAgo } from "@/lib/format";
 
 const PLAN_LABEL: Record<string, string> = { trial: "Free trial", personal: "Personal", standard: "Standard", datarooms: "Advanced Data Rooms" };
@@ -69,42 +70,6 @@ function GlobalSearch() {
               <span className="grow ellipsis">{h.title}</span><span className="micro faint">{h.sub || "Content"}</span>
             </button>
           ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-type Note = { id: string; visitor_email: string | null; last_seen_at: string; document_id: string | null; documents: { name: string } | null };
-
-function Notifications() {
-  const [open, setOpen] = useState(false);
-  const [items, setItems] = useState<Note[]>([]);
-  const load = useCallback(async () => {
-    const { data } = await supabase.from("visits").select("id,visitor_email,last_seen_at,document_id,documents(name)").order("last_seen_at", { ascending: false }).limit(8);
-    setItems((data as unknown as Note[]) || []);
-  }, []);
-  useEffect(() => { if (open) load(); }, [open, load]);
-  return (
-    <div style={{ position: "relative" }}>
-      <button className="icon-btn hdr-icon" aria-label="Notifications" onClick={() => setOpen((o) => !o)}><Bell size={18} /></button>
-      {open && (
-        <div className="menu" style={{ width: 340 }} onMouseLeave={() => setOpen(false)}>
-          <div className="semibold" style={{ padding: "8px 10px" }}>Recent activity</div>
-          {items.length === 0 && <div className="caption faint" style={{ padding: 10 }}>No visits yet. Share a link to get started.</div>}
-          {items.map((v) => {
-            const live = Date.now() - new Date(v.last_seen_at).getTime() < 120000;
-            return (
-              <Link key={v.id} href={v.document_id ? `/app/content/${v.document_id}` : "/app"} onClick={() => setOpen(false)}>
-                <Avatar email={v.visitor_email} name={displayName(v.visitor_email)} size={28} />
-                <span className="col grow" style={{ minWidth: 0 }}>
-                  <span className="medium ellipsis">{displayName(v.visitor_email)} {live ? "is viewing" : "viewed"} {v.documents?.name || "a document"}</span>
-                  <span className="micro faint">{timeAgo(v.last_seen_at)}</span>
-                </span>
-                {live && <span className="badge badge-success"><span className="dot" />Live</span>}
-              </Link>
-            );
-          })}
         </div>
       )}
     </div>
@@ -292,7 +257,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               </div>
               <span className="spacer" />
               <GlobalSearch />
-              <Notifications />
+              <NotificationsMenu />
               <button className="support-link hide-sm" onClick={() => setHelp(true)}><FileText size={16} />Support</button>
             </header>
             <main className="main">{children}</main>
