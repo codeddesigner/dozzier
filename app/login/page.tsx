@@ -3,7 +3,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
-import { LogoMark } from "@/components/Logo";
+import { AppIcon } from "@/components/Logo";
 
 export default function Login() {
   const router = useRouter();
@@ -24,7 +24,7 @@ export default function Login() {
   return (
     <div className="auth">
       <form className="auth-card" onSubmit={submit}>
-        <Link href="/" style={{ alignSelf: "center" }}><LogoMark size={40} /></Link>
+        <Link href="/" style={{ alignSelf: "center" }}><AppIcon size={40} /></Link>
         <div className="center"><div className="h1">Log in to Dozzier</div><p className="muted mt-8">Welcome back — see who’s reading.</p></div>
         <label className="field"><span className="label">Email</span><input className="input" type="email" required autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@company.com" /></label>
         <label className="field"><span className="label">Password</span><input className="input" type="password" required autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} /></label>

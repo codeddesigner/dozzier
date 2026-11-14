@@ -11,9 +11,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <head>
-        <link rel="preload" href="/fonts/CorlletED-Pro-Regular.woff2" as="font" type="font/woff2" crossOrigin="" />
-        <link rel="preload" href="/fonts/CorlletED-Pro-Medium.woff2" as="font" type="font/woff2" crossOrigin="" />
-        <link rel="preload" href="/fonts/CorlletED-Pro-SemiBold.woff2" as="font" type="font/woff2" crossOrigin="" />
+        <link rel="preload" href="/fonts/Kolosa-Regular.woff" as="font" type="font/woff" crossOrigin="" />
+        <link rel="preload" href="/fonts/Kolosa-Medium.woff" as="font" type="font/woff" crossOrigin="" />
+        <link rel="preload" href="/fonts/Kolosa-SemiBold.woff" as="font" type="font/woff" crossOrigin="" />
       </head>
       <body>{children}</body>
     </html>

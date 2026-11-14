@@ -74,7 +74,7 @@ export function intentLevel(score: number): { label: string; tone: "danger" | "w
   return { label: "Cold", tone: "muted" };
 }
 
-export const AVATAR_COLORS = ["#ff5a1f", "#0061fe", "#7a5af8", "#0e9384", "#f79009", "#dd2590"];
+export const AVATAR_COLORS = ["#3b8bff", "#ff4f8b", "#14c7b0", "#a66bff", "#ffb020", "#ff7a3d"];
 export function colorFor(s: string): string {
   let h = 0;
   for (const c of s) h = (h * 31 + c.charCodeAt(0)) >>> 0;

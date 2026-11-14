@@ -3,7 +3,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
-import { LogoMark } from "@/components/Logo";
+import { AppIcon } from "@/components/Logo";
 
 export default function Signup() {
   const router = useRouter();
@@ -28,7 +28,7 @@ export default function Signup() {
   return (
     <div className="auth">
       <form className="auth-card" onSubmit={submit}>
-        <Link href="/" style={{ alignSelf: "center" }}><LogoMark size={40} /></Link>
+        <Link href="/" style={{ alignSelf: "center" }}><AppIcon size={40} /></Link>
         <div className="center"><div className="h1">Start your free trial</div><p className="muted mt-8">14 days on any plan. No credit card required.</p></div>
         <label className="field"><span className="label">Your name</span><input className="input" required value={name} onChange={(e) => setName(e.target.value)} placeholder="Chidera Okafor" autoComplete="name" /></label>
         <label className="field"><span className="label">Company</span><input className="input" required value={company} onChange={(e) => setCompany(e.target.value)} placeholder="Randombase" autoComplete="organization" /></label>

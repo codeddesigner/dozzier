@@ -13,7 +13,7 @@ export type PV = { visit_id: string; page_number: number; seconds: number };
 
 function Ring({ pct }: { pct: number }) {
   const r = 8, c = 2 * Math.PI * r;
-  return <svg width="22" height="22" viewBox="0 0 22 22" aria-label={`${Math.round(pct * 100)}% read`}><circle cx="11" cy="11" r={r} fill="none" stroke="#dce8ff" strokeWidth="3" /><circle cx="11" cy="11" r={r} fill="none" stroke="#0061fe" strokeWidth="3" strokeDasharray={`${c * pct} ${c}`} transform="rotate(-90 11 11)" strokeLinecap="round" /></svg>;
+  return <svg width="22" height="22" viewBox="0 0 22 22" aria-label={`${Math.round(pct * 100)}% read`}><circle cx="11" cy="11" r={r} fill="none" stroke="#dce8ff" strokeWidth="3" /><circle cx="11" cy="11" r={r} fill="none" stroke="#4D94F7" strokeWidth="3" strokeDasharray={`${c * pct} ${c}`} transform="rotate(-90 11 11)" strokeLinecap="round" /></svg>;
 }
 
 export function LinksTable({ links, visitCounts, lastVisit, onChange, onEdit }: {
@@ -62,7 +62,7 @@ export function VisitRow({ v, pages, pageCount, linkName, onOpen }: { v: V; page
           <div className="col"><span className="row gap-8"><span className="medium">{displayName(v.visitor_email)}</span>{v.is_sample && <span className="tag">Sample visit</span>}</span>
             <span className="caption muted">{v.visitor_email || "Anonymous"} · {timeAgo(v.started_at)}</span></div></div></td>
         <td className="hide-sm"><span className="row gap-6 muted"><Link2 size={14} />{linkName || "—"}</span></td>
-        <td className="hide-sm">{v.downloaded && <Download size={16} color="#0061fe" aria-label="Downloaded" />}</td>
+        <td className="hide-sm">{v.downloaded && <Download size={16} color="#4D94F7" aria-label="Downloaded" />}</td>
         <td className="nowrap"><div className="row gap-8">{duration(v.duration_seconds)}<Ring pct={pct} /></div></td>
         <td style={{ width: 40 }}><ChevronDown size={16} style={{ transform: open ? "rotate(180deg)" : "" }} /></td>
       </tr>

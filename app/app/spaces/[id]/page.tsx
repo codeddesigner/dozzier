@@ -108,7 +108,7 @@ export default function SpacePage() {
         <div className="col gap-16">
           {SPACE_TEMPLATES.map((t, i) => (
             <div key={t.name} className="template-card">
-              <div className="col"><div style={{ height: 50, background: t.banner }} /><div className="col gap-6" style={{ padding: 12 }}>{[80, 70, 76, 60].map((w, k) => <span key={k} style={{ height: 3, width: `${w}%`, background: "#e2e0dc", borderRadius: 2 }} />)}</div></div>
+              <div className="col"><div style={{ height: 50, background: t.banner }} /><div className="col gap-6" style={{ padding: 12 }}>{[80, 70, 76, 60].map((w, k) => <span key={k} style={{ height: 3, width: `${w}%`, background: "#e5e7eb", borderRadius: 2 }} />)}</div></div>
               <div className="col" style={{ padding: 12, background: "#fff" }}>
                 <span className="semibold">{t.name}</span><span className="caption muted mt-8 grow">{t.desc}</span>
                 <div><button className="btn btn-dark btn-s mt-8" onClick={() => applyTemplate(i)}>Use template</button></div>

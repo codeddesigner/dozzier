@@ -83,8 +83,8 @@ export default function DocumentPage() {
       <Link href="/app/content" className="muted">My Content</Link>
       <div className="row gap-16 mt-16 wrap">
         <div style={{ width: 56, height: 40, borderRadius: 8, background: "var(--dz-bg-brand-subtle)", position: "relative", flexShrink: 0 }}>
-          <span style={{ position: "absolute", left: 8, top: 10, width: 22, height: 3, background: "#0061fe", borderRadius: 2 }} /><span style={{ position: "absolute", left: 8, top: 16, width: 14, height: 2, background: "#8ab2ff", borderRadius: 2 }} />
-          <span style={{ position: "absolute", right: 8, bottom: 8, width: 14, height: 14, background: "#0061fe", borderRadius: 99 }} /></div>
+          <span style={{ position: "absolute", left: 8, top: 10, width: 22, height: 3, background: "#4D94F7", borderRadius: 2 }} /><span style={{ position: "absolute", left: 8, top: 16, width: 14, height: 2, background: "#8ab2ff", borderRadius: 2 }} />
+          <span style={{ position: "absolute", right: 8, bottom: 8, width: 14, height: 14, background: "#4D94F7", borderRadius: 99 }} /></div>
         <div className="col grow" style={{ minWidth: 200 }}>
           <h1 className="page-title" style={{ fontSize: 28 }}>{doc.name}</h1>
           <NoteEditor doc={doc} onSaved={reload} />
@@ -110,7 +110,7 @@ export default function DocumentPage() {
             <div className="coachmark" style={{ right: 60, top: 40 }}>
               <div className="h3">Dig deeper into the data</div>
               <p className="caption" style={{ color: "#cfccc7", marginTop: 8 }}>Click any visitor to see page-by-page analytics for their visit.</p>
-              <div className="row gap-12 mt-16" style={{ justifyContent: "flex-end" }}><button className="caption medium" style={{ color: "#fff", textDecoration: "underline" }} onClick={dismissCoach}>Not now</button><button className="btn btn-s" style={{ border: "1px solid #5c5953", color: "#fff" }} onClick={dismissCoach}>Try it</button></div>
+              <div className="row gap-12 mt-16" style={{ justifyContent: "flex-end" }}><button className="caption medium" style={{ color: "#fff", textDecoration: "underline" }} onClick={dismissCoach}>Not now</button><button className="btn btn-s" style={{ border: "1px solid #4b5563", color: "#fff" }} onClick={dismissCoach}>Try it</button></div>
             </div>
           )}
           <table className="table caps">

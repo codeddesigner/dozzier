@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import { Upload, CheckCircle2, ShieldCheck } from "lucide-react";
 import { supabase, BUCKET } from "@/lib/supabase";
-import { LogoMark } from "@/components/Logo";
+import { AppIcon } from "@/components/Logo";
 
 type Req = { id: string; title: string; description: string | null; sender: string };
 
@@ -39,7 +39,7 @@ export default function RequestUpload() {
   return (
     <div className="auth">
       <form className="auth-card" onSubmit={send} style={{ maxWidth: 480 }}>
-        <div style={{ alignSelf: "center" }}><LogoMark size={40} /></div>
+        <div style={{ alignSelf: "center" }}><AppIcon size={40} /></div>
         {req === undefined ? <div className="loading"><span className="spinner" /></div> : req === null ? (
           <div className="center"><div className="h2">This request is closed</div><p className="muted mt-8">Ask the sender for a new upload link.</p></div>
         ) : done ? (

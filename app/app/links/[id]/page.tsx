@@ -32,7 +32,7 @@ export default function LinkPage() {
   return (
     <div className="content">
       {banner && typeof Notification !== "undefined" && Notification.permission === "default" && (
-        <div className="banner" style={{ marginBottom: 24 }}><Info size={16} color="#0061fe" /><span className="grow">Dozzier needs your permission to enable desktop notifications. <button className="semibold" onClick={() => Notification.requestPermission().then(() => setBanner(false))}>Allow</button></span>
+        <div className="banner" style={{ marginBottom: 24 }}><Info size={16} color="#4D94F7" /><span className="grow">Dozzier needs your permission to enable desktop notifications. <button className="semibold" onClick={() => Notification.requestPermission().then(() => setBanner(false))}>Allow</button></span>
           <button className="icon-btn s" onClick={() => setBanner(false)} aria-label="Dismiss"><X size={16} /></button></div>
       )}
       <div className="row gap-8 wrap">

@@ -7,7 +7,7 @@ import { Modal, toast } from "@/components/ui";
 import { SPACE_TEMPLATES } from "@/components/templates";
 
 export async function createSpace(t: (typeof SPACE_TEMPLATES)[number] | null, name: string) {
-  const { data, error } = await supabase.from("spaces").insert({ name, subtitle: t?.name || "Data room", template: t?.name || null, banner: t?.banner || "linear-gradient(120deg,#0061fe,#8ab2ff)" }).select("id").single();
+  const { data, error } = await supabase.from("spaces").insert({ name, subtitle: t?.name || "Data room", template: t?.name || null, banner: t?.banner || "linear-gradient(120deg,#4D94F7,#8ab2ff)" }).select("id").single();
   if (error) throw error;
   if (t) await supabase.from("space_items").insert(t.folders.map((f, i) => ({ space_id: data.id, kind: "folder", name: f, position: i })));
   return data.id as string;

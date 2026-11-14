@@ -14,7 +14,7 @@ export function PageBars({ values, height = 140, compact = false }: { values: nu
           <div title={`Page ${i + 1}: ${shortDur(v)}`} style={{ width: "100%", height: Math.max(6, (v / max) * height), borderRadius: 4, background: i === maxIdx && v > 0 ? "var(--dz-bg-brand)" : "var(--dz-bg-brand-subtle)", border: i === maxIdx && v > 0 ? "1px solid var(--dz-bg-brand)" : "1px solid #c9dafb" }} />
           {!compact && (
             <div style={{ width: "100%", maxWidth: 44, height: 30, border: "1px solid var(--dz-border-default)", borderRadius: 4, padding: "5px 6px", display: "flex", flexDirection: "column", gap: 2 }}>
-              <span style={{ height: 2, width: "60%", background: "#1a1918", borderRadius: 2 }} />
+              <span style={{ height: 2, width: "60%", background: "#111827", borderRadius: 2 }} />
               {[0, 1, 2].map((k) => <span key={k} style={{ height: 1.5, width: "90%", background: "#cfccc7", borderRadius: 2 }} />)}
             </div>
           )}
@@ -47,29 +47,29 @@ export function LineChart({ points, labels, height = 200 }: { points: number[]; 
         setHover(Math.max(0, Math.min(points.length - 1, i)));
       }}>
       <defs>
-        <linearGradient id="lcg" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stopColor="#0061fe" stopOpacity=".22" /><stop offset="1" stopColor="#0061fe" stopOpacity="0" /></linearGradient>
+        <linearGradient id="lcg" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stopColor="#4D94F7" stopOpacity=".22" /><stop offset="1" stopColor="#4D94F7" stopOpacity="0" /></linearGradient>
       </defs>
       {[0, 1, 2, 3, 4].map((k) => (
         <g key={k}>
-          <line x1={padL} x2={W} y1={y(k * step)} y2={y(k * step)} stroke="#eeedea" vectorEffect="non-scaling-stroke" />
-          <text x={0} y={y(k * step) + 4} fontSize="11" fill="#7a766f">{k * step}</text>
+          <line x1={padL} x2={W} y1={y(k * step)} y2={y(k * step)} stroke="#f2f4f7" vectorEffect="non-scaling-stroke" />
+          <text x={0} y={y(k * step) + 4} fontSize="11" fill="#6b7280">{k * step}</text>
         </g>
       ))}
       <path d={area} fill="url(#lcg)" />
-      <path d={d} fill="none" stroke="#0061fe" strokeWidth="2" vectorEffect="non-scaling-stroke" strokeLinejoin="round" />
+      <path d={d} fill="none" stroke="#4D94F7" strokeWidth="2" vectorEffect="non-scaling-stroke" strokeLinejoin="round" />
       {labels.map((l, i) => (i % tickEvery === 0 || i === labels.length - 1) && (
-        <text key={i} x={x(i)} y={H - 6} fontSize="11" fill="#7a766f" textAnchor="middle">{l}</text>
+        <text key={i} x={x(i)} y={H - 6} fontSize="11" fill="#6b7280" textAnchor="middle">{l}</text>
       ))}
       {hover !== null && (
         <g>
-          <line x1={x(hover)} x2={x(hover)} y1={padT} y2={y(0)} stroke="#a19d96" strokeDasharray="3 3" vectorEffect="non-scaling-stroke" />
-          <circle cx={x(hover)} cy={y(points[hover])} r="4" fill="#0061fe" />
-          <text x={Math.min(W - 80, x(hover) + 8)} y={Math.max(20, y(points[hover]) - 8)} fontSize="12" fill="#1a1918" fontWeight="600">
+          <line x1={x(hover)} x2={x(hover)} y1={padT} y2={y(0)} stroke="#9ca3af" strokeDasharray="3 3" vectorEffect="non-scaling-stroke" />
+          <circle cx={x(hover)} cy={y(points[hover])} r="4" fill="#4D94F7" />
+          <text x={Math.min(W - 80, x(hover) + 8)} y={Math.max(20, y(points[hover]) - 8)} fontSize="12" fill="#111827" fontWeight="600">
             {labels[hover]} · {points[hover]} visit{points[hover] === 1 ? "" : "s"}
           </text>
         </g>
       )}
-      {hover === null && points.length > 0 && <circle cx={x(points.length - 1)} cy={y(points[points.length - 1])} r="3.5" fill="#0061fe" />}
+      {hover === null && points.length > 0 && <circle cx={x(points.length - 1)} cy={y(points[points.length - 1])} r="3.5" fill="#4D94F7" />}
     </svg>
   );
 }

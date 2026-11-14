@@ -4,9 +4,9 @@ export function PricingCards({ cta }: { cta: (plan: string) => React.ReactNode }
   const plans = [
     { id: "personal", name: "Personal", sub: "For secure sharing", price: "$5", per: "/ user / month", lead: "Key features:", btn: "btn-dark",
       feats: [[User, "1 user included"], [Settings2, "Basic sharing controls"], [BarChart3, "Document-level analytics"], [Signature, "4 eSignatures per month"], [Users, "Unlimited visitors"]] },
-    { id: "standard", name: "Standard", sub: "For multi-file secure sharing", price: "$25", per: "/ user / month", lead: "All Personal features, plus:", ribbon: ["Most popular", "#0061fe"], btn: "btn-primary",
+    { id: "standard", name: "Standard", sub: "For multi-file secure sharing", price: "$25", per: "/ user / month", lead: "All Personal features, plus:", ribbon: ["Most popular", "#4D94F7"], btn: "btn-primary",
       feats: [[Files, "Multi-file sharing"], [TrendingUp, "Video & rich media analytics"], [FileCheck2, "File requests"], [Palette, "Custom branding"], [Signature, "Unlimited eSignatures"], [Puzzle, "AI tools integration (MCP)"]] },
-    { id: "datarooms", name: "Data Rooms", sub: "For complete deal control", price: "$140", per: "/ month", lead: "All Standard features, plus:", ribbon: ["For dealmakers", "#1a1918"], btn: "btn-dark",
+    { id: "datarooms", name: "Data Rooms", sub: "For complete deal control", price: "$140", per: "/ month", lead: "All Standard features, plus:", ribbon: ["For dealmakers", "#111827"], btn: "btn-dark",
       feats: [[Users, "3 users included"], [HousePlus, "Enhanced data rooms"], [MailIcon, "Group visitor permissions"], [List, "Data room audit log"], [BarChart3, "Data room analytics"], [CircleCheck, "Due diligence tracking"]] },
   ] as const;
   return (

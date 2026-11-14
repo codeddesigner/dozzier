@@ -3,7 +3,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import { ChevronLeft, ChevronRight, Maximize, ZoomIn, ZoomOut, Download, Printer, Flag, CircleHelp, ShieldCheck, Folder, ArrowLeft, FileText } from "lucide-react";
 import { supabase, BUCKET } from "@/lib/supabase";
-import { Logo, LogoMark } from "@/components/Logo";
+import { Logo, AppIcon } from "@/components/Logo";
 import { Avatar } from "@/components/ui";
 import { DocRenderer, Source, sourceFor } from "@/components/DocRenderer";
 import { NDA_TEMPLATE } from "@/components/nda";
@@ -68,7 +68,7 @@ export default function Viewer() {
   if (pub === undefined) return <div className="viewer"><div className="loading" style={{ margin: "auto" }}><span className="spinner" /></div></div>;
   if (pub === null) return (
     <div className="viewer"><Bar />
-      <div className="viewer-stage"><div className="gate" style={{ alignItems: "center", textAlign: "center" }}><LogoMark size={36} /><div className="h2">This link isn’t available</div><p className="muted">It may have expired or been turned off by the sender. Ask them for a new link.</p></div></div>
+      <div className="viewer-stage"><div className="gate" style={{ alignItems: "center", textAlign: "center" }}><AppIcon size={36} /><div className="h2">This link isn’t available</div><p className="muted">It may have expired or been turned off by the sender. Ask them for a new link.</p></div></div>
     </div>
   );
 
@@ -80,7 +80,7 @@ export default function Viewer() {
         <div className="viewer-stage">
           <div className="blurred-page" />
           <form className="gate" style={{ position: "relative" }} onSubmit={(e) => { e.preventDefault(); if (pub.require_nda && !nda) return setErr("Please accept the agreement to continue"); start(pub, email, pass); }}>
-            <div style={{ alignSelf: "center" }}><LogoMark size={36} /></div>
+            <div style={{ alignSelf: "center" }}><AppIcon size={36} /></div>
             <div className="h3 center" style={{ fontSize: 19 }}>{pub.sender} shared “{title}”</div>
             <p className="caption muted center">{pub.require_email ? "Enter your email to view. The sender will see that you opened it." : "Enter the details below to view."}</p>
             {pub.require_email && <label className="field"><span className="label">Email</span><input className="input" type="email" required autoFocus value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@company.com" /></label>}
@@ -122,8 +122,8 @@ function SpaceBrowser({ space, email, onOpen }: { space: SpaceData; email: strin
   const [folder, setFolder] = useState<SpaceItem | null>(null);
   const items = space.items.filter((i) => (folder ? i.parent_id === folder.id : !i.parent_id));
   return (
-    <div className="viewer" style={{ background: "#f6f5f3", color: "var(--dz-text-primary)" }}>
-      <div className="viewer-bar" style={{ background: "#1a1918", color: "#fff" }}><Logo height={22} dark /><span className="spacer" />{email && <Avatar email={email} size={30} />}</div>
+    <div className="viewer" style={{ background: "#f3f5f7", color: "var(--dz-text-primary)" }}>
+      <div className="viewer-bar" style={{ background: "#111827", color: "#fff" }}><Logo height={22} dark /><span className="spacer" />{email && <Avatar email={email} size={30} />}</div>
       <div style={{ maxWidth: 860, width: "100%", margin: "32px auto", background: "#fff", borderRadius: 12, overflow: "hidden", boxShadow: "var(--shadow-lg)" }}>
         <div style={{ height: 140, background: space.banner }} />
         <div style={{ padding: 24 }}>
@@ -133,7 +133,7 @@ function SpaceBrowser({ space, email, onOpen }: { space: SpaceData; email: strin
             {items.length === 0 && <tr><td className="table-empty">This folder is empty.</td></tr>}
             {items.map((it) => (
               <tr key={it.id} className="clickable" onClick={() => (it.kind === "folder" ? setFolder(it) : onOpen(it))}>
-                <td><div className="row gap-12">{it.kind === "folder" ? <Folder size={20} fill="#a9c4fb" color="#a9c4fb" /> : <FileText size={20} color="#0061fe" />}<span className="medium">{it.name}</span></div></td>
+                <td><div className="row gap-12">{it.kind === "folder" ? <Folder size={20} fill="#a9c4fb" color="#a9c4fb" /> : <FileText size={20} color="#4D94F7" />}<span className="medium">{it.name}</span></div></td>
                 <td className="muted">{it.kind === "folder" ? `${space.items.filter((x) => x.parent_id === it.id).length} items` : "Document"}</td>
               </tr>))}
           </tbody></table>
@@ -200,7 +200,7 @@ function Reader({ pub, visit, doc, onBack }: { pub: Pub; visit: Started; doc: { 
           <button className="vb-icon" aria-label="Zoom out" onClick={() => setZoom((z) => Math.max(0.6, z - 0.2))}><ZoomOut size={18} /></button>
           {pub.allow_download && doc.path && <button className="vb-icon" aria-label="Download" onClick={download}><Download size={18} /></button>}
           {pub.allow_download && <button className="vb-icon hide-sm" aria-label="Print" onClick={() => window.print()}><Printer size={18} /></button>}
-          <span className="hide-sm" style={{ width: 1, height: 22, background: "#4a4845", margin: "0 8px" }} />
+          <span className="hide-sm" style={{ width: 1, height: 22, background: "#374151", margin: "0 8px" }} />
           {visit.email && <Avatar email={visit.email} size={30} />}
           <a className="vb-icon hide-sm" aria-label="Report" href={`mailto:abuse@dozzier.io?subject=Report%20link%20${encodeURIComponent(location.pathname)}`}><Flag size={18} /></a>
           <a className="vb-icon hide-sm" aria-label="Help" href="/" target="_blank" rel="noreferrer"><CircleHelp size={18} /></a>

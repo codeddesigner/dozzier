@@ -32,7 +32,7 @@ export default function FileRequests() {
         <div className="coachmark" style={{ right: 48, top: 110 }}>
           <div className="h3">Collect files securely</div>
           <p className="caption" style={{ color: "#cfccc7", marginTop: 8 }}>Send a link — anyone can upload to it without an account. Files land straight in your workspace.</p>
-          <div className="row mt-16" style={{ justifyContent: "flex-end" }}><button className="btn btn-s" style={{ border: "1px solid #5c5953", color: "#fff" }} onClick={() => { setCoach(false); try { localStorage.setItem("dz-coach-fr", "1"); } catch {} }}>Got it</button></div>
+          <div className="row mt-16" style={{ justifyContent: "flex-end" }}><button className="btn btn-s" style={{ border: "1px solid #4b5563", color: "#fff" }} onClick={() => { setCoach(false); try { localStorage.setItem("dz-coach-fr", "1"); } catch {} }}>Got it</button></div>
         </div>
       )}
       <div className="caption muted mt-8">Show</div>

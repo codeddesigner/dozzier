@@ -1,31 +1,43 @@
-// Mark path taken verbatim from the Figma "Logo/Lockup" component.
-const MARK = "M16 0C24.8366 0 32 7.16343 32 16C32 24.8366 24.8366 32 16 32H0V0H16ZM13.7622 7.2619C9.07105 7.2619 5.2682 11.0652 5.2682 15.7563C5.26831 20.4473 9.07111 24.2503 13.7622 24.2503H22.2562V7.2619H13.7622Z";
+// Paths from the Figma "Logo/Lockup" component (lowercase wordmark + flag mark).
+const FLAG = "M136.53 0.23L146.04 13.21L135.47 21.73L163.43 29.67V7.48L136.53 0.23Z";
+const WORD = [
+  "M9.56 30C7.58 30 5.87 29.54 4.45 28.64C3.02 27.73 1.92 26.46 1.15 24.84C0.38 23.22 0 21.37 0 19.28C0 17.17 0.38 15.31 1.15 13.72C1.92 12.10 3.02 10.83 4.45 9.93C5.90 9.02 7.63 8.57 9.64 8.57C10.93 8.57 12.12 8.83 13.22 9.35C14.35 9.84 15.24 10.53 15.90 11.41V0H20.93V29.67H15.90V27.07C15.30 27.95 14.42 28.66 13.26 29.21C12.14 29.73 10.90 30 9.56 30ZM10.59 25.63C12.29 25.63 13.65 25.05 14.67 23.90C15.68 22.74 16.19 21.20 16.19 19.28C16.19 17.36 15.68 15.82 14.67 14.67C13.65 13.51 12.29 12.93 10.59 12.93C8.91 12.93 7.56 13.51 6.55 14.67C5.53 15.82 5.02 17.36 5.02 19.28C5.02 21.20 5.53 22.74 6.55 23.90C7.56 25.05 8.91 25.63 10.59 25.63Z",
+  "M35.25 30C33.13 30 31.25 29.53 29.60 28.59C27.98 27.66 26.71 26.40 25.77 24.80C24.84 23.18 24.37 21.34 24.37 19.28C24.37 17.22 24.84 15.38 25.77 13.76C26.71 12.14 27.98 10.87 29.60 9.97C31.25 9.03 33.13 8.57 35.25 8.57C37.37 8.57 39.23 9.03 40.85 9.97C42.48 10.87 43.75 12.14 44.69 13.76C45.62 15.38 46.09 17.22 46.09 19.28C46.09 21.34 45.62 23.18 44.69 24.80C43.75 26.40 42.48 27.66 40.85 28.59C39.23 29.53 37.37 30 35.25 30ZM35.25 25.63C36.95 25.63 38.33 25.04 39.37 23.85C40.44 22.67 40.98 21.15 40.98 19.28C40.98 17.41 40.44 15.89 39.37 14.71C38.33 13.53 36.95 12.93 35.25 12.93C33.52 12.93 32.12 13.53 31.05 14.71C30.00 15.89 29.48 17.41 29.48 19.28C29.48 21.15 30.00 22.67 31.05 23.85C32.12 25.04 33.52 25.63 35.25 25.63Z",
+  "M47.82 29.67V25.38L59.28 13.14H48.48V8.90H65.05V13.14L53.71 25.38H65.66V29.67H47.82Z",
+  "M67.73 29.67V25.38L79.19 13.14H68.39V8.90H84.96V13.14L73.62 25.38H85.57V29.67H67.73Z",
+  "M88.96 29.67V8.90H94.03V29.67H88.96ZM88.80 0H94.24V5.64H88.80V0Z",
+  "M108.04 30C106.34 30 104.83 29.69 103.51 29.09C102.22 28.48 101.12 27.67 100.21 26.66C99.33 25.61 98.66 24.45 98.19 23.15C97.73 21.86 97.49 20.54 97.49 19.20C97.49 17.36 97.86 15.64 98.61 14.05C99.38 12.43 100.52 11.11 102.03 10.09C103.54 9.07 105.42 8.57 107.67 8.57C109.98 8.57 111.88 9.06 113.36 10.05C114.84 11.01 115.94 12.26 116.66 13.80C117.37 15.34 117.73 16.93 117.73 18.58C117.73 18.94 117.71 19.27 117.69 19.57C117.69 19.87 117.67 20.13 117.65 20.35H102.40C102.59 22.00 103.18 23.32 104.17 24.31C105.16 25.30 106.45 25.79 108.04 25.79C109.33 25.79 110.39 25.53 111.22 25.01C112.07 24.49 112.62 23.73 112.87 22.74H117.81C117.56 24.20 116.99 25.48 116.08 26.57C115.20 27.67 114.07 28.53 112.70 29.13C111.33 29.71 109.77 30 108.04 30ZM102.52 16.89H112.70C112.59 15.57 112.1 14.50 111.22 13.68C110.37 12.82 109.18 12.40 107.67 12.40C104.82 12.40 103.10 13.90 102.52 16.89Z",
+  "M121.34 29.67V8.90H126.41V12.56C126.93 11.25 127.60 10.31 128.43 9.76C129.28 9.18 130.38 8.90 131.72 8.90H134.15V13.14H130.90C129.28 13.14 128.12 13.77 127.44 15.04C126.75 16.27 126.41 17.88 126.41 19.86V29.67H121.34Z",
+];
+const FLAG_ICON = "M37.66 34L57.04 60.44L35.5 77.82L92.5 94V48.77L37.66 34Z";
 
-export function LogoMark({ size = 32, color = "#0061FE" }: { size?: number; color?: string }) {
+/** Flag-only mark (Nav rail / favicon). */
+export function LogoMark({ size = 28, color = "#4D94F7" }: { size?: number; color?: string }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 32 32" aria-hidden="true" style={{ display: "block", flexShrink: 0 }}>
-      <path d={MARK} fill={color} fillRule="evenodd" clipRule="evenodd" />
+    <svg width={size} height={size} viewBox="30 30 68 68" aria-hidden="true" style={{ display: "block", flexShrink: 0 }}>
+      <path d={FLAG_ICON} fill={color} />
     </svg>
   );
 }
 
-/** Horizontal lockup: mark height : wordmark cap ≈ 32:30, gap 7 (per Figma component notes). */
-export function Logo({ height = 32, dark = false }: { height?: number; dark?: boolean }) {
-  const s = height / 32;
+/** Horizontal lockup, 163.43 × 30 in Figma. */
+export function Logo({ height = 30, dark = false }: { height?: number; dark?: boolean }) {
   return (
-    <span style={{ display: "inline-flex", alignItems: "center", gap: 7 * s }} aria-label="Dozzier">
-      <LogoMark size={height} />
-      <span style={{ fontSize: 34 * s, lineHeight: 1, fontWeight: 600, letterSpacing: "-0.035em", color: dark ? "#fff" : "#1A1918", transform: `translateY(${1 * s}px)` }}>
-        Dozzier
-      </span>
-    </span>
+    <svg height={height} width={(height * 163.43) / 30} viewBox="0 0 163.43 30" role="img" aria-label="Dozzier" style={{ display: "block", flexShrink: 0 }}>
+      {WORD.map((d, i) => <path key={i} d={d} fill={dark ? "#fff" : "#0F192C"} />)}
+      <path d={FLAG} fill="#4D94F7" />
+    </svg>
   );
 }
 
-export function AppIcon({ size = 56 }: { size?: number }) {
+/** Rounded-square app icon: brand tile with white flag. */
+export function AppIcon({ size = 56, tone = "brand" }: { size?: number; tone?: "brand" | "white" | "ink" }) {
+  const bg = tone === "brand" ? "#4D94F7" : tone === "ink" ? "#111827" : "#fff";
+  const fg = tone === "white" ? "#4D94F7" : "#fff";
   return (
-    <span style={{ width: size, height: size, borderRadius: 999, background: "#fff", display: "inline-flex", alignItems: "center", justifyContent: "center" }}>
-      <LogoMark size={size * 0.5} />
-    </span>
+    <svg width={size} height={size} viewBox="0 0 128 128" aria-hidden="true" style={{ display: "block", flexShrink: 0 }}>
+      <rect width="128" height="128" rx="28" fill={bg} />
+      <path d={FLAG_ICON} fill={fg} />
+    </svg>
   );
 }

@@ -2,11 +2,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Search, Zap, Bell, CircleHelp, ChevronLeft, ChevronRight, LogOut, Settings } from "lucide-react";
+import { Search, Bell, CircleHelp, ChevronLeft, ChevronRight, ChevronDown, LogOut, Settings, FileText, Users, Zap } from "lucide-react";
 import { supabase } from "@/lib/supabase";
-import { Logo } from "@/components/Logo";
+import { LogoMark } from "@/components/Logo";
 import { Avatar, ToastHost, toast, DocThumb } from "@/components/ui";
-import { NAV_MAIN, NAV_BOTTOM } from "@/components/nav";
+import { NAV_GROUPS, NAV_ALL, APPS } from "@/components/nav";
 import { Ctx, Profile } from "@/components/AppContext";
 import { displayName, timeAgo } from "@/lib/format";
 
@@ -49,16 +49,16 @@ function GlobalSearch() {
     router.push(h.kind === "doc" ? `/app/content/${h.id}` : h.kind === "contact" ? `/app/contacts/${h.id}` : h.kind === "account" ? `/app/accounts/${h.id}` : `/app/spaces/${h.id}`);
   };
   return (
-    <div style={{ position: "relative", flex: 1, maxWidth: 780 }}>
-      <div className="search" style={{ width: "100%", background: "var(--dz-bg-subtle)" }}>
-        <Search size={18} />
-        <input ref={ref} value={q} placeholder="Search content, people, accounts…" onChange={(e) => { setQ(e.target.value); setOpen(true); }}
+    <div style={{ position: "relative" }}>
+      <label className="hdr-search">
+        <Search size={14} />
+        <input id="dz-search" ref={ref} value={q} placeholder="Search" onChange={(e) => { setQ(e.target.value); setOpen(true); }}
           onFocus={() => setOpen(true)} onBlur={() => setTimeout(() => setOpen(false), 150)}
           onKeyDown={(e) => { if (e.key === "Enter" && hits[0]) go(hits[0]); }} />
-        <span className="kbd hide-sm">⌘K</span>
-      </div>
+        <span className="kbd">⌘K</span>
+      </label>
       {open && q.trim().length >= 2 && (
-        <div className="menu" style={{ left: 0, right: 0 }}>
+        <div className="menu" style={{ right: 0, width: 360 }}>
           {hits.length === 0 && <div className="caption faint" style={{ padding: 10 }}>No results for “{q}”</div>}
           {hits.map((h) => (
             <button key={h.kind + h.id} onMouseDown={() => go(h)}>
@@ -84,7 +84,7 @@ function Notifications() {
   useEffect(() => { if (open) load(); }, [open, load]);
   return (
     <div style={{ position: "relative" }}>
-      <button className="icon-btn" aria-label="Notifications" onClick={() => setOpen((o) => !o)}><Bell size={20} /></button>
+      <button className="icon-btn hdr-icon" aria-label="Notifications" onClick={() => setOpen((o) => !o)}><Bell size={18} /></button>
       {open && (
         <div className="menu" style={{ width: 340 }} onMouseLeave={() => setOpen(false)}>
           <div className="semibold" style={{ padding: "8px 10px" }}>Recent activity</div>
@@ -113,21 +113,28 @@ function UserMenu({ profile, email }: { profile: Profile; email: string }) {
   const router = useRouter();
   return (
     <div style={{ position: "relative" }}>
-      <button className="workspace-chip" onClick={() => setOpen((o) => !o)}>
-        <span className="col txt" style={{ alignItems: "flex-end" }}>
-          <span className="medium">{profile.workspace_name || "My workspace"}</span>
-          <span className="micro faint">{PLAN_LABEL[profile.plan] || profile.plan}</span>
-        </span>
-        <Avatar name={profile.full_name} email={email} size={32} />
+      <button className="rail-avatar" aria-label="Account" onClick={() => setOpen((o) => !o)}>
+        <Avatar name={profile.full_name} email={email} size={32} color="#ff7a3d" />
       </button>
       {open && (
-        <div className="menu" onMouseLeave={() => setOpen(false)}>
-          <div style={{ padding: "8px 10px" }}><div className="medium">{profile.full_name}</div><div className="micro faint">{email}</div></div>
+        <div className="menu rail-menu" onMouseLeave={() => setOpen(false)}>
+          <div style={{ padding: "8px 10px" }}><div className="medium">{profile.full_name || displayName(email)}</div><div className="micro faint">{email}</div><div className="micro faint">{PLAN_LABEL[profile.plan] || profile.plan}</div></div>
           <Link href="/app/settings" onClick={() => setOpen(false)}><Settings size={16} />Settings</Link>
+          <Link href="/app/upgrade" onClick={() => setOpen(false)}><Zap size={16} />Upgrade plan</Link>
           <button onClick={async () => { await supabase.auth.signOut(); router.replace("/login"); }}><LogOut size={16} />Log out</button>
         </div>
       )}
     </div>
+  );
+}
+
+function SetupRing({ done, total }: { done: number; total: number }) {
+  const r = 5.5, c = 2 * Math.PI * r;
+  return (
+    <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
+      <circle cx="7" cy="7" r={r} fill="none" stroke="#e5e7eb" strokeWidth="2" />
+      <circle cx="7" cy="7" r={r} fill="none" stroke="#1e9e5a" strokeWidth="2" strokeLinecap="round" strokeDasharray={`${(c * done) / total} ${c}`} transform="rotate(-90 7 7)" />
+    </svg>
   );
 }
 
@@ -165,38 +172,57 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   if (!state) return <div className="loading" style={{ paddingTop: 200 }}><span className="spinner" /></div>;
   const isActive = (href: string) => (href === "/app" ? path === "/app" : path.startsWith(href));
   const ws = state.profile.workspace_name || "My workspace";
+  const current = [...NAV_ALL, { href: "/app/upgrade", label: "Upgrade" }, { href: "/app/help", label: "Help" }, { href: "/app/links", label: "Links" }]
+    .filter((n) => isActive(n.href)).sort((x, y) => y.href.length - x.href.length)[0];
+  const deeper = current && path.replace(/\/$/, "") !== current.href;
+  const toggle = () => { const c = !collapsed; setCollapsed(c); try { localStorage.setItem("dz-sidebar", c ? "1" : "0"); } catch {} };
 
   return (
     <Ctx.Provider value={{ ...state, refreshProfile: loadProfile }}>
       <div className="app">
-        <header className="topbar">
-          <Link href="/app"><Logo height={24} /></Link>
-          <div style={{ width: 24 }} className="hide-sm" />
-          <GlobalSearch />
-          <Link href="/app/upgrade" className="btn btn-primary hide-sm"><Zap size={16} />Upgrade</Link>
-          <Notifications />
-          <Link href="/app/help" className="icon-btn hide-sm" aria-label="Help"><CircleHelp size={20} /></Link>
+        <nav className="rail" aria-label="Apps">
+          <Link href="/app" aria-label="Dozzier home"><LogoMark size={28} /></Link>
+          <button className="rail-collapse" aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"} onClick={toggle}>
+            {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+          </button>
+          <span className="rail-sep" />
+          {APPS.map((a) => (
+            <Link key={a.label} href={a.href} data-label={a.label} aria-label={a.label} className={`rail-app ${a.match(path) ? "active" : ""}`}><a.icon size={20} /></Link>
+          ))}
+          <span className="spacer" />
+          <button className="rail-btn" data-label="Search" aria-label="Search" onClick={() => document.getElementById("dz-search")?.focus()}><Search size={18} /></button>
+          <Link href="/app/help" className="rail-btn" data-label="Help" aria-label="Help"><CircleHelp size={18} /></Link>
           <UserMenu profile={state.profile} email={state.email} />
-        </header>
-        <div className="app-body">
+        </nav>
+        <div className="shell">
           <aside className={`sidebar ${collapsed ? "collapsed" : ""}`}>
-            <div className="ws">
-              {!collapsed && <><span className="ws-badge">{ws.slice(0, 2).toUpperCase()}</span><span className="semibold grow ellipsis">{ws}</span></>}
-              <button className="collapse-btn" aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-                onClick={() => { const c = !collapsed; setCollapsed(c); try { localStorage.setItem("dz-sidebar", c ? "1" : "0"); } catch {} }}>
-                {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
-              </button>
-            </div>
-            <div className="sidebar-sep" />
-            {NAV_MAIN.map((n) => (
-              <Link key={n.href} href={n.href} data-label={n.label} className={`nav-item ${isActive(n.href) ? "active" : ""}`}><n.icon size={20} /><span>{n.label}</span></Link>
+            <Link href="/app/settings" className="ws"><span className="h3 ellipsis">{ws}</span><ChevronDown size={16} /></Link>
+            {NAV_GROUPS.map((g) => (
+              <div key={g.label} className="nav-group">
+                <div className="nav-label">{g.label}</div>
+                {g.items.map((n) => (
+                  <Link key={n.href} href={n.href} className={`nav-item ${isActive(n.href) ? "active" : ""}`}><n.icon size={20} /><span>{n.label}</span></Link>
+                ))}
+              </div>
             ))}
             <div className="spacer" />
-            {NAV_BOTTOM.map((n) => (
-              <Link key={n.href} href={n.href} data-label={n.label} className={`nav-item ${isActive(n.href) ? "active" : ""}`}><n.icon size={20} /><span>{n.label}</span></Link>
-            ))}
+            <Link href="/app/help" className="setup-btn"><SetupRing done={3} total={5} /><span className="grow">Setup guide</span><span className="faint">3/5</span></Link>
+            <Link href="/app/settings" className="invite-btn"><Users size={16} />Invite member</Link>
           </aside>
-          <main className="main">{children}</main>
+          <div className="shell-main">
+            <header className="page-header">
+              <div className="crumbs">
+                <span className="muted">{ws}</span>
+                {current && <><span className="sep">/</span>{deeper ? <Link href={current.href} className="muted">{current.label}</Link> : <span className="cur">{current.label}</span>}</>}
+                {deeper && <><span className="sep">/</span><span className="cur">Details</span></>}
+              </div>
+              <span className="spacer" />
+              <GlobalSearch />
+              <Notifications />
+              <Link href="/app/help" className="support-link hide-sm"><FileText size={16} />Support</Link>
+            </header>
+            <main className="main">{children}</main>
+          </div>
         </div>
         <ToastHost />
       </div>

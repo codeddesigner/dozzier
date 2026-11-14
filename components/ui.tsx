@@ -1,36 +1,14 @@
 "use client";
-import { ReactNode, useEffect, useRef, useState, useCallback, useId } from "react";
+import { ReactNode, useEffect, useRef, useState, useCallback } from "react";
 import { X, MoreHorizontal, CheckCircle2 } from "lucide-react";
-import { initials, pct } from "@/lib/format";
+import { initials, pct, colorFor } from "@/lib/format";
 
-/**
- * Avatar from the Figma "Avatar" component: a warm-gradient person silhouette.
- * `initials` renders the initials variant (orange for unknown visitors, or a custom tone).
- */
-export function Avatar({ name, email, size = 32, color, initials: showInitials }: { name?: string | null; email?: string | null; size?: number; color?: string; initials?: boolean }) {
-  const id = useId().replace(/:/g, "");
-  if (showInitials) {
-    return (
-      <span className="avatar" style={{ width: size, height: size, fontSize: Math.max(8, size * 0.4), background: color || "#FF5A1F" }}>
-        {initials(name, email)}
-      </span>
-    );
-  }
+/** Avatar from the Figma "Avatar" component: colored circle with Medium white initials. */
+export function Avatar({ name, email, size = 32, color }: { name?: string | null; email?: string | null; size?: number; color?: string; initials?: boolean }) {
   return (
-    <svg className="avatar-person" width={size} height={size} viewBox="0 0 24 24" role="img" aria-label={name || email || "Visitor"}>
-      <defs>
-        <linearGradient id={`g${id}`} x1="3.4" y1="3.4" x2="20.6" y2="20.6" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#C9B8A6" /><stop offset="1" stopColor="#6E5B4E" />
-        </linearGradient>
-        <clipPath id={`c${id}`}><rect width="24" height="24" rx="12" /></clipPath>
-      </defs>
-      <g clipPath={`url(#c${id})`}>
-        <rect width="24" height="24" fill={`url(#g${id})`} />
-        <circle cx="12" cy="8.88" r="4.56" fill="#fff" fillOpacity=".85" />
-        <ellipse cx="12" cy="22.08" rx="9.6" ry="7.2" fill="#fff" fillOpacity=".85" />
-      </g>
-      <rect x=".375" y=".375" width="23.25" height="23.25" rx="11.625" fill="none" stroke="#000" strokeOpacity=".08" strokeWidth=".75" />
-    </svg>
+    <span className="avatar" title={name || email || undefined} style={{ width: size, height: size, fontSize: Math.max(9, Math.round(size * 0.4)), background: color || colorFor(email || name || "?") }}>
+      {initials(name, email)}
+    </span>
   );
 }
 
@@ -56,15 +34,17 @@ export function Kpi({ label, value, cur, prev, invert }: { label: string; value:
   const d = cur !== undefined && prev !== undefined ? pct(cur, prev) : null;
   const tone = d ? (invert && d.tone !== "flat" ? (d.tone === "up" ? "down" : "up") : d.tone) : "flat";
   return (
-    <div className="card kpi">
-      <div className="medium muted">{label}</div>
-      <div className="value">{value}</div>
-      {d && (
-        <div className="row gap-6">
-          <span className={`delta ${tone}`}>{d.label}</span>
-          <span className="caption faint">vs last 30 days</span>
-        </div>
-      )}
+    <div className="kpi">
+      <div className="kpi-label">{label}</div>
+      <div className="kpi-card">
+        <div className="value">{value}</div>
+        {d && (
+          <div className="row gap-6">
+            <span className={`delta ${tone}`}>{d.label}</span>
+            <span className="caption faint">vs last 30 days</span>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
