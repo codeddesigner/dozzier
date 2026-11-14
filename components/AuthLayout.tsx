@@ -84,7 +84,7 @@ export function AuthLayout({ children, topRight, bentoTitle }: { children: React
           {topRight && <div className="auth2-top">{topRight}</div>}
         </div>
         <div className="auth2-center"><div className="auth2-inner">{children}</div></div>
-        <div className="auth2-foot"><span>© 2026 Dozzier</span><Link href="/#faq">Privacy</Link><Link href="/#faq">Terms</Link><Link href="/#faq">Security</Link></div>
+        <div className="auth2-foot"><span>© 2026 Dozzier</span><Link href="/legal/privacy">Privacy</Link><Link href="/legal/terms">Terms</Link><Link href="/legal/security">Security</Link></div>
       </div>
       <AuthBento title={bentoTitle} />
     </div>

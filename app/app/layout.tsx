@@ -9,6 +9,7 @@ import { Avatar, ToastHost, toast, DocThumb } from "@/components/ui";
 import { NAV_GROUPS, NAV_ALL, APPS } from "@/components/nav";
 import { Ctx, Profile } from "@/components/AppContext";
 import { useChecklist } from "@/components/GettingStarted";
+import { HelpPanel } from "@/components/HelpPanel";
 import { displayName, timeAgo } from "@/lib/format";
 
 const PLAN_LABEL: Record<string, string> = { trial: "Free trial", personal: "Personal", standard: "Standard", datarooms: "Advanced Data Rooms" };
@@ -144,6 +145,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const path = usePathname();
   const [state, setState] = useState<{ userId: string; email: string; profile: Profile } | null>(null);
   const [collapsed, setCollapsed] = useState(false);
+  const [help, setHelp] = useState(false);
   const checklist = useChecklist(state?.userId || null, state?.profile || null);
   const sideRef = useRef<HTMLElement>(null);
   const [ind, setInd] = useState<{ y: number; h: number } | null>(null);
@@ -181,6 +183,21 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     return () => { supabase.removeChannel(ch); };
   }, [state]);
 
+  // Global shortcuts: ⌘L create link, ⌘J Ask Dozzier, ⌘\ toggle sidebar, ? help
+  useEffect(() => {
+    const k = (e: KeyboardEvent) => {
+      const typing = /input|textarea|select/i.test((e.target as HTMLElement)?.tagName || "") || (e.target as HTMLElement)?.isContentEditable;
+      if (e.metaKey || e.ctrlKey) {
+        const key = e.key.toLowerCase();
+        if (key === "l") { e.preventDefault(); router.push("/app/content?new=link"); }
+        else if (key === "j") { e.preventDefault(); router.push("/app/ask"); }
+        else if (key === "\\") { e.preventDefault(); setCollapsed((c) => { try { localStorage.setItem("dz-sidebar", c ? "0" : "1"); } catch {} return !c; }); }
+      } else if (e.key === "?" && !typing) { setHelp((h) => !h); }
+    };
+    window.addEventListener("keydown", k);
+    return () => window.removeEventListener("keydown", k);
+  }, [router]);
+
   if (!state) return <div className="loading" style={{ paddingTop: 200 }}><span className="spinner" /></div>;
   const isActive = (href: string) => (href === "/app" ? path === "/app" : path.startsWith(href));
   const ws = state.profile.workspace_name || "My workspace";
@@ -203,7 +220,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           ))}
           <span className="spacer" />
           <button className="rail-btn" data-label="Search" aria-label="Search" onClick={() => document.getElementById("dz-search")?.focus()}><Search size={18} /></button>
-          <Link href="/app/help" className="rail-btn" data-label="Help" aria-label="Help"><CircleHelp size={18} /></Link>
+          <button className={`rail-btn ${help ? "on" : ""}`} data-label="Help" aria-label="Help" onClick={() => setHelp((h) => !h)}><CircleHelp size={18} /></button>
           <UserMenu profile={state.profile} email={state.email} />
         </nav>
         <div className="shell">
@@ -235,11 +252,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               <span className="spacer" />
               <GlobalSearch />
               <Notifications />
-              <Link href="/app/help" className="support-link hide-sm"><FileText size={16} />Support</Link>
+              <button className="support-link hide-sm" onClick={() => setHelp(true)}><FileText size={16} />Support</button>
             </header>
             <main className="main">{children}</main>
           </div>
         </div>
+        <HelpPanel open={help} onClose={() => setHelp(false)} />
         <ToastHost />
       </div>
     </Ctx.Provider>

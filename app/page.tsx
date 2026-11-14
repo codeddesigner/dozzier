@@ -25,7 +25,7 @@ function Nav() {
         <Link href="/" aria-label="Dozzier home"><Logo height={30} /></Link>
         <nav className="lp-links">
           <a href="#product">Product</a><a href="#data-rooms">Data rooms</a><a href="#ai">AI</a>
-          <a href="#integrations">Integrations</a><a href="#pricing">Pricing</a><a href="#faq">Docs</a>
+          <a href="#integrations">Integrations</a><a href="#pricing">Pricing</a><Link href="/docs">Docs</Link>
         </nav>
         <div className="spacer" />
         <Link href="/login" className="lp-signin">Sign in<ChevronDown size={16} /></Link>
@@ -287,9 +287,9 @@ function Pricing() {
 function Footer() {
   const cols: [string, [string, string][]][] = [
     ["Product", [["Analytics", "#product"], ["Data rooms", "#data-rooms"], ["Ask Dozzier", "#ai"], ["eSign", "#product"], ["Integrations", "#integrations"], ["Pricing", "#pricing"]]],
-    ["Resources", [["Docs", "#faq"], ["API reference", "#integrations"], ["Changelog", "#"], ["Status", "#"], ["Help center", "#faq"]]],
-    ["Company", [["About", "#"], ["Careers", "#"], ["Blog", "#"], ["Contact", "mailto:hello@dozzier.io"]]],
-    ["Legal", [["Privacy", "#"], ["Terms", "#"], ["Security", "#"], ["DPA", "#"]]],
+    ["Resources", [["Docs", "/docs"], ["API reference", "/docs/api"], ["Changelog", "/docs/changelog"], ["Status", "/docs/contact#status"], ["Help center", "/docs"]]],
+    ["Company", [["About", "#product"], ["Careers", "mailto:careers@dozzier.io"], ["Blog", "/docs/changelog"], ["Contact", "/docs/contact"]]],
+    ["Legal", [["Privacy", "/legal/privacy"], ["Terms", "/legal/terms"], ["Security", "/legal/security"], ["DPA", "/legal/dpa"]]],
   ];
   return (
     <footer className="footer">

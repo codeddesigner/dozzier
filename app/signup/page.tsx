@@ -65,7 +65,7 @@ export default function Signup() {
           </label>
           {err && <p className="error-text">{err}</p>}
           <button className="btn btn-primary btn-block">Continue with email</button>
-          <p className="caption faint center">By continuing you agree to Dozzier’s <Link href="/#faq" className="link" style={{ fontWeight: 400 }}>Terms of Service</Link> and <Link href="/#faq" className="link" style={{ fontWeight: 400 }}>Privacy Policy</Link>.</p>
+          <p className="caption faint center">By continuing you agree to Dozzier’s <Link href="/legal/terms" className="link" style={{ fontWeight: 400 }}>Terms of Service</Link> and <Link href="/legal/privacy" className="link" style={{ fontWeight: 400 }}>Privacy Policy</Link>.</p>
         </form>
       ) : (
         <form onSubmit={create} className="col" style={{ gap: 18 }}>
