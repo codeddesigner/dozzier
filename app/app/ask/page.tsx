@@ -76,7 +76,7 @@ async function answer(q: string, c: Ctx): Promise<Answer> {
     const hits = byKey(vs.filter(docMatch), (v) => v.visitor_email).filter((g) => g.secs >= 30).sort((a, b) => b.secs - a.secs);
     const rows: Row[] = hits.slice(0, 8).map((g) => ({ key: g.k, email: g.k, title: `${displayName(g.k)}${g.rows[0].accounts ? ` · ${g.rows[0].accounts.name}` : ""}`, sub: `${duration(g.secs)} on ${g.rows[0].documents?.name || "your content"}${g.rows.some((r) => r.downloaded) ? " · downloaded" : ""}`, score: g.score, href: g.rows[0].contact_id ? `/app/contacts/${g.rows[0].contact_id}` : undefined, accountId: g.rows[0].account_id }));
     const docNames = [...new Set(vs.filter(docMatch).map((v) => v.documents?.name).filter(Boolean))] as string[];
-    const unopened = /hasn|not opened|haven|unopened|yet/.test(s) ? links.filter((l) => !all.some((v) => v.link_id === l.id) && (!words.length || words.some((w) => l.name.toLowerCase().includes(w)) || docNames.length > 0)).slice(0, 6) : [];
+    const unopened = /hasn|not opened|haven|unopened|yet/.test(s) ? links.filter((l) => !all.some((v) => v.link_id === l.id) && (!words.length || words.some((w) => l.name.toLowerCase().includes(w)) || docNames.length > 0)).filter((l, i, arr) => arr.findIndex((x) => x.name === l.name) === i).slice(0, 6) : [];
     const ago = (d: string) => { const n = Math.round((Date.now() - +new Date(d)) / 86400000); return n < 1 ? "today" : `${n} day${n === 1 ? "" : "s"} ago`; };
     return {
       intro: rows.length ? `${rows.length} ${rows.length === 1 ? "person" : "people"} spent meaningful time on ${docNames.length === 1 ? docNames[0] : "your content"} ${p.label}:` : `Nobody has spent meaningful time on ${words.length ? `“${words.join(" ")}”` : "your content"} ${p.label}.`,

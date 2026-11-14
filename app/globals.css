@@ -1197,8 +1197,9 @@ html[data-theme="dark"]:has(.app) .tl-dot { background: var(--dz-bg-surface); }
 .sv-newdot { width: 7px; height: 7px; border-radius: 50%; background: var(--dz-bg-brand); flex-shrink: 0; }
 .sv-main { padding: 24px 32px 48px; max-width: 900px; width: 100%; }
 .sv-banner { height: 130px; border-radius: 4px; animation: rise .5s ease both; background-size: 200% 200% !important; }
-.sv-head { display: flex; gap: 18px; align-items: flex-end; margin: -10px 0 0 18px; }
-.sv-logo { width: 92px; height: 92px; border-radius: 6px; background: var(--dz-bg-muted); display: flex; align-items: center; justify-content: center; color: var(--dz-text-secondary); flex-shrink: 0; border: 3px solid var(--dz-bg-surface, #fff); }
+.sv-head { display: flex; gap: 18px; align-items: flex-start; margin: 0 0 0 18px; }
+.sv-head > .col { padding-top: 14px; min-width: 0; }
+.sv-logo { margin-top: -38px; width: 92px; height: 92px; border-radius: 6px; background: var(--dz-bg-muted); display: flex; align-items: center; justify-content: center; color: var(--dz-text-secondary); flex-shrink: 0; border: 3px solid var(--dz-bg-surface, #fff); }
 .sv-folders { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; margin-top: 28px; }
 .sv-fcard { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border: 1px solid var(--dz-border-default); border-radius: 10px; background: var(--dz-bg-surface, #fff); transition: border-color .15s, box-shadow .2s, transform .2s; animation: rise .35s ease both; }
 .sv-fcard:hover { border-color: var(--dz-border-focus); box-shadow: 0 6px 16px rgba(17,24,39,.06); transform: translateY(-2px); }
