@@ -2,9 +2,9 @@ import Link from "next/link";
 import {
   Upload, Link2, Sparkles, MessageSquareText, Signature, History, Kanban, CheckCircle2, Lock, KeyRound, Globe, ShieldCheck,
   Info, AtSign, Mail, User, Settings2, BarChart3, Users, Files, TrendingUp, FileCheck2, Palette, Puzzle, HousePlus, List, CircleCheck,
-  Search, Zap, Bell, CircleHelp, Calendar, ChevronDown, Flame, Eye, Download as DownloadIcon, Clock3, Mail as MailIcon,
+  Image as ImageIcon, Search, Zap, Bell, CircleHelp, Calendar, ChevronDown, Flame, Eye, Download as DownloadIcon, Clock3, Mail as MailIcon,
 } from "lucide-react";
-import { Logo, AppIcon } from "@/components/Logo";
+import { Logo, AppIcon, FooterLogo } from "@/components/Logo";
 import { Faq } from "@/components/Faq";
 import { PageBars } from "@/components/charts";
 import { NAV_GROUPS, APPS } from "@/components/nav";
@@ -72,7 +72,11 @@ function DashboardMock() {
             <div className="row gap-8 mt-24"><span className="chip"><Calendar size={16} />Last 30 days<ChevronDown size={14} /></span><span className="chip"><Users size={16} />Team visits<ChevronDown size={14} /></span></div>
             <MockKpis />
             <div className="tabs mt-24">{["Visitor activity", "Popular content", "Top groups & links", "Top Spaces", "Visit chart"].map((t, i) => <span key={t} className={`tab ${i === 0 ? "active" : ""}`}>{t}</span>)}</div>
-            <table className="table mt-24">
+            <div className="row gap-6 mt-24">
+              {["Spaces", "Link owners", "Domains"].map((c) => <span key={c} className="chip" style={{ height: 30, fontSize: 13, padding: "0 12px" }}>{c}<ChevronDown size={12} /></span>)}
+              <span className="spacer" /><span className="search" style={{ width: 200, height: 32 }}><Search size={14} /><span className="caption">Search</span></span>
+            </div>
+            <table className="table mt-16">
               <thead><tr><th style={{ width: 24 }} /><th>Name</th><th>Space or link visited</th><th>Visits</th><th>Downloads</th><th>Time spent</th><th>Last visit</th></tr></thead>
               <MockRows />
             </table>
@@ -88,6 +92,7 @@ function DashboardMock() {
 function Hero() {
   return (
     <section className="hero" id="product">
+      <Link href="/signup" className="announce h-in"><span className="badge badge-brand">New</span>Ask Dozzier — AI answers across every deal <span className="arrow">→</span></Link>
       <h1 className="display-xl" style={{ maxWidth: 948 }}><WordReveal text="The secure platform to share, track, and move business forward." delay={80} /></h1>
       <p className="body-l muted h-in" style={{ maxWidth: 732, animationDelay: ".45s" }}>
         Dozzier turns every deck, proposal and data room into a secure link with page-by-page analytics, live alerts and AI follow-ups — so you know who’s interested and exactly what to do next.
@@ -199,11 +204,15 @@ function Features() {
           <div className="feature-card spotlight" id="data-rooms">
             <span className="overline">Data rooms</span><div className="h1">Data rooms that run diligence</div>
             <p className="body-m muted">Group permissions, request tracker, Q&amp;A and a full audit log in one Space.</p>
-            <div className="card" style={{ marginTop: 16, overflow: "hidden" }}>
-              <div className="banner-anim" style={{ height: 64 }} />
-              <div className="row gap-12" style={{ padding: 12 }}>
-                <span className="doc-thumb file" style={{ width: 40, height: 40 }}><HousePlus size={16} /></span>
-                <div className="col"><span className="semibold caption">Investor due diligence</span><span className="micro faint">Subtitle · Last updated 1d ago <span className="badge badge-success" style={{ fontSize: 10 }}>Active</span></span></div>
+            <div style={{ marginTop: 16, background: "#fff" }}>
+              <div className="banner-anim" style={{ height: 58, position: "relative" }}><span style={{ position: "absolute", left: 6, top: 6, background: "rgba(255,255,255,.9)", borderRadius: 999, padding: "1px 4px", fontSize: 5, fontWeight: 500, lineHeight: "6px" }}>Preview</span></div>
+              <div className="row" style={{ gap: 7, padding: "0 9px 7px", alignItems: "flex-start" }}>
+                <span style={{ width: 43, height: 43, background: "var(--dz-bg-muted)", borderRadius: 3, display: "inline-flex", alignItems: "center", justifyContent: "center", color: "var(--dz-icon-secondary)" }}><ImageIcon size={13} /></span>
+                <div className="col" style={{ paddingTop: 22, gap: 3 }}>
+                  <span style={{ fontSize: 8, fontWeight: 600, lineHeight: "10px" }}>Investor due diligence</span>
+                  <span className="row" style={{ gap: 3, fontSize: 5, color: "var(--dz-text-secondary)", lineHeight: "7px" }}>Subtitle · Last updated 1d ago <span style={{ background: "var(--dz-bg-success-subtle)", color: "var(--dz-text-success)", borderRadius: 1.5, padding: "1px 2px", fontWeight: 500, fontSize: 4.3 }}>Active ⌄</span></span>
+                  <span className="row">{[["Ab", "#ff5a5a"], ["Pa", "#3b8bff"], ["Cy", "#ff4f8b"]].map(([t, c]) => <span key={t} className="avatar" style={{ width: 14.5, height: 14.5, fontSize: 5.8, background: c, marginRight: -2 }}>{t}</span>)}<span className="avatar" style={{ width: 11.5, height: 11.5, background: "#fff", border: ".4px solid var(--dz-border-default)", color: "#111827", fontSize: 7 }}>+</span></span>
+                </div>
               </div>
             </div>
           </div>
@@ -286,7 +295,7 @@ function Footer() {
     <footer className="footer">
       <div className="lp-container">
         <div className="footer-cols" data-stagger="70">
-          <div><Logo height={36} /><p className="muted" style={{ marginTop: 16, maxWidth: 300 }}>Secure document sharing with analytics that tell you what to do next.</p></div>
+          <div><FooterLogo height={36} /><p className="muted" style={{ marginTop: 16, maxWidth: 300 }}>Secure document sharing with analytics that tell you what to do next.</p></div>
           {cols.map(([h, ls]) => <div key={h}><div className="semibold">{h}</div>{ls.map(([l, href]) => <a key={l} href={href}>{l}</a>)}</div>)}
         </div>
         <div className="row" style={{ borderTop: "1px solid var(--dz-border-subtle)", marginTop: 48, paddingTop: 24 }}>
@@ -315,7 +324,7 @@ export default function Landing() {
       </section>
       <section style={{ padding: "0 24px 96px" }}>
         <div className="lp-container cta-box" data-reveal="scale">
-          <span className="cta-icon" style={{ width: 80, height: 80, borderRadius: 999, background: "#fff", border: "1px solid var(--dz-border-default)", display: "inline-flex", alignItems: "center", justifyContent: "center" }}><AppIcon size={48} /></span>
+          <span className="cta-icon" style={{ borderRadius: 13, display: "inline-flex" }}><AppIcon size={56} tone="white" /></span>
           <h2 className="display-l">Stop guessing. Start knowing.</h2>
           <p className="body-l" style={{ opacity: 0.85 }}>Send your first tracked link in under two minutes.</p>
           <div className="row gap-12"><Link href="/signup" className="btn btn-secondary btn-l">Start free trial</Link><a href={DEMO} className="btn btn-dark btn-l">Book a demo<span className="arrow">→</span></a></div>

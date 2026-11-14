@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { ChevronDown, Flame, Link2, Mail, Download as DownloadIcon, Lock, Calendar, FileCheck2 } from "lucide-react";
+import { ChevronDown, Copy, Flame, Link2, Mail, Download as DownloadIcon, Lock, Calendar, FileCheck2 } from "lucide-react";
 import { Avatar } from "@/components/ui";
 import { CountUp, Cycle, useInView } from "@/components/Motion";
 
@@ -143,7 +143,10 @@ export function LinkSettingsLive() {
       <div className="row semibold" style={{ fontSize: 14 }}>Create link<span className="spacer" />×</div>
       <div className="micro medium mt-8">Link name</div>
       <div className="input" style={{ height: 30, display: "flex", alignItems: "center", fontSize: 12, marginTop: 4 }}>Randombase — Series A</div>
-      <div className="row gap-6 brand" style={{ background: "var(--dz-bg-brand-subtle)", borderRadius: 6, padding: "6px 8px", marginTop: 8 }}><Link2 size={12} />dozzier.io/v/randombase-series-a</div>
+      <div className="row gap-6 brand" style={{ background: "var(--dz-bg-brand-subtle)", borderRadius: 6, padding: "6px 8px", marginTop: 8 }}><Link2 size={12} /><span className="grow">dozzier.io/v/randombase-series-a</span><Copy size={11} /></div>
+      <div className="row" style={{ gap: 16, marginTop: 12, borderBottom: "1px solid var(--dz-border-default)", fontSize: 10 }}>
+        {["Access", "Security", "Branding", "Notifications"].map((t, i) => <span key={t} style={{ padding: "0 0 6px", color: i ? "var(--dz-text-secondary)" : "var(--dz-text-primary)", fontWeight: i ? 400 : 500, borderBottom: i ? 0 : "1.5px solid #111827", marginBottom: -1 }}>{t}</span>)}
+      </div>
       {items.map(([I, t, d], i) => (
         <div className="row gap-8" key={t} style={{ padding: "8px 0", borderBottom: "1px solid var(--dz-border-subtle)" }}>
           <I size={14} /><div className="grow"><div className="medium">{t}</div><div className="faint" style={{ fontSize: 10 }}>{d}</div></div>

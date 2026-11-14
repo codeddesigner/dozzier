@@ -281,7 +281,8 @@ button.card:hover, a.card:hover { border-color: var(--dz-border-strong); box-sha
 
 /* ---------- Landing ---------- */
 .lp-nav { position: sticky; top: 0; z-index: 40; background: rgba(255,255,255,.92); backdrop-filter: saturate(180%) blur(12px); border-bottom: 1px solid var(--dz-border-subtle); }
-.lp-nav-inner { max-width: 1440px; margin: 0 auto; display: flex; align-items: center; gap: 32px; height: 72px; padding: 0 120px; }
+.lp-nav-inner { max-width: 1440px; margin: 0 auto; display: flex; align-items: center; gap: 32px; height: 137px; padding: 0 120px; transition: height .45s var(--ease-out, ease); }
+.scrolled .lp-nav-inner { height: 72px; }
 .lp-links { display: flex; gap: 28px; font-weight: 500; color: var(--dz-text-secondary); }
 .lp-links a:hover { color: var(--dz-text-primary); }
 .lp-container { max-width: 1200px; margin: 0 auto; }
