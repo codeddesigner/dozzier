@@ -2,7 +2,7 @@
 
 Secure document sharing with page-by-page analytics, live alerts, data rooms and follow-up insights.
 
-Live: https://dozzier.vercel.app
+Live: https://dozzier.co
 
 ## Stack
 

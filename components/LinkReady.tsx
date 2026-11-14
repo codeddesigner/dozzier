@@ -7,7 +7,7 @@ import { useApp } from "@/components/AppContext";
 import type { Link } from "@/lib/supabase";
 
 export function linkUrlOf(slug: string) {
-  return `${typeof window !== "undefined" ? window.location.origin : "https://dozzier.vercel.app"}/v/${slug}`;
+  return `${typeof window !== "undefined" ? window.location.origin : "https://dozzier.co"}/v/${slug}`;
 }
 
 /** Fills {{placeholders}} in an email template. */

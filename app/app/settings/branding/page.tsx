@@ -55,7 +55,7 @@ export default function Branding() {
         </div>
         <div style={{ width: 340, flexShrink: 0 }}>
           <div className="preview-browser" style={{ position: "sticky", top: 16 }}>
-            <div className="bar"><span className="dot" style={{ background: "#ff5f57" }} /><span className="dot" style={{ background: "#febc2e" }} /><span className="dot" style={{ background: "#28c840" }} /><span className="url">{profile.custom_domain || "dozzier.vercel.app"}/v/series-a</span></div>
+            <div className="bar"><span className="dot" style={{ background: "#ff5f57" }} /><span className="dot" style={{ background: "#febc2e" }} /><span className="dot" style={{ background: "#28c840" }} /><span className="url">{profile.custom_domain || "dozzier.co"}/v/series-a</span></div>
             <div style={{ background: dark ? "#111827" : "#f3f5f7", padding: "28px 20px 0", transition: "background-color .4s ease", minHeight: 380 }}>
               <div className="col gap-10 preview-gate" style={{ background: "#fff", borderRadius: "14px 14px 0 0", padding: "24px 20px", textAlign: "center", alignItems: "center", boxShadow: "var(--shadow-lg)" }}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}

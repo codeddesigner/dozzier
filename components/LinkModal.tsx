@@ -9,7 +9,7 @@ import { standardPreset } from "@/lib/linkDefaults";
 import { LinkReady } from "./LinkReady";
 
 export function linkUrl(slug: string) {
-  return `${typeof window !== "undefined" ? window.location.origin : "https://dozzier.vercel.app"}/v/${slug}`;
+  return `${typeof window !== "undefined" ? window.location.origin : "https://dozzier.co"}/v/${slug}`;
 }
 
 type Draft = Omit<Link, "id" | "created_at" | "document_id" | "space_id">;
