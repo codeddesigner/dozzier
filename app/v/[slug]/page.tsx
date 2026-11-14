@@ -1,7 +1,7 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
-import { ChevronLeft, ChevronRight, Maximize, ZoomIn, ZoomOut, Download, Printer, Flag, CircleHelp, ShieldCheck, Folder, ArrowLeft, FileText, MessageSquare, CalendarDays, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Maximize, ZoomIn, ZoomOut, Download, Printer, Flag, CircleHelp, ShieldCheck, Folder, ArrowLeft, FileText, MessageSquare, CalendarDays, X, Search, ImageIcon } from "lucide-react";
 import { supabase, BUCKET } from "@/lib/supabase";
 import { Logo, AppIcon } from "@/components/Logo";
 import { Avatar } from "@/components/ui";
@@ -20,15 +20,17 @@ function BrandAsset({ path, alt, style }: { path: string | null | undefined; alt
   return url ? <img src={url} alt={alt} style={style} /> : null;
 }
 type Started = { visit_id: string; file_path: string | null; mime_type: string | null; file_type: string; page_count: number; is_sample: boolean; email: string | null; name: string; note: string | null };
-type SpaceItem = { id: string; kind: "folder" | "document"; name: string; parent_id: string | null; document_id: string | null; file_path: string | null; mime_type: string | null; file_type: string; note: string | null; page_count: number; is_sample: boolean };
-type SpaceData = { name: string; subtitle: string | null; banner: string; items: SpaceItem[] };
+type SpaceItem = { id: string; kind: "folder" | "document"; name: string; parent_id: string | null; level: string; file_type: string | null; page_count: number | null; created_at: string };
+type SpaceData = { name: string; subtitle: string | null; banner: string; updated_at: string; status: string; sender: string; workspace: string | null; expires_at: string | null; nda: boolean; watermark: boolean; group: string | null; viewers: string[]; items: SpaceItem[] };
+type Current = { source: Source; pages: number; name: string; path: string | null; visitId?: string; level?: string };
 
 export default function Viewer() {
   const { slug } = useParams<{ slug: string }>();
   const [pub, setPub] = useState<Pub | null | undefined>(undefined);
   const [visit, setVisit] = useState<Started | null>(null);
   const [space, setSpace] = useState<SpaceData | null>(null);
-  const [current, setCurrent] = useState<{ source: Source; pages: number; name: string; path: string | null } | null>(null);
+  const [current, setCurrent] = useState<Current | null>(null);
+  const [spaceErr, setSpaceErr] = useState<string | null>(null);
   const [email, setEmail] = useState("");
   const [pass, setPass] = useState("");
   const [nda, setNda] = useState(false);
@@ -60,7 +62,8 @@ export default function Viewer() {
     try { if (em) localStorage.setItem("dz-viewer-email", em); } catch {}
     setVisit(v);
     if (p.space_id) {
-      const { data: s } = await supabase.rpc("get_public_space", { p_slug: slug });
+      const { data: s, error: se } = await supabase.rpc("space_for_visit", { p_visit_id: v.visit_id });
+      if (se) { setBusy(false); setVisit(null); return setErr(se.message); }
       setSpace(s as SpaceData);
     } else {
       await openDoc({ file_path: v.file_path, mime_type: v.mime_type, file_type: v.file_type, page_count: v.page_count, is_sample: v.is_sample, name: v.name, note: v.note });
@@ -68,13 +71,21 @@ export default function Viewer() {
     setBusy(false);
   }
 
-  async function openDoc(d: { file_path: string | null; mime_type: string | null; file_type: string; page_count: number; is_sample: boolean; name: string; note?: string | null }) {
+  async function openSpaceItem(it: SpaceItem) {
+    setSpaceErr(null);
+    const { data, error } = await supabase.rpc("space_open_doc", { p_visit_id: visit!.visit_id, p_item_id: it.id });
+    if (error) return setSpaceErr(error.message);
+    const d = data as Started & { level: string };
+    await openDoc(d, { visitId: d.visit_id, level: d.level });
+  }
+
+  async function openDoc(d: { file_path: string | null; mime_type: string | null; file_type: string; page_count: number; is_sample: boolean; name: string; note?: string | null }, extra: { visitId?: string; level?: string } = {}) {
     let url: string | null = null;
     if (d.file_path) {
       const { data } = await supabase.storage.from(BUCKET).createSignedUrl(d.file_path, 3600);
       url = data?.signedUrl || null;
     }
-    setCurrent({ source: sourceFor({ ...d, note: d.note || null }, url), pages: d.is_sample ? 12 : d.page_count || 1, name: d.name, path: d.file_path });
+    setCurrent({ source: sourceFor({ ...d, note: d.note || null }, url), pages: d.is_sample ? 12 : d.page_count || 1, name: d.name, path: d.file_path, ...extra });
   }
 
   if (pub === undefined) return <div className="viewer"><div className="loading" style={{ margin: "auto" }}><span className="spinner" /></div></div>;
@@ -123,11 +134,12 @@ export default function Viewer() {
   }
 
   if (space && !current) {
-    return <SpaceBrowser space={space} email={visit.email} onOpen={(it) => openDoc({ file_path: it.file_path, mime_type: it.mime_type, file_type: it.file_type, page_count: it.page_count, is_sample: it.is_sample, name: it.name, note: it.note })} />;
+    return <SpaceBrowser space={space} email={visit.email} visitId={visit.visit_id} error={spaceErr} onOpen={openSpaceItem} />;
   }
   if (!current) return <div className="viewer"><Bar /><div className="loading" style={{ margin: "auto" }}><span className="spinner" /></div></div>;
 
-  return <Reader pub={pub} visit={visit} doc={current} onBack={space ? () => setCurrent(null) : undefined} />;
+  const rPub = current.level ? { ...pub, allow_download: current.level === "download", watermark: current.level === "view_watermark" } : pub;
+  return <Reader key={current.visitId || "doc"} pub={rPub} visit={current.visitId ? { ...visit, visit_id: current.visitId } : visit} doc={current} onBack={space ? () => setCurrent(null) : undefined} />;
 }
 
 function Bar({ counter, children }: { counter?: string; children?: React.ReactNode }) {
@@ -140,26 +152,123 @@ function Bar({ counter, children }: { counter?: string; children?: React.ReactNo
   );
 }
 
-function SpaceBrowser({ space, email, onOpen }: { space: SpaceData; email: string | null; onOpen: (it: SpaceItem) => void }) {
+function SpaceBrowser({ space, email, visitId, error, onOpen }: { space: SpaceData; email: string | null; visitId: string; error: string | null; onOpen: (it: SpaceItem) => void }) {
   const [folder, setFolder] = useState<SpaceItem | null>(null);
-  const items = space.items.filter((i) => (folder ? i.parent_id === folder.id : !i.parent_id));
+  const [q, setQ] = useState("");
+  const [ask, setAsk] = useState(false);
+  const [busyId, setBusyId] = useState<string | null>(null);
+  const top = space.items.filter((i) => !i.parent_id && i.kind === "folder");
+  const rootDocs = space.items.filter((i) => !i.parent_id && i.kind === "document");
+  const kids = (id: string) => space.items.filter((i) => i.parent_id === id);
+  const deepDocs = (id: string): SpaceItem[] => kids(id).flatMap((k) => (k.kind === "folder" ? deepDocs(k.id) : [k]));
+  const isNew = (it: SpaceItem) => Date.now() - new Date(it.created_at).getTime() < 7 * 86400000;
+  const list = q.trim() ? space.items.filter((i) => i.kind === "document" && i.name.toLowerCase().includes(q.trim().toLowerCase())) : folder ? kids(folder.id) : [];
+  const initials = (space.workspace || space.sender).split(/\s+/).map((w) => w[0]).join("").slice(0, 2).toUpperCase();
+  const open = async (it: SpaceItem) => { if (it.kind === "folder") { setFolder(it); setQ(""); return; } setBusyId(it.id); await onOpen(it); setBusyId(null); };
+  const notice = [space.nda && "You accepted the NDA", space.expires_at && `Access expires ${new Date(space.expires_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}`, space.watermark && email && "Pages are watermarked with your email"].filter(Boolean) as string[];
+  const updated = (() => { const m = Math.round((Date.now() - new Date(space.updated_at).getTime()) / 60000); return m < 60 ? `${Math.max(1, m)}m ago` : m < 1440 ? `${Math.round(m / 60)}h ago` : `${Math.round(m / 1440)}d ago`; })();
+
   return (
-    <div className="viewer" style={{ background: "#f3f5f7", color: "var(--dz-text-primary)" }}>
-      <div className="viewer-bar" style={{ background: "#111827", color: "#fff" }}><Logo height={22} dark /><span className="spacer" />{email && <Avatar email={email} size={30} />}</div>
-      <div style={{ maxWidth: 860, width: "100%", margin: "32px auto", background: "#fff", borderRadius: 12, overflow: "hidden", boxShadow: "var(--shadow-lg)" }}>
-        <div style={{ height: 140, background: space.banner }} />
-        <div style={{ padding: 24 }}>
-          <div className="h1">{space.name}</div>{space.subtitle && <p className="muted">{space.subtitle}</p>}
-          <div className="row gap-8 semibold mt-24">{folder ? <button className="row gap-6" onClick={() => setFolder(null)}><ArrowLeft size={14} />Home / {folder.name}</button> : "Home"}</div>
-          <table className="table mt-8"><tbody>
-            {items.length === 0 && <tr><td className="table-empty">This folder is empty.</td></tr>}
-            {items.map((it) => (
-              <tr key={it.id} className="clickable" onClick={() => (it.kind === "folder" ? setFolder(it) : onOpen(it))}>
-                <td><div className="row gap-12">{it.kind === "folder" ? <Folder size={20} fill="#a9c4fb" color="#a9c4fb" /> : <FileText size={20} color="#4D94F7" />}<span className="medium">{it.name}</span></div></td>
-                <td className="muted">{it.kind === "folder" ? `${space.items.filter((x) => x.parent_id === it.id).length} items` : "Document"}</td>
-              </tr>))}
-          </tbody></table>
-        </div>
+    <div className="sv">
+      <header className="sv-bar">
+        <span className="sv-mono">{initials}</span>
+        <span className="medium ellipsis sv-crumb">{space.workspace || space.sender} · {space.name}</span>
+        <span className="spacer" />
+        <label className="sv-search hide-sm"><Search size={15} /><input placeholder="Search" value={q} onChange={(e) => setQ(e.target.value)} /></label>
+        <button className="btn btn-secondary btn-s" onClick={() => setAsk(true)}><MessageSquare size={15} />Ask a question</button>
+        {email && <Avatar email={email} size={30} />}
+      </header>
+      {notice.length > 0 && <div className="sv-notice"><ShieldCheck size={15} />{notice.join(" · ")}</div>}
+      <div className="sv-body">
+        <nav className="sv-side">
+          <button className={!folder && !q ? "on" : ""} onClick={() => { setFolder(null); setQ(""); }}><Folder size={16} fill="#a9c4fb" color="#a9c4fb" />Home</button>
+          {top.map((f) => <button key={f.id} className={folder?.id === f.id ? "on" : ""} onClick={() => open(f)}><Folder size={16} fill="#a9c4fb" color="#a9c4fb" /><span className="ellipsis grow">{f.name}</span>{deepDocs(f.id).some(isNew) && <span className="sv-newdot" />}</button>)}
+        </nav>
+        <main className="sv-main">
+          {error && <div className="sv-error">{error}</div>}
+          {!folder && !q ? (
+            <>
+              <div className="sv-banner" style={{ background: space.banner }} />
+              <div className="sv-head">
+                <div className="sv-logo"><ImageIcon size={26} /></div>
+                <div className="col gap-6">
+                  <h1 className="h1">{space.name}</h1>
+                  <span className="caption muted row gap-8">Shared by {space.sender} · Updated {updated}<span className="badge badge-success">{space.status === "active" ? "Active" : "Archived"}</span>{space.group && <span className="tag">{space.group}</span>}</span>
+                  {space.viewers.length > 0 && <div className="avatar-stack mt-4">{space.viewers.slice(0, 4).map((e) => <Avatar key={e} email={e} size={30} />)}</div>}
+                </div>
+              </div>
+              {space.subtitle && <p className="muted" style={{ marginTop: 8 }}>{space.subtitle}</p>}
+              <div className="sv-folders">
+                {top.map((f, i) => { const d = deepDocs(f.id); const n = d.filter(isNew).length; return (
+                  <button key={f.id} className="sv-fcard" style={{ animationDelay: `${i * 40}ms` }} onClick={() => open(f)}>
+                    <Folder size={26} fill="#a9c4fb" color="#a9c4fb" /><span className="col grow" style={{ minWidth: 0, textAlign: "left" }}><span className="medium ellipsis">{f.name}</span><span className="caption muted">{d.length} file{d.length === 1 ? "" : "s"}</span></span>
+                    {n > 0 && <span className="badge badge-brand">{n} new</span>}
+                  </button>
+                ); })}
+              </div>
+              {rootDocs.length > 0 && <FileList items={rootDocs} isNew={isNew} busyId={busyId} onOpen={open} />}
+              {top.length === 0 && rootDocs.length === 0 && <p className="muted mt-24">Nothing has been shared with you here yet.</p>}
+            </>
+          ) : (
+            <>
+              <div className="row gap-6 semibold" style={{ marginBottom: 12 }}>
+                <button className="muted" onClick={() => { setFolder(null); setQ(""); }}>Home</button><ChevronRight size={14} className="faint" />
+                {q ? <span>Results for “{q}”</span> : <span>{folder!.name}</span>}
+              </div>
+              {list.length === 0 ? <p className="muted">{q ? "No documents match." : "This folder is empty."}</p> : <FileList items={list} isNew={isNew} busyId={busyId} onOpen={open} countOf={(id) => deepDocs(id).length} />}
+            </>
+          )}
+        </main>
+      </div>
+      {ask && <SpaceAsk visitId={visitId} folders={top} current={folder} sender={space.sender} onClose={() => setAsk(false)} />}
+    </div>
+  );
+}
+
+function FileList({ items, isNew, busyId, onOpen, countOf }: { items: SpaceItem[]; isNew: (i: SpaceItem) => boolean; busyId: string | null; onOpen: (i: SpaceItem) => void; countOf?: (id: string) => number }) {
+  const LV: Record<string, string> = { download: "Download", view_watermark: "View only · watermarked", view: "View only" };
+  return (
+    <div className="sv-files">
+      {items.map((it, i) => (
+        <button key={it.id} className="sv-file" style={{ animationDelay: `${Math.min(i, 12) * 30}ms` }} onClick={() => onOpen(it)} disabled={busyId === it.id}>
+          {it.kind === "folder" ? <Folder size={22} fill="#a9c4fb" color="#a9c4fb" /> : <FileText size={22} color="#4D94F7" />}
+          <span className="col grow" style={{ minWidth: 0, textAlign: "left" }}><span className="medium ellipsis">{it.name}</span>
+            <span className="caption muted">{it.kind === "folder" ? `${countOf?.(it.id) ?? 0} files` : [it.page_count ? `${it.page_count} page${it.page_count === 1 ? "" : "s"}` : (it.file_type || "").toUpperCase(), LV[it.level]].filter(Boolean).join(" · ")}</span></span>
+          {isNew(it) && it.kind === "document" && <span className="badge badge-brand">New</span>}
+          {busyId === it.id ? <span className="spinner" style={{ width: 16, height: 16 }} /> : <ChevronRight size={16} className="faint" />}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function SpaceAsk({ visitId, folders, current, sender, onClose }: { visitId: string; folders: SpaceItem[]; current: SpaceItem | null; sender: string; onClose: () => void }) {
+  const [title, setTitle] = useState("");
+  const [details, setDetails] = useState("");
+  const [folder, setFolder] = useState(current?.id || "");
+  const [state, setState] = useState<"idle" | "busy" | "sent">("idle");
+  const [err, setErr] = useState<string | null>(null);
+  async function send() {
+    setState("busy"); setErr(null);
+    const { error } = await supabase.rpc("space_request", { p_visit_id: visitId, p_title: title, p_folder_id: folder || null, p_details: details || null });
+    if (error) { setState("idle"); return setErr(error.message); }
+    setState("sent");
+  }
+  return (
+    <div className="sv-modal-back" onClick={onClose}>
+      <div className="sv-modal" onClick={(e) => e.stopPropagation()} role="dialog" aria-label="Ask a question">
+        <div className="row"><span className="h3 grow">{state === "sent" ? "Sent" : "Ask a question or request a document"}</span><button className="icon-btn s" aria-label="Close" onClick={onClose}><X size={16} /></button></div>
+        {state === "sent" ? (
+          <><p className="muted" style={{ fontSize: 14 }}>{sender} has your request and will add it to the Space or reply to you directly.</p><div><button className="btn btn-primary" onClick={onClose}>Back to the Space</button></div></>
+        ) : (
+          <>
+            <label className="field"><span className="label">What do you need?</span><input className="input" autoFocus value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. 3-year financial model (xlsx)" /></label>
+            <label className="field"><span className="label">Details (optional)</span><textarea className="input" rows={3} value={details} onChange={(e) => setDetails(e.target.value)} /></label>
+            {folders.length > 0 && <label className="field"><span className="label">Folder</span><select className="input" value={folder} onChange={(e) => setFolder(e.target.value)}><option value="">Not sure</option>{folders.map((f) => <option key={f.id} value={f.id}>{f.name}</option>)}</select></label>}
+            {err && <p className="error-text">{err}</p>}
+            <div className="row gap-8"><span className="grow" /><button className="btn btn-ghost" onClick={onClose}>Cancel</button><button className="btn btn-primary" disabled={state === "busy" || !title.trim()} onClick={send}>{state === "busy" ? "Sending…" : "Send request"}</button></div>
+          </>
+        )}
       </div>
     </div>
   );

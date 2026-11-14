@@ -32,5 +32,5 @@ export type Contact = {
 };
 export type Account = { id: string; name: string; domain: string | null; archived: boolean; is_sample: boolean; created_at: string };
 export type Folder = { id: string; name: string; kind: "personal" | "team"; created_at: string };
-export type Space = { id: string; name: string; subtitle: string | null; template: string | null; status: string; banner: string; created_at: string; updated_at: string };
+export type Space = { id: string; name: string; subtitle: string | null; template: string | null; status: string; banner: string; created_at: string; updated_at: string; require_nda?: boolean; watermark?: boolean; allow_download?: boolean };
 export type SpaceItem = { id: string; space_id: string; parent_id: string | null; kind: "folder" | "document"; name: string; document_id: string | null; position: number; created_at: string };
