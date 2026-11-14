@@ -22,7 +22,7 @@ export function SampleSlide({ index }: { index: number }) {
   if (s.cover) {
     return (
       <div style={{ width: "100%", height: "100%", background: "#0061fe", color: "#fff", display: "flex", flexDirection: "column", justifyContent: "center", padding: "7%", gap: 16 }}>
-        <LogoMark size={56} color="#fff" inner="#0061fe" />
+        <LogoMark size={56} color="#fff" />
         <div style={{ fontSize: "clamp(28px,5vw,56px)", fontWeight: 700, letterSpacing: -1.5 }}>{s.title}</div>
         <div style={{ fontSize: "clamp(14px,2vw,22px)", opacity: 0.9 }}>{s.body}</div>
       </div>

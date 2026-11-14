@@ -9,6 +9,7 @@ import { Faq } from "@/components/Faq";
 import { PageBars } from "@/components/charts";
 import { NAV_MAIN, NAV_BOTTOM } from "@/components/nav";
 import { PricingCards } from "@/components/Pricing";
+import { Avatar } from "@/components/ui";
 
 const DEMO = "mailto:sales@dozzier.io?subject=Dozzier%20demo";
 
@@ -46,7 +47,7 @@ function DashboardMock() {
           <div className="search"><Search size={18} /><span className="grow">Search content, people, accounts…</span><span className="kbd">⌘K</span></div>
           <span className="btn btn-primary"><Zap size={16} />Upgrade</span>
           <span className="icon-btn"><Bell size={18} /></span><span className="icon-btn"><CircleHelp size={18} /></span>
-          <div className="workspace-chip"><div className="col"><span className="medium">Randombase</span><span className="micro faint">Advanced Data Rooms</span></div><span className="avatar" style={{ width: 32, height: 32, background: "#a8998a", fontSize: 12 }}>CH</span></div>
+          <div className="workspace-chip"><div className="col"><span className="medium">Randombase</span><span className="micro faint">Advanced Data Rooms</span></div><Avatar size={32} /></div>
         </div>
         <div className="app-body" style={{ height: 900 }}>
           <aside className="sidebar">
@@ -70,7 +71,7 @@ function DashboardMock() {
               <thead><tr><th style={{ width: 24 }} /><th>Name</th><th>Space or link visited</th><th>Visits</th><th>Downloads</th><th>Time spent</th><th>Last visit</th></tr></thead>
               <tbody>{rows.map((r) => (
                 <tr key={r[1] as string}><td><ChevronDown size={16} style={{ transform: "rotate(-90deg)" }} /></td>
-                  <td><div className="row gap-12"><span className="avatar" style={{ width: 32, height: 32, background: "#a8998a", fontSize: 12 }}>{(r[0] as string).slice(0, 2)}</span><div className="col"><span className="medium">{r[0]}</span><span className="caption muted">{r[1]}</span></div></div></td>
+                  <td><div className="row gap-12"><Avatar size={32} name={r[0] as string} /><div className="col"><span className="medium">{r[0]}</span><span className="caption muted">{r[1]}</span></div></div></td>
                   <td><span className="row gap-6"><Link2 size={14} />{r[2]}</span></td><td>{r[3]}</td><td>{r[4]}</td><td>{r[5]}</td><td>{r[6]}</td></tr>
               ))}</tbody>
             </table>

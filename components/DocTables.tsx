@@ -13,7 +13,7 @@ export type PV = { visit_id: string; page_number: number; seconds: number };
 
 function Ring({ pct }: { pct: number }) {
   const r = 8, c = 2 * Math.PI * r;
-  return <svg width="22" height="22" viewBox="0 0 22 22" aria-label={`${Math.round(pct * 100)}% read`}><circle cx="11" cy="11" r={r} fill="none" stroke="#eef4ff" strokeWidth="3" /><circle cx="11" cy="11" r={r} fill="none" stroke="#0061fe" strokeWidth="3" strokeDasharray={`${c * pct} ${c}`} transform="rotate(-90 11 11)" strokeLinecap="round" /></svg>;
+  return <svg width="22" height="22" viewBox="0 0 22 22" aria-label={`${Math.round(pct * 100)}% read`}><circle cx="11" cy="11" r={r} fill="none" stroke="#dce8ff" strokeWidth="3" /><circle cx="11" cy="11" r={r} fill="none" stroke="#0061fe" strokeWidth="3" strokeDasharray={`${c * pct} ${c}`} transform="rotate(-90 11 11)" strokeLinecap="round" /></svg>;
 }
 
 export function LinksTable({ links, visitCounts, lastVisit, onChange, onEdit }: {
