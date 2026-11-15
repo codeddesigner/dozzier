@@ -106,9 +106,9 @@ export function GettingStarted({ onUpload }: { onUpload: () => void }) {
       <div className="col gap-16" style={{ width: 336, maxWidth: "100%" }}>
         <div className="copilot-card">
           <span className="row gap-6 caption medium brand"><Sparkles size={14} />Dozzier Copilot</span>
-          <span className="h3">Tip: start with a sample deck</span>
-          <span className="muted">We added “Dozzier Intro” to your library. Share it with yourself to see live analytics in action.</span>
-          <div className="row gap-8 mt-8"><Link href="/app/content" className="btn btn-dark btn-s">Open library</Link>
+          <span className="h3">Tip: send a link to yourself first</span>
+          <span className="muted">Upload any deck or PDF, create a link and open it in another browser to see live, page-by-page analytics in action.</span>
+          <div className="row gap-8 mt-8"><Link href="/app/content?upload=1" className="btn btn-dark btn-s">Upload a document</Link>
             <button className="btn btn-ghost btn-s" onClick={() => patch({ checklist_dismissed: true }, "Checklist hidden — find it under Setup guide")}>Hide checklist</button></div>
         </div>
       </div>
