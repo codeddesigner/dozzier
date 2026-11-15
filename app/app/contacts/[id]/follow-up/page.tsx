@@ -1,10 +1,10 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
-import { ChevronRight, Sparkles, RefreshCw, Copy, Mail, Send, Scissors, Briefcase, BarChart3, Inbox } from "lucide-react";
+import { useParams, useRouter } from "next/navigation";
+import { ChevronRight, ChevronDown, Sparkles, RefreshCw, Mail, Inbox } from "lucide-react";
 import { supabase } from "@/lib/supabase";
-import { Avatar, Loading, Tabs, copy, toast } from "@/components/ui";
+import { Loading, Menu, Tabs, copy, toast } from "@/components/ui";
 import { useApp } from "@/components/AppContext";
 import { displayName, timeAgo } from "@/lib/format";
 import { draftFollowUp, insights, tone } from "@/lib/insights";
@@ -15,6 +15,7 @@ import { sendEmail } from "@/lib/sendEmail";
 export default function FollowUpPage() {
   const { id } = useParams<{ id: string }>();
   const { email: me, profile } = useApp();
+  const router = useRouter();
   const { data, loading } = useContact(id);
   const [tab, setTab] = useState<"activity" | "questions" | "notes" | "emails">("activity");
   const [variant, setVariant] = useState(0);
@@ -49,62 +50,69 @@ export default function FollowUpPage() {
     await supabase.from("contacts").update({ notes: `${c.notes ? c.notes + "\n" : ""}[${new Date().toLocaleDateString()}] Follow-up sent: ${subject}` }).eq("id", c.id);
   }
 
+  const send = async () => {
+    setSending("sending");
+    const err = await sendEmail({ kind: "follow_up", to: [c.email], cc: cc.split(/[,\s]+/).filter(Boolean), subject, message: body });
+    if (err) { toast(err); setSending("idle"); return; }
+    await logSent(); setSending("sent"); toast(`Sent to ${c.email} — replies come to your inbox`);
+  };
+  const translate = () => { const lang = navigator.language?.split("-")[0] || "en"; window.open(`https://translate.google.com/?sl=en&tl=${lang === "en" ? "fr" : lang}&text=${encodeURIComponent(body)}&op=translate`, "_blank"); };
+
   return (
-    <div className="content">
-      <div className="row gap-6 body-m"><Link href="/app/contacts" className="muted">Contacts</Link><ChevronRight size={14} className="faint" /><Link href={`/app/contacts/${c.id}`} className="muted">{name}</Link><ChevronRight size={14} className="faint" /><span className="semibold">Follow-up</span></div>
-      <div className="row gap-12 mt-24" style={{ alignItems: "center" }}>
-        <Avatar name={name} email={c.email} size={44} />
-        <div className="col grow"><span className="page-title" style={{ fontSize: 24 }}>Follow up with {name.split(" ")[0]}</span><span className="caption muted">{c.email}{data.visits[0] ? ` · last active ${timeAgo(data.visits[0].started_at).toLowerCase()}` : ""}</span></div>
-      </div>
+    <div className="fu-page">
+      <section className="fu-left">
+        <div className="row gap-6 caption muted"><Link href="/app/contacts" className="muted">Contacts</Link><ChevronRight size={12} /><Link href={`/app/contacts/${c.id}`} className="muted">{name}</Link></div>
+        <div className="fu-name">{name}</div>
+        <Tabs value={tab} onChange={setTab} tabs={[{ id: "activity", label: "Activity" }, { id: "questions", label: `Questions${data.questions.length ? ` (${data.questions.length})` : ""}` }, { id: "notes", label: "Notes" }, { id: "emails", label: "Emails" }]} />
+        <div className="mt-16">
+          {tab === "activity" && <Timeline events={ins.timeline} />}
+          {tab === "questions" && (data.questions.length ? (
+            <div className="col gap-12">{data.questions.map((q) => (
+              <div key={q.id} className="q-card"><span className="caption muted">Page {q.page_number} · {timeAgo(q.created_at)}</span><p style={{ fontSize: 14 }}>{q.body}</p>{q.answer && <div className="q-answer"><span className="caption medium">You</span><p style={{ fontSize: 14 }}>{q.answer}</p></div>}</div>
+            ))}</div>
+          ) : <p className="caption muted">No questions from {name.split(" ")[0]} yet.</p>)}
+          {tab === "notes" && (
+            <div className="col gap-8">
+              <textarea className="input" rows={8} value={notes ?? c.notes ?? ""} onChange={(e) => setNotes(e.target.value)} placeholder="Private notes — only your workspace sees these" />
+              <div><button className="btn btn-secondary btn-s" disabled={notes === null} onClick={async () => { await supabase.from("contacts").update({ notes }).eq("id", c.id); toast("Notes saved"); }}>Save notes</button></div>
+            </div>
+          )}
+          {tab === "emails" && (
+            <div className="empty-mini"><Inbox size={22} /><span className="medium">No email history</span><span className="caption muted">Connect Gmail or Outlook in Integrations to see your threads with {name.split(" ")[0]} here.</span><Link href="/app/settings/integrations" className="btn btn-secondary btn-s">Integrations</Link></div>
+          )}
+        </div>
+      </section>
 
-      <div className="fu-grid mt-24">
-        <section className="card" style={{ padding: 20, minWidth: 0 }}>
-          <Tabs value={tab} onChange={setTab} tabs={[{ id: "activity", label: "Activity" }, { id: "questions", label: `Questions${data.questions.length ? ` (${data.questions.length})` : ""}` }, { id: "notes", label: "Notes" }, { id: "emails", label: "Emails" }]} />
-          <div className="mt-16">
-            {tab === "activity" && <Timeline events={ins.timeline} />}
-            {tab === "questions" && (data.questions.length ? (
-              <div className="col gap-12">{data.questions.map((q) => (
-                <div key={q.id} className="q-card"><span className="caption muted">Page {q.page_number} · {timeAgo(q.created_at)}</span><p style={{ fontSize: 14 }}>{q.body}</p>{q.answer && <div className="q-answer"><span className="caption medium">You</span><p style={{ fontSize: 14 }}>{q.answer}</p></div>}</div>
-              ))}</div>
-            ) : <p className="caption muted">No questions from {name.split(" ")[0]} yet.</p>)}
-            {tab === "notes" && (
-              <div className="col gap-8">
-                <textarea className="input" rows={8} value={notes ?? c.notes ?? ""} onChange={(e) => setNotes(e.target.value)} placeholder="Private notes — only your workspace sees these" />
-                <div><button className="btn btn-secondary btn-s" disabled={notes === null} onClick={async () => { await supabase.from("contacts").update({ notes }).eq("id", c.id); toast("Notes saved"); }}>Save notes</button></div>
-              </div>
-            )}
-            {tab === "emails" && (
-              <div className="empty-mini"><Inbox size={22} /><span className="medium">No email history</span><span className="caption muted">Connect Gmail or Outlook in Integrations to see your threads with {name.split(" ")[0]} here.</span><Link href="/app/settings/integrations" className="btn btn-secondary btn-s">Integrations</Link></div>
-            )}
+      <section className="fu-right">
+        <div className="row"><span className="row gap-8 fu-title grow"><Sparkles size={18} className="brand" />Copilot · Follow-up draft</span>
+          <Menu items={[{ label: "Open contact", onClick: () => router.push(`/app/contacts/${c.id}`) }, { label: "Copy draft", onClick: () => { copy(`Subject: ${subject}\n\n${body}`); toast("Draft copied"); } }]} /></div>
+        <div className="row gap-6 wrap">{[...ins.tags, "Tone: warm, concise"].map((t) => <span key={t} className="fu-tag">{t}</span>)}</div>
+        <div className="fu-letter">
+          <div className="fu-meta"><span>To: {c.email}</span><label className="fu-cc">Cc: <input value={cc} onChange={(e) => setCc(e.target.value)} placeholder="add people" aria-label="Cc" /></label></div>
+          <input className="fu-subject" value={subject} onChange={(e) => setSubject(e.target.value)} aria-label="Subject" />
+          <textarea className="fu-text" value={body} onChange={(e) => setBody(e.target.value)} aria-label="Message" />
+        </div>
+        <div className="row gap-6 wrap">
+          {([["shorter", "Shorter"], ["formal", "More formal"], ["metrics", "Add metrics"]] as const).map(([k, l]) => (
+            <button key={k} className={`chip ${applied.includes(k) ? "active" : ""}`} onClick={() => apply(k)}>{l}</button>
+          ))}
+          <button className="chip" onClick={translate}>Translate</button>
+        </div>
+        <span className="grow" />
+        <div className="row gap-8 fu-actions">
+          <button className="btn btn-ghost" onClick={() => setVariant((v) => v + 1)}><RefreshCw size={16} />Regenerate</button>
+          <span className="grow" />
+          <button className="btn btn-secondary" onClick={() => { copy(`Subject: ${subject}\n\n${body}`); toast("Draft copied"); }}>Copy</button>
+          <div className="split-btn">
+            <button className="btn btn-brand" disabled={sending !== "idle" || !subject.trim() || !body.trim()} onClick={send}>{sending === "sending" ? "Sending…" : sending === "sent" ? "Sent" : "Send"}</button>
+            <Menu label="More ways to send" triggerClass="btn btn-brand split-caret" trigger={<ChevronDown size={16} />} items={[
+              { label: "Send with Gmail", icon: <Mail size={14} />, onClick: () => { logSent(); window.open(gmail, "_blank"); } },
+              { label: "Open in mail app", icon: <Mail size={14} />, onClick: () => { logSent(); window.location.href = mailto; } },
+            ]} />
           </div>
-        </section>
-
-        <section className="copilot-card fu-draft">
-          <div className="row"><span className="row gap-6 caption medium brand grow"><Sparkles size={14} />Copilot draft</span><button className="btn btn-ghost btn-s" onClick={() => setVariant((v) => v + 1)}><RefreshCw size={14} />Regenerate</button></div>
-          {ins.tags.length > 0 && <div className="row gap-6 wrap">{ins.tags.map((t) => <span key={t} className="tag">{t}</span>)}</div>}
-          <label className="field"><span className="label">To</span><input className="input" value={c.email} readOnly /></label>
-          <label className="field"><span className="label">Cc</span><input className="input" value={cc} onChange={(e) => setCc(e.target.value)} placeholder="Optional" /></label>
-          <label className="field"><span className="label">Subject</span><input className="input" value={subject} onChange={(e) => setSubject(e.target.value)} /></label>
-          <textarea className="input fu-body" rows={12} value={body} onChange={(e) => setBody(e.target.value)} />
-          <div className="row gap-6 wrap">
-            {([["shorter", "Shorter", Scissors], ["formal", "More formal", Briefcase], ["metrics", "Add metrics", BarChart3]] as const).map(([k, l, I]) => (
-              <button key={k} className={`pill-opt ${applied.includes(k) ? "on" : ""}`} onClick={() => apply(k)}><I size={13} />{l}</button>
-            ))}
-          </div>
-          <div className="row gap-8 mt-8 wrap">
-            <button className="btn btn-primary" disabled={sending !== "idle" || !subject.trim() || !body.trim()} onClick={async () => {
-              setSending("sending");
-              const err = await sendEmail({ kind: "follow_up", to: [c.email], cc: cc.split(/[,\s]+/).filter(Boolean), subject, message: body });
-              if (err) { toast(err); setSending("idle"); return; }
-              await logSent(); setSending("sent"); toast(`Sent to ${c.email} — replies come to your inbox`);
-            }}><Send size={16} />{sending === "sending" ? "Sending…" : sending === "sent" ? "Sent" : "Send"}</button>
-            <a className="btn btn-secondary" href={gmail} target="_blank" rel="noreferrer" onClick={logSent}><Mail size={16} />Gmail</a>
-            <a className="btn btn-ghost hide-sm" href={mailto} onClick={logSent}>Mail app</a>
-            <button className="btn btn-ghost" onClick={() => { copy(`Subject: ${subject}\n\n${body}`); toast("Draft copied"); }}><Copy size={14} />Copy</button>
-          </div>
-          <span className="caption faint">Drafted from {name.split(" ")[0]}’s activity. Sent from Dozzier on your behalf — replies come to {me}.</span>
-        </section>
-      </div>
+        </div>
+        <span className="caption faint">Sent from Dozzier on your behalf — replies come to {me}.</span>
+      </section>
     </div>
   );
 }

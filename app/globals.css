@@ -1729,3 +1729,30 @@ textarea.input { height: auto; }
 @media (max-width: 760px) { .tour-resume { left: 16px; bottom: 80px; } .tour-layer, .tour-card { display: none; } }
 html[data-theme="dark"] .tour-hero { background: rgba(77,148,247,.14); }
 .tour-item { text-align: left; justify-content: flex-start; } .tour-item .grow { text-align: left; }
+/* Copilot follow-up — Figma Flow 2 · Step 07 */
+.fu-page { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); min-height: 100%; }
+.fu-left { padding: 24px 28px 40px; border-right: 1px solid var(--dz-border-default); min-width: 0; }
+.fu-name { font-size: 24px; line-height: 30px; font-weight: 500; letter-spacing: -0.5px; margin: 10px 0 14px; }
+.fu-right { display: flex; flex-direction: column; gap: 14px; padding: 24px 28px 24px; min-width: 0; }
+.fu-title { font-size: 17px; line-height: 22px; font-weight: 500; letter-spacing: -0.2px; }
+.fu-tag { font-size: 12px; line-height: 16px; font-weight: 500; color: var(--dz-text-brand); background: var(--dz-bg-brand-subtle); padding: 3px 8px; border-radius: 6px; }
+.fu-letter { border: 1px solid var(--dz-border-default); border-radius: 12px; background: var(--dz-bg-subtle); padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; }
+.fu-meta { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 13px; color: var(--dz-text-secondary); }
+.fu-cc { display: inline-flex; gap: 4px; align-items: center; }
+.fu-cc input { border: 0; background: transparent; outline: 0; font: inherit; color: var(--dz-text-primary); min-width: 120px; }
+.fu-subject { border: 0; background: transparent; outline: 0; font: inherit; font-size: 14px; font-weight: 600; color: var(--dz-text-primary); padding: 0; }
+.fu-text { border: 0; background: transparent; outline: 0; font: inherit; font-size: 14px; line-height: 20px; color: var(--dz-text-primary); resize: vertical; min-height: 220px; padding: 0; }
+.fu-letter:focus-within { border-color: var(--dz-border-focus); box-shadow: 0 0 0 3px var(--dz-bg-brand-subtle); }
+.split-btn { display: inline-flex; }
+.split-btn > .btn { border-top-right-radius: 0; border-bottom-right-radius: 0; }
+.split-btn .split-caret { border-top-left-radius: 0; border-bottom-left-radius: 0; padding: 0 10px; border-left: 1px solid rgba(255,255,255,.3); }
+@media (max-width: 900px) { .fu-page { grid-template-columns: 1fr; } .fu-left { border-right: 0; border-bottom: 1px solid var(--dz-border-default); } }
+/* Personalised links — Figma Flow 2 · Step 03 */
+.pz-grid { grid-template-columns: minmax(0, 1fr) 300px !important; align-items: start; }
+.pz-side { padding: 16px; display: flex; flex-direction: column; gap: 14px; }
+.pz-mail { border: 1px solid var(--dz-border-default); border-radius: 10px; padding: 12px; font-size: 13px; line-height: 18px; background: var(--dz-bg-surface); }
+.pz-mail pre { white-space: pre-wrap; font-family: inherit; margin: 8px 0 0; color: var(--dz-text-secondary); max-height: 200px; overflow: auto; }
+.pz-opts { display: flex; flex-direction: column; gap: 10px; font-size: 14px; }
+@media (max-width: 900px) { .pz-grid { grid-template-columns: 1fr !important; } }
+html[data-theme="dark"] .app { background: #1b2433; } html[data-theme="dark"] .app .sidebar .nav-item:hover, html[data-theme="dark"] .side-space:hover, html[data-theme="dark"] .side-link:hover { background: #273244; }
+.cp-back { background: rgba(37,119,234,.4) !important; backdrop-filter: none !important; } html[data-theme="dark"] .cp-back { background: rgba(3,10,25,.6) !important; }
