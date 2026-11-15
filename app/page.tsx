@@ -246,7 +246,7 @@ function Integrations() {
           <h2 className="display-l">Fits the stack you already use</h2>
           <p className="body-l muted">Push engagement into your CRM, get alerts where you work, and import files from the cloud drives your team already lives in.</p>
           {["Two-way CRM sync with HubSpot, Salesforce and Pipedrive", "Live alerts in Slack, Teams and email", "Import from Google Drive, Dropbox, Box, OneDrive and SharePoint", "6,000+ apps through Zapier, plus a REST API and webhooks"].map((t) => (
-            <div key={t} className="row gap-12 body-m"><CheckCircle2 size={20} color="#4D94F7" />{t}</div>
+            <div key={t} className="row gap-12 body-m int-point"><CheckCircle2 size={20} color="#4D94F7" />{t}</div>
           ))}
           <div><Link href="/signup" className="btn btn-secondary">See all integrations</Link></div>
         </div>

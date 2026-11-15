@@ -1956,3 +1956,10 @@ html[data-theme="dark"] .app { background: #1b2433; } html[data-theme="dark"] .a
   .footer-icons { gap: 16px; }
 }
 @media (max-width: 760px) { .lm-burger.m-only { display: inline-flex !important; } }
+.app-logo.mono { font-family: inherit; }
+.int-point { align-items: flex-start !important; }
+.int-point svg { flex-shrink: 0; margin-top: 1px; }
+@media (max-width: 760px) {
+  #pricing .grid-3 { align-items: stretch !important; }
+  #pricing .price-card { width: 100%; }
+}

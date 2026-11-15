@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import { Menu, X, ChevronDown, ChevronRight, Check, Minus } from "lucide-react";
 import { Logo } from "@/components/Logo";
@@ -28,7 +29,7 @@ export function MobileMenu() {
   return (
     <>
       <button className="lm-burger m-only" aria-label="Open menu" aria-expanded={open} onClick={() => setOpen(true)}><Menu size={22} /></button>
-      {open && (
+      {open && createPortal(
         <div className="lm-sheet" role="dialog" aria-modal="true" aria-label="Menu">
           <div className="lm-head"><Link href="/" onClick={close} aria-label="Dozzier home"><Logo height={24} /></Link><span className="grow" /><button className="lm-x" aria-label="Close menu" onClick={close}><X size={22} /></button></div>
           <nav className="lm-list">
@@ -46,7 +47,7 @@ export function MobileMenu() {
             <Link href="/signup" className="btn btn-dark btn-l btn-block" onClick={close}>Try for free</Link>
             <Link href="/login" className="btn btn-secondary btn-l btn-block" onClick={close}>Sign in</Link>
           </div>
-        </div>
+        </div>, document.body
       )}
     </>
   );
