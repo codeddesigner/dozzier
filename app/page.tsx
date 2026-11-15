@@ -9,7 +9,7 @@ import { Faq } from "@/components/Faq";
 import { PageBars } from "@/components/charts";
 import { NAV_GROUPS } from "@/components/nav";
 import { LogoMark } from "@/components/Logo";
-import { PricingCards } from "@/components/Pricing";
+import { MobileMenu, LandingPricing } from "@/components/LandingMobile";
 import { Avatar } from "@/components/ui";
 import { AppLogo, INTEGRATIONS } from "@/components/AppLogo";
 import { WordReveal, TypeText, CountUp } from "@/components/Motion";
@@ -20,7 +20,7 @@ const DEMO = "mailto:sales@dozzier.io?subject=Dozzier%20demo";
 function Nav() {
   return (
     <header className="lp-nav">
-      <a href="#ai" className="announce-bar"><span className="announce-check"><Check size={14} strokeWidth={2.5} /></span>New: Ask Dozzier answers questions across every deal&nbsp;&nbsp;<span className="arrow">→</span></a>
+      <a href="#ai" className="announce-bar"><span className="announce-check d-only"><Check size={14} strokeWidth={2.5} /></span><span className="d-only">New: Ask Dozzier answers questions across every deal</span><span className="m-only">New: Ask Dozzier for every deal</span>&nbsp;&nbsp;<span className="arrow">→</span></a>
       <div className="lp-nav-inner">
         <Link href="/" aria-label="Dozzier home"><Logo height={30} /></Link>
         <nav className="lp-links">
@@ -28,9 +28,10 @@ function Nav() {
           <a href="#integrations">Integrations</a><a href="#pricing">Pricing</a><Link href="/docs">Docs</Link>
         </nav>
         <div className="spacer" />
-        <Link href="/login" className="btn btn-ghost">Log in</Link>
-        <a href={DEMO} className="btn btn-secondary btn-xs-shadow">Talk to Sales</a>
-        <Link href="/signup" className="btn btn-dark">Try for free</Link>
+        <Link href="/login" className="btn btn-ghost d-only">Log in</Link>
+        <a href={DEMO} className="btn btn-secondary btn-xs-shadow d-only">Talk to Sales</a>
+        <Link href="/signup" className="btn btn-dark lp-try">Try for free</Link>
+        <MobileMenu />
       </div>
     </header>
   );
@@ -84,22 +85,31 @@ function DashboardMock() {
 function Hero() {
   return (
     <section className="hero" id="product">
-      <Link href="/signup" className="announce h-in"><span className="badge badge-brand">New</span>Ask Dozzier — AI answers across every deal <span className="arrow">→</span></Link>
+      <Link href="/signup" className="announce h-in"><span className="badge badge-brand">New</span><span className="d-only">Ask Dozzier — AI answers across every deal</span><span className="m-only">Ask Dozzier — AI for every deal</span> <span className="arrow">→</span></Link>
       <h1 className="display-xl hero-title"><WordReveal text="The secure platform to share, track, and move business forward." delay={80} /></h1>
-      <p className="body-l muted h-in" style={{ maxWidth: 732, animationDelay: ".45s" }}>
+      <p className="body-l muted h-in d-only" style={{ maxWidth: 732, animationDelay: ".45s" }}>
         Dozzier turns every deck, proposal and data room into a secure link with page-by-page analytics, live alerts and AI follow-ups — so you know who’s interested and exactly what to do next.
       </p>
-      <div className="row gap-12 wrap h-in" style={{ justifyContent: "center", animationDelay: ".6s" }}>
+      <p className="body-m muted h-in m-only hero-sub-m" style={{ animationDelay: ".45s" }}>Turn every deck, proposal and data room into a secure link with page-by-page analytics, live alerts and AI follow-ups.</p>
+      <div className="row gap-12 wrap h-in hero-ctas" style={{ justifyContent: "center", animationDelay: ".6s" }}>
         <Link href="/signup" className="btn btn-lime btn-l">Try for free</Link>
         <a href="#how-it-works" className="btn btn-ghost btn-l"><Play size={18} />See how it works (1:00)</a>
       </div>
-      <div className="hero-explore h-in" style={{ animationDelay: ".72s" }}>
+      <p className="caption faint m-only hero-trial">14-day free trial · Set up in 2 minutes</p>
+      <div className="hero-explore h-in d-only" style={{ animationDelay: ".72s" }}>
         <span>Explore:</span>
         <a href="#product-analytics"><TrendingUp size={18} />Analytics</a>
         <a href="#data-rooms"><HousePlus size={18} />Data rooms</a>
         <a href="#ai"><Sparkles size={18} />AI agent</a>
       </div>
-      <div className="product-shot" data-tilt-scroll>
+      <div className="hero-peek m-only">
+        <div className="peek-alert"><span className="avatar" style={{ width: 20, height: 20, fontSize: 8, background: "#3b8bff" }}>Pa</span><div className="col grow" style={{ minWidth: 0 }}><span className="semibold">Paul is viewing your deck</span><span className="caption" style={{ color: "var(--dz-text-secondary)" }}>Pitch deck · page 7 of 18 · 4m 12s</span></div><span className="badge badge-success"><span className="dot" />Live</span></div>
+        <div className="peek-kpis">{[["Total visits", "128", "↑ 24%"], ["Visitors", "46", "↑ 12%"]].map(([l, v, d]) => (
+          <div className="peek-kpi" key={l}><span className="peek-kpi-l">{l}</span><div className="peek-kpi-v"><span>{v}</span><span className="row gap-6"><span className="peek-delta">{d}</span><span className="caption faint">vs last 30 days</span></span></div></div>
+        ))}</div>
+        <div className="ai-card peek-ai"><AiCardBody title="Paul is ready for a follow-up" body="Spent 6 min on pricing and forwarded to 2 partners." brand /></div>
+      </div>
+      <div className="product-shot d-only" data-tilt-scroll>
         <div className="browser">
           <div className="browser-bar"><span className="dot" style={{ background: "#ff5f57" }} /><span className="dot" style={{ background: "#febc2e" }} /><span className="dot" style={{ background: "#28c840" }} /><div className="browser-url">app.dozzier.io/dashboard</div></div>
           <DashboardMock />
@@ -119,13 +129,13 @@ function Hero() {
   );
 }
 
-function AiCardBody({ title, body }: { title: string; body: string }) {
+function AiCardBody({ title, body, brand }: { title: string; body: string; brand?: boolean }) {
   return (
     <>
       <div className="row gap-8 brand caption medium"><span className="flame"><Sparkles size={18} /></span>Dozzier Copilot</div>
       <div className="h3">{title}</div>
       <p className="muted"><TypeText text={body} /></p>
-      <div className="row gap-8"><Link href="/signup" className="btn btn-primary btn-s">Draft follow-up</Link><Link href="/signup" className="btn btn-ghost btn-s">View timeline</Link></div>
+      <div className="row gap-8"><Link href="/signup" className={`btn ${brand ? "btn-brand" : "btn-primary"} btn-s`}>Draft follow-up</Link><Link href="/signup" className="btn btn-ghost btn-s">View timeline</Link></div>
     </>
   );
 }
@@ -137,7 +147,7 @@ function Logos() {
     ["Foundry & Co.", { fontSize: 22, fontWeight: 400, letterSpacing: "-0.22px" }], ["KESTREL", { fontSize: 20, fontWeight: 700, letterSpacing: "4px" }],
   ];
   return (
-    <section className="logo-strip">
+    <section className="logo-strip" id="customers">
       <p className="medium" data-reveal>Trusted by founders, sales teams and dealmakers at <CountUp to={4000} duration={1800} />+ companies</p>
       <div className="logo-row" data-stagger="70">{items.map(([n, s]) => <span key={n} style={s}>{n}</span>)}</div>
     </section>
@@ -256,7 +266,7 @@ function Security() {
     <div className="sec-card spotlight" style={style}><span className="icon-tile"><I size={22} /></span><div className="h1">{t}</div><p className="body-m muted">{b}</p>{children}</div>
   );
   return (
-    <section className="sec-wrap">
+    <section className="sec-wrap" id="security">
       <div className="sec-panel">
         <div className="lp-head" style={{ marginBottom: 0 }} data-stagger="90"><span className="overline">Security</span><h2 className="display-l">Enterprise-grade by default</h2><p className="body-l muted">Your documents stay yours — locked down, logged, and revocable at any moment.</p></div>
         <div className="sec-bento" data-stagger="110">
@@ -282,9 +292,9 @@ function Security() {
 function Pricing() {
   return (
     <section className="lp-section" id="pricing" style={{ background: "var(--dz-bg-subtle)" }}>
-      <div className="lp-head" data-stagger="90"><span className="overline">Pricing</span><h2 className="display-l">Simple pricing that scales with you</h2><p className="body-l muted">Start free for 14 days on any plan. No credit card required.</p></div>
+      <div className="lp-head" data-stagger="90"><span className="overline">Pricing</span><h2 className="display-l">Simple pricing that scales with you</h2><p className="body-l muted"><span className="d-only">Start free for 14 days on any plan. No credit card required.</span><span className="m-only">14-day free trial on every plan. No card required.</span></p></div>
       <div className="lp-container" data-reveal>
-        <PricingCards cta={(id) => <Link href={`/signup?plan=${id}`} className="btn btn-block btn-primary">{id === "datarooms" ? "Start free trial" : "Select plan"}</Link>} />
+        <LandingPricing />
         <p className="row gap-8 muted" style={{ justifyContent: "center", marginTop: 56 }}><Info size={16} />Need SSO, custom contracts or 50+ seats? <a href={DEMO} style={{ textDecoration: "underline" }}>Talk to sales about Enterprise.</a></p>
       </div>
     </section>
@@ -305,9 +315,9 @@ function Footer() {
           <div><FooterLogo height={36} /><p className="muted" style={{ marginTop: 16, maxWidth: 300 }}>Secure document sharing with analytics that tell you what to do next.</p></div>
           {cols.map(([h, ls]) => <div key={h}><div className="semibold">{h}</div>{ls.map(([l, href]) => <a key={l} href={href}>{l}</a>)}</div>)}
         </div>
-        <div className="row" style={{ borderTop: "1px solid var(--dz-border-subtle)", marginTop: 48, paddingTop: 24 }}>
+        <div className="row footer-bottom" style={{ borderTop: "1px solid var(--dz-border-subtle)", marginTop: 48, paddingTop: 24 }}>
           <span className="caption faint grow">© 2026 Dozzier, Inc. · dozzier.io</span>
-          <div className="row gap-16 muted"><AtSign size={18} /><Mail size={18} /><Globe size={18} /></div>
+          <div className="row gap-16 muted footer-icons"><AtSign size={18} /><Mail size={18} /><Globe size={18} /></div>
         </div>
       </div>
     </footer>
@@ -334,7 +344,7 @@ export default function Landing() {
           <span className="cta-icon"><LogoMark size={28} color="#fff" /></span>
           <h2 className="display-l">Stop guessing. Start knowing.</h2>
           <p className="body-l" style={{ opacity: 0.85, marginTop: 0 }}>Send your first tracked link in under two minutes.</p>
-          <div className="row gap-12"><Link href="/signup" className="btn btn-secondary btn-xs-shadow">Start free trial</Link><a href={DEMO} className="btn btn-dark">Book a demo</a></div>
+          <div className="row gap-12 cta-btns"><Link href="/signup" className="btn btn-secondary btn-xs-shadow">Start free trial</Link><a href={DEMO} className="btn btn-dark">Book a demo</a></div>
         </div>
       </section>
       <Footer />
