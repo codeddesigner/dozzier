@@ -9,6 +9,8 @@ export const supabase = createClient(url, key, {
 });
 
 export const BUCKET = "documents";
+/** Document columns for lists and pages (skips the large extracted text used for search). */
+export const DOC_COLS = "id,owner_id,folder_id,name,note,file_path,file_type,mime_type,size_bytes,page_count,is_sample,deleted_at,created_at,updated_at";
 export const SUPABASE_URL = url;
 export const SUPABASE_KEY = key;
 
@@ -19,7 +21,7 @@ export type Doc = {
 };
 export type Link = {
   id: string; document_id: string | null; space_id: string | null; name: string; slug: string; enabled: boolean;
-  require_email: boolean; allow_download: boolean; passcode: string | null; expires_at: string | null;
+  require_email: boolean; verify_email: boolean; allow_download: boolean; passcode: string | null; expires_at: string | null;
   watermark: boolean; require_nda: boolean; allowed_domains: string | null; screenshot_protection: boolean;
   notify: boolean; created_at: string;
 };
@@ -34,5 +36,5 @@ export type Contact = {
 };
 export type Account = { id: string; name: string; domain: string | null; archived: boolean; is_sample: boolean; created_at: string };
 export type Folder = { id: string; name: string; kind: "personal" | "team"; created_at: string };
-export type Space = { id: string; name: string; subtitle: string | null; template: string | null; status: string; banner: string; created_at: string; updated_at: string; require_nda?: boolean; watermark?: boolean; allow_download?: boolean };
+export type Space = { id: string; name: string; subtitle: string | null; template: string | null; status: string; banner: string; created_at: string; updated_at: string; require_nda?: boolean; watermark?: boolean; allow_download?: boolean; verify_email?: boolean; auto_index?: boolean };
 export type SpaceItem = { id: string; space_id: string; parent_id: string | null; kind: "folder" | "document"; name: string; document_id: string | null; position: number; created_at: string };

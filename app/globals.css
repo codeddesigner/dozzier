@@ -1963,3 +1963,16 @@ html[data-theme="dark"] .app { background: #1b2433; } html[data-theme="dark"] .a
   #pricing .grid-3 { align-items: stretch !important; }
   #pricing .price-card { width: 100%; }
 }
+
+/* Office documents rendered in the viewer */
+.office-page { position: relative; }
+.office-host { position: absolute; top: 0; left: 0; color: #111827; }
+.office-docx section.dz-docx { margin: 0 !important; box-shadow: none !important; }
+.office-xlsx .dz-sheet { padding: 20px; min-width: 640px; background: #fff; font-size: 13px; }
+.office-xlsx .dz-sheet-tab { display: inline-block; margin-bottom: 12px; padding: 4px 10px; border-radius: 6px; background: #f0f6fe; color: #1463d1; font-weight: 600; font-size: 12px; }
+.office-xlsx table { border-collapse: collapse; }
+.office-xlsx td { border: 1px solid #e5e7eb; padding: 4px 8px; white-space: nowrap; max-width: 320px; overflow: hidden; text-overflow: ellipsis; }
+.office-xlsx tr:first-child td { background: #fafafb; font-weight: 600; }
+.search-snip { display: block; max-width: 520px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.search-snip mark { background: #fff3a3; color: inherit; border-radius: 2px; padding: 0 1px; }
+.item-index { display: inline-block; min-width: 28px; margin-right: 8px; color: var(--dz-text-tertiary); font-variant-numeric: tabular-nums; font-weight: 500; }

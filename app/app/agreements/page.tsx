@@ -18,7 +18,7 @@ const STATUS: Record<Agreement["status"], [string, string]> = { draft: ["Draft",
 
 export default function Agreements() {
   const router = useRouter();
-  const { userId, email, profile } = useApp();
+  const { userId, wsId, email, profile } = useApp();
   const pdfInput = useRef<HTMLInputElement>(null);
   const gateInput = useRef<HTMLInputElement>(null);
   const [tab, setTab] = useState<"envelopes" | "templates" | "gate">("envelopes");
@@ -33,7 +33,7 @@ export default function Agreements() {
   const gates = (data?.list || []).filter((a) => a.kind === "gate");
 
   async function createFrom(bytes: Blob, name: string, pages: number) {
-    const path = `${userId}/agreements/${crypto.randomUUID()}-${name.replace(/[^\w.\-]+/g, "_")}.pdf`;
+    const path = `${wsId}/agreements/${crypto.randomUUID()}-${name.replace(/[^\w.\-]+/g, "_")}.pdf`;
     const up = await supabase.storage.from(BUCKET).upload(path, bytes, { contentType: "application/pdf" });
     if (up.error) throw up.error;
     const { data: a, error } = await supabase.from("agreements").insert({ name, file_path: path, kind: "esign", status: "draft", page_count: pages }).select("id").single();
@@ -63,7 +63,7 @@ export default function Agreements() {
     router.push(`/app/agreements/${a.id}`);
   }
   async function uploadGate(f: File) {
-    const path = `${userId}/agreements/${crypto.randomUUID()}-${f.name.replace(/[^\w.\-]+/g, "_")}`;
+    const path = `${wsId}/agreements/${crypto.randomUUID()}-${f.name.replace(/[^\w.\-]+/g, "_")}`;
     const up = await supabase.storage.from(BUCKET).upload(path, f, { contentType: f.type });
     if (up.error) return toast(up.error.message);
     const body = f.type.startsWith("text/") ? await f.text() : null;

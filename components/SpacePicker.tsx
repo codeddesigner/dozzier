@@ -7,12 +7,12 @@ import { Modal, Toggle, toast } from "@/components/ui";
 import { SPACE_TEMPLATES } from "@/components/templates";
 
 type Tpl = (typeof SPACE_TEMPLATES)[number];
-type Opts = { subtitle?: string; require_nda?: boolean; watermark?: boolean; allow_download?: boolean };
+type Opts = { subtitle?: string; require_nda?: boolean; watermark?: boolean; allow_download?: boolean; verify_email?: boolean };
 
 export async function createSpace(t: Tpl | null, name: string, o: Opts = {}) {
   const { data, error } = await supabase.from("spaces").insert({
     name, subtitle: o.subtitle?.trim() || t?.name || "Data room", template: t?.name || null, banner: t?.banner || "linear-gradient(120deg,#4D94F7,#8ab2ff)",
-    require_nda: !!o.require_nda, watermark: o.watermark ?? true, allow_download: !!o.allow_download,
+    require_nda: !!o.require_nda, watermark: o.watermark ?? true, allow_download: !!o.allow_download, verify_email: !!o.verify_email,
   }).select("id").single();
   if (error) throw error;
   if (t) await supabase.from("space_items").insert(t.folders.map((f, i) => ({ space_id: data.id, kind: "folder", name: f, position: i })));
@@ -27,7 +27,7 @@ export function TemplatePicker({ onClose, initial = 0 }: { onClose: () => void; 
   const [name, setName] = useState("");
   const [subtitle, setSubtitle] = useState("");
   const [pick, setPick] = useState(order[initial] ?? 2);
-  const [o, setO] = useState({ require_nda: true, watermark: true, allow_download: false });
+  const [o, setO] = useState({ require_nda: true, verify_email: true, watermark: true, allow_download: false });
   const [busy, setBusy] = useState(false);
   const go = async () => {
     setBusy(true);
@@ -41,7 +41,7 @@ export function TemplatePicker({ onClose, initial = 0 }: { onClose: () => void; 
         <div className="col gap-16">
           <label className="field"><span className="label">Space name</span><input className="input" autoFocus value={name} onChange={(e) => setName(e.target.value)} placeholder="Acme — Series A diligence" onKeyDown={(e) => e.key === "Enter" && go()} /></label>
           <label className="field"><span className="label">Subtitle (optional)</span><input className="input" value={subtitle} onChange={(e) => setSubtitle(e.target.value)} placeholder="Confidential · for Acme Ventures only" /></label>
-          {([["require_nda", "Require NDA before entry"], ["watermark", "Watermark all pages"], ["allow_download", "Allow downloads"]] as const).map(([k, l]) => (
+          {([["require_nda", "Require NDA before entry"], ["verify_email", "Verify visitor email with a code"], ["watermark", "Watermark all pages"], ["allow_download", "Allow downloads"]] as const).map(([k, l]) => (
             <div className="row" key={k}><span className="grow" style={{ fontSize: 14 }}>{l}</span><Toggle on={o[k]} onChange={(v) => setO((x) => ({ ...x, [k]: v }))} /></div>
           ))}
           {pick >= 0 && <div className="cs-folders"><span className="caption muted">Starts with {SPACE_TEMPLATES[pick].folders.length} folders and groups for {SPACE_TEMPLATES[pick].groups.join(", ")}</span>

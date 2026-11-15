@@ -8,7 +8,8 @@ export type Profile = {
   checklist_dismissed?: boolean; onboarded_at?: string | null;
   settings?: Record<string, any>; avatar_path?: string | null; job_title?: string | null; bio?: string | null; booking_url?: string | null;
 };
-export type AppCtx = { userId: string; email: string; profile: Profile; refreshProfile: () => Promise<void> };
+/** wsId: the workspace the user works in (their own id, or the owner who invited them). role: Owner | Admin | Editor | Viewer. */
+export type AppCtx = { userId: string; wsId: string; role: string; email: string; profile: Profile; refreshProfile: () => Promise<void> };
 
 export const Ctx = createContext<AppCtx | null>(null);
 export function useApp(): AppCtx {

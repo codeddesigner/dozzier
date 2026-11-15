@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Info } from "lucide-react";
@@ -25,6 +25,8 @@ export default function Signup() {
   const [err, setErr] = useState<string | null>(null);
   const [note, setNote] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  // Invite emails link here with ?email= so the invitee signs up with the invited address.
+  useEffect(() => { try { const e = new URLSearchParams(window.location.search).get("email"); if (e) setEmail(e); } catch {} }, []);
   const domain = email.split("@")[1]?.toLowerCase() || "";
   const personal = PERSONAL.includes(domain);
 

@@ -15,7 +15,10 @@
     "react": "^19.2.1",
     "react-dom": "^19.2.1",
     "qrcode": "^1.5.4",
-    "pdf-lib": "^1.17.1"
+    "pdf-lib": "^1.17.1",
+    "docx-preview": "^0.3.5",
+    "pptx-preview": "^1.0.5",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",

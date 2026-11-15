@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Trash2 } from "lucide-react";
+import { Trash2, Copy } from "lucide-react";
 import { supabase, Space, SpaceItem } from "@/lib/supabase";
 import { Avatar, DocThumb, Toggle, toast, useLoad } from "@/components/ui";
 import { useApp } from "@/components/AppContext";
@@ -112,11 +112,20 @@ export function SpaceQA({ linkIds }: { linkIds: string[] }) {
 export function SpaceSettings({ space, onSaved }: { space: Space; onSaved: () => void }) {
   const router = useRouter();
   const { email } = useApp();
-  const [s, setS] = useState({ name: space.name, subtitle: space.subtitle || "", status: space.status, banner: space.banner, require_nda: !!space.require_nda, watermark: space.watermark ?? true, allow_download: !!space.allow_download });
-  const dirty = JSON.stringify(s) !== JSON.stringify({ name: space.name, subtitle: space.subtitle || "", status: space.status, banner: space.banner, require_nda: !!space.require_nda, watermark: space.watermark ?? true, allow_download: !!space.allow_download });
+  const init = { name: space.name, subtitle: space.subtitle || "", status: space.status, banner: space.banner, require_nda: !!space.require_nda, verify_email: !!space.verify_email, watermark: space.watermark ?? true, allow_download: !!space.allow_download, auto_index: space.auto_index !== false };
+  const [s, setS] = useState(init);
+  const dirty = JSON.stringify(s) !== JSON.stringify(init);
+  const [copying, setCopying] = useState(false);
+  async function duplicate() {
+    setCopying(true);
+    const { data, error } = await supabase.rpc("duplicate_space", { p_space: space.id });
+    setCopying(false);
+    if (error) return toast(error.message);
+    toast(`Created “${space.name} (copy)” — links and visitors weren’t copied`); router.push(`/app/spaces/${data}`);
+  }
   async function save() {
     await supabase.from("spaces").update({ ...s, subtitle: s.subtitle || null, updated_at: new Date().toISOString() }).eq("id", space.id);
-    await supabase.from("links").update({ require_nda: s.require_nda, watermark: s.watermark, allow_download: s.allow_download }).eq("space_id", space.id);
+    await supabase.from("links").update({ require_nda: s.require_nda, watermark: s.watermark, allow_download: s.allow_download, ...(s.verify_email ? { verify_email: true, require_email: true } : {}) }).eq("space_id", space.id);
     audit(space.id, email, "Updated Space settings"); toast("Space settings saved"); onSaved();
   }
   return (
@@ -126,13 +135,16 @@ export function SpaceSettings({ space, onSaved }: { space: Space; onSaved: () =>
         <label className="field"><span className="label">Subtitle</span><input className="input" value={s.subtitle} onChange={(e) => setS({ ...s, subtitle: e.target.value })} placeholder="Confidential · for Acme Ventures only" /></label>
         <div className="field"><span className="label">Cover</span><div className="row gap-8 wrap">{[...SPACE_TEMPLATES.map((t) => t.banner), "linear-gradient(120deg,#4D94F7,#8ab2ff)", "linear-gradient(120deg,#111827,#4b5563)"].map((b) => (
           <button key={b} className={`cover-swatch ${s.banner === b ? "on" : ""}`} style={{ background: b }} aria-label="Cover colour" onClick={() => setS({ ...s, banner: b })} />))}</div></div>
+        <div className="set-row"><div className="col grow"><span>Number files and folders</span><span className="caption muted">Shows 1, 1.1, 1.2… in the data room, for you and for visitors. Reorder with Move up / Move down.</span></div><Toggle on={s.auto_index} onChange={(v) => setS({ ...s, auto_index: v })} /></div>
         <label className="field"><span className="label">Status</span><select className="input" value={s.status} onChange={(e) => setS({ ...s, status: e.target.value })}><option value="active">Active — visitors can enter</option><option value="archived">Archived — read-only for you, closed to visitors</option></select></label>
       </div>
       <div className="card set-card"><div className="h3">Security defaults</div><span className="caption muted">Apply to every link to this Space and to visitors outside a group.</span>
-        {([["require_nda", "Require NDA before entry"], ["watermark", "Watermark all pages"], ["allow_download", "Allow downloads"]] as const).map(([k, l]) => (
+        {([["require_nda", "Require NDA before entry"], ["verify_email", "Verify visitor email with a code"], ["watermark", "Watermark all pages"], ["allow_download", "Allow downloads"]] as const).map(([k, l]) => (
           <div className="set-row" key={k}><span className="grow">{l}</span><Toggle on={s[k]} onChange={(v) => setS({ ...s, [k]: v })} /></div>))}
       </div>
       <div className="row gap-8"><button className="btn btn-primary" disabled={!dirty} onClick={save}>Save changes</button>{dirty && <span className="caption muted">Unsaved changes</span>}</div>
+      <div className="card set-card"><div className="h3">Duplicate Space</div><span className="caption muted">Copies the folders, documents, groups and permissions into a new Space. Links, visitors, requests and the audit log aren’t copied.</span>
+        <div><button className="btn btn-secondary btn-s" disabled={copying} onClick={duplicate}><Copy size={14} />{copying ? "Duplicating…" : "Duplicate Space"}</button></div></div>
       <div className="card set-card danger"><div className="h3">Delete Space</div><span className="caption muted">Removes the Space, its links, requests and audit log. Documents stay in your library.</span>
         <div><button className="btn btn-danger btn-s" onClick={async () => { if (!confirm(`Delete “${space.name}”? This can’t be undone.`)) return; await supabase.from("spaces").delete().eq("id", space.id); router.push("/app/spaces"); }}><Trash2 size={14} />Delete Space</button></div></div>
     </div>

@@ -34,7 +34,7 @@ export default function Notifications() {
       <SettingsHead title="Notifications" sub="Choose what you hear about, and where." action={<SaveButton onClick={() => s.save()} saving={s.saving} />} />
       <section className="set-card" style={{ padding: 0, overflow: "hidden" }}>
         <table className="table notif-table">
-          <thead><tr><th>Event</th>{["In-app", "Email", "Slack", "Push"].map((h) => <th key={h} className="center">{h}</th>)}</tr></thead>
+          <thead><tr><th>Event</th>{["In-app", "Email", "Slack / Teams", "Push"].map((h) => <th key={h} className="center">{h}</th>)}</tr></thead>
           <tbody>
             {EVENTS.map(([id, t, d]) => (
               <tr key={id}>
@@ -45,7 +45,7 @@ export default function Notifications() {
           </tbody>
         </table>
       </section>
-      <Card title="Quiet hours" sub="Pause push and Slack alerts — emails are batched into a morning summary.">
+      <Card title="Quiet hours" sub="Pause push, Slack and Teams alerts — emails are batched into a morning summary.">
         <Row title="Enable quiet hours"><Toggle on={v.quiet} onChange={(x) => s.update({ ...v, quiet: x })} /></Row>
         {v.quiet && <Row title="From" sub="Local time"><div className="row gap-8"><Select value={v.quiet_from} onChange={(x) => s.update({ ...v, quiet_from: x })} options={HOURS} /><span className="muted">to</span><Select value={v.quiet_to} onChange={(x) => s.update({ ...v, quiet_to: x })} options={HOURS} /></div></Row>}
       </Card>

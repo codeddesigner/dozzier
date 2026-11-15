@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { ChevronRight, Plus, Trash2, Upload, ClipboardPaste, Copy, Mail, Check, Users, Send } from "lucide-react";
 import { sendEach } from "@/lib/sendEmail";
-import { supabase, Doc } from "@/lib/supabase";
+import { supabase, Doc , DOC_COLS } from "@/lib/supabase";
 import { Avatar, Loading, Toggle, copy, toast, useLoad } from "@/components/ui";
 import { useApp } from "@/components/AppContext";
 import { displayName, slugify } from "@/lib/format";
@@ -37,7 +37,7 @@ function parse(text: string): R[] {
 export default function Personalise() {
   const { id } = useParams<{ id: string }>();
   const { profile, email: me } = useApp();
-  const { data: doc, loading } = useLoad<Doc>(async () => { const r = await supabase.from("documents").select("*").eq("id", id).single(); if (r.error) throw r.error; return r.data as Doc; }, [id]);
+  const { data: doc, loading } = useLoad<Doc>(async () => { const r = await supabase.from("documents").select(DOC_COLS).eq("id", id).single(); if (r.error) throw r.error; return r.data as Doc; }, [id]);
   const [rows, setRows] = useState<R[]>([]);
   const [draft, setDraft] = useState("");
   const [paste, setPaste] = useState(false);

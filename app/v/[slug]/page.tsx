@@ -7,8 +7,10 @@ import { Logo, AppIcon, LogoMark } from "@/components/Logo";
 import { Avatar } from "@/components/ui";
 import { DocRenderer, Source, sourceFor } from "@/components/DocRenderer";
 import { NDA_TEMPLATE } from "@/components/nda";
+import { OtpInput } from "@/components/OtpInput";
+import { indexItems } from "@/lib/format";
 
-type Pub = { link_id: string; name: string; require_email: boolean; has_passcode: boolean; allow_download: boolean; watermark: boolean; require_nda: boolean;
+type Pub = { link_id: string; name: string; require_email: boolean; verify_email?: boolean; has_passcode: boolean; allow_download: boolean; watermark: boolean; require_nda: boolean;
   screenshot_protection: boolean; document_name: string | null; file_type: string | null; page_count: number | null; is_sample: boolean | null; sender: string;
   space_id: string | null; space_name: string | null; nda_text: string | null;
   brand?: { color: string | null; logo_path: string | null; hide_branding: boolean | null; viewer: string; welcome: string | null; show_shared_by: boolean; sender_name: string | null; sender_title: string | null; avatar_path: string | null; booking_url: string | null } };
@@ -19,9 +21,9 @@ function BrandAsset({ path, alt, style }: { path: string | null | undefined; alt
   // eslint-disable-next-line @next/next/no-img-element
   return url ? <img src={url} alt={alt} style={style} /> : null;
 }
-type Started = { visit_id: string; file_path: string | null; mime_type: string | null; file_type: string; page_count: number; is_sample: boolean; email: string | null; name: string; note: string | null };
+type Started = { token?: string | null; visit_id: string; file_path: string | null; mime_type: string | null; file_type: string; page_count: number; is_sample: boolean; email: string | null; name: string; note: string | null };
 type SpaceItem = { id: string; kind: "folder" | "document"; name: string; parent_id: string | null; level: string; file_type: string | null; page_count: number | null; created_at: string };
-type SpaceData = { name: string; subtitle: string | null; banner: string; updated_at: string; status: string; sender: string; workspace: string | null; expires_at: string | null; nda: boolean; watermark: boolean; group: string | null; viewers: string[]; items: SpaceItem[] };
+type SpaceData = { name: string; subtitle: string | null; banner: string; updated_at: string; status: string; sender: string; workspace: string | null; expires_at: string | null; nda: boolean; watermark: boolean; group: string | null; viewers: string[]; items: SpaceItem[]; auto_index?: boolean };
 type Current = { source: Source; pages: number; name: string; path: string | null; visitId?: string; level?: string };
 
 export default function Viewer() {
@@ -36,6 +38,10 @@ export default function Viewer() {
   const [nda, setNda] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [codeStep, setCodeStep] = useState(false);
+  const [code, setCode] = useState("");
+  const [resent, setResent] = useState(false);
+  const tokKey = (em: string) => `dz-vt-${slug}-${em.trim().toLowerCase()}`;
 
   // Load link metadata; skip the gate if nothing is required.
   useEffect(() => {
@@ -47,19 +53,39 @@ export default function Viewer() {
         const saved = localStorage.getItem("dz-viewer-email");
         if (pre) setEmail(pre); else if (saved) setEmail(saved);
       } catch {}
-      if (p && !p.require_email && !p.has_passcode && !p.require_nda) start(p, "", "");
+      if (p && !p.require_email && !p.verify_email && !p.has_passcode && !p.require_nda) start(p, "", "");
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slug]);
 
-  async function start(p: Pub, em: string, pc: string) {
+  async function sendCode(em: string) {
+    const { error } = await supabase.rpc("request_view_code", { p_slug: slug, p_email: em });
+    if (error) { setErr(error.message); return false; }
+    return true;
+  }
+
+  async function start(p: Pub, em: string, pc: string, otp?: string) {
     setBusy(true); setErr(null);
     let location = "";
     try { location = (await (await fetch("/api/geo")).json()).location || ""; } catch {}
-    const { data, error } = await supabase.rpc("start_visit", { p_slug: slug, p_email: em, p_passcode: pc, p_location: location, p_user_agent: navigator.userAgent });
-    if (error) { setBusy(false); return setErr(error.message); }
+    // A device that verified this email before keeps a 30-day token.
+    let remembered: string | null = null;
+    try { remembered = em ? localStorage.getItem(tokKey(em)) : null; } catch {}
+    const { data, error } = await supabase.rpc("start_visit", { p_slug: slug, p_email: em, p_passcode: pc, p_location: location, p_user_agent: navigator.userAgent, p_code: otp || remembered || null });
+    if (error) {
+      if (error.message.includes("VERIFY_REQUIRED")) {
+        try { if (remembered) localStorage.removeItem(tokKey(em)); } catch {}
+        if (otp) { setBusy(false); setCode(""); return setErr("That code didn’t work. Check the latest email or send a new code."); }
+        const ok = await sendCode(em);
+        setBusy(false);
+        if (ok) { setCodeStep(true); setCode(""); }
+        return;
+      }
+      setBusy(false); return setErr(error.message);
+    }
     const v = data as Started;
-    try { if (em) localStorage.setItem("dz-viewer-email", em); } catch {}
+    try { if (em) localStorage.setItem("dz-viewer-email", em); if (v.token && em) localStorage.setItem(tokKey(em), v.token); } catch {}
+    setCodeStep(false);
     setVisit(v);
     if (p.space_id) {
       const { data: s, error: se } = await supabase.rpc("space_for_visit", { p_visit_id: v.visit_id });
@@ -111,12 +137,27 @@ export default function Viewer() {
         </Bar>
         <div className="viewer-stage">
           <div className="blurred-page" />
+          {codeStep ? (
+          <form className="gate" style={{ position: "relative" }} onSubmit={(e) => { e.preventDefault(); if (code.length === 6) start(pub, email, pass, code); }}>
+            <div style={{ alignSelf: "center" }}>{b?.logo_path ? <BrandAsset path={b.logo_path} alt={pub.sender} style={{ height: 36, maxWidth: 160, objectFit: "contain" }} /> : <LogoMark size={30} />}</div>
+            <div className="h3 center gate-title">Check your email</div>
+            <p className="caption muted center">We sent a 6-digit code to <span className="medium" style={{ color: "var(--dz-text-primary)" }}>{email}</span>. Enter it to view “{title}”.</p>
+            <div style={{ alignSelf: "center" }}><OtpInput value={code} onChange={setCode} onComplete={(c) => start(pub, email, pass, c)} disabled={busy} /></div>
+            {err && <p className="error-text">{err}</p>}
+            <button className="btn btn-primary btn-block" disabled={busy || code.length < 6} style={accent ? { background: accent } : undefined}>{busy ? "Checking…" : "Verify and view"}</button>
+            <div className="row caption" style={{ justifyContent: "space-between" }}>
+              <button type="button" className="link" onClick={() => { setCodeStep(false); setErr(null); setCode(""); }}>Use a different email</button>
+              <button type="button" className="link" disabled={resent} onClick={async () => { setErr(null); if (await sendCode(email)) { setResent(true); setTimeout(() => setResent(false), 30000); } }}>{resent ? "Code sent" : "Send a new code"}</button>
+            </div>
+            {!b?.hide_branding && <p className="caption faint row gap-6" style={{ justifyContent: "center" }}><ShieldCheck size={14} />Secured by Dozzier</p>}
+          </form>
+          ) : (
           <form className="gate" style={{ position: "relative" }} onSubmit={(e) => { e.preventDefault(); if (pub.require_nda && !nda) return setErr("Please accept the agreement to continue"); start(pub, email, pass); }}>
             <div style={{ alignSelf: "center" }}>{b?.logo_path ? <BrandAsset path={b.logo_path} alt={pub.sender} style={{ height: 36, maxWidth: 160, objectFit: "contain" }} /> : <LogoMark size={30} />}</div>
             <div className="h3 center gate-title">{pub.sender} shared “{title}”</div>
             {b?.welcome && <p className="caption center" style={{ color: "var(--dz-text-secondary)" }}>{b.welcome}</p>}
-            <p className="caption muted center">{pub.require_email ? "Enter your email to view. The sender will see that you opened it." : "Enter the details below to view."}</p>
-            {pub.require_email && <label className="field"><span className="label">Email</span><input className="input" type="email" required autoFocus value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@company.com" /></label>}
+            <p className="caption muted center">{pub.verify_email ? "Enter your email and we’ll send you a code to view." : pub.require_email ? "Enter your email to view. The sender will see that you opened it." : "Enter the details below to view."}</p>
+            {(pub.require_email || pub.verify_email) && <label className="field"><span className="label">Email</span><input className="input" type="email" required autoFocus value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@company.com" /></label>}
             {pub.has_passcode && <label className="field"><span className="label">Passcode</span><input className="input" type="password" required value={pass} onChange={(e) => setPass(e.target.value)} /></label>}
             {pub.require_nda && (
               <div className="col gap-8">
@@ -135,6 +176,7 @@ export default function Viewer() {
             )}
             {!b?.hide_branding && <p className="caption faint row gap-6" style={{ justifyContent: "center" }}><ShieldCheck size={14} />Secured by Dozzier</p>}
           </form>
+          )}
         </div>
       </div>
     );
@@ -164,6 +206,7 @@ function SpaceBrowser({ space, email, visitId, error, onOpen }: { space: SpaceDa
   const [q, setQ] = useState("");
   const [ask, setAsk] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const spaceIdx = space.auto_index !== false ? indexItems(space.items.map((x, i) => ({ ...x, position: i }))) : null;
   const top = space.items.filter((i) => !i.parent_id && i.kind === "folder");
   const rootDocs = space.items.filter((i) => !i.parent_id && i.kind === "document");
   const kids = (id: string) => space.items.filter((i) => i.parent_id === id);
@@ -208,12 +251,12 @@ function SpaceBrowser({ space, email, visitId, error, onOpen }: { space: SpaceDa
               <div className="sv-folders">
                 {top.map((f, i) => { const d = deepDocs(f.id); const n = d.filter(isNew).length; return (
                   <button key={f.id} className="sv-fcard" style={{ animationDelay: `${i * 40}ms` }} onClick={() => open(f)}>
-                    <Folder size={26} fill="#a9c4fb" color="#a9c4fb" /><span className="col grow" style={{ minWidth: 0, textAlign: "left" }}><span className="medium ellipsis">{f.name}</span><span className="caption muted">{d.length} file{d.length === 1 ? "" : "s"}</span></span>
+                    <Folder size={26} fill="#a9c4fb" color="#a9c4fb" /><span className="col grow" style={{ minWidth: 0, textAlign: "left" }}><span className="medium ellipsis">{spaceIdx?.get(f.id) && <span className="item-index">{spaceIdx.get(f.id)}</span>}{f.name}</span><span className="caption muted">{d.length} file{d.length === 1 ? "" : "s"}</span></span>
                     {n > 0 && <span className="badge badge-brand">{n} new</span>}
                   </button>
                 ); })}
               </div>
-              {rootDocs.length > 0 && <FileList items={rootDocs} isNew={isNew} busyId={busyId} onOpen={open} />}
+              {rootDocs.length > 0 && <FileList idx={spaceIdx} items={rootDocs} isNew={isNew} busyId={busyId} onOpen={open} />}
               {top.length === 0 && rootDocs.length === 0 && <p className="muted mt-24">Nothing has been shared with you here yet.</p>}
             </>
           ) : (
@@ -222,7 +265,7 @@ function SpaceBrowser({ space, email, visitId, error, onOpen }: { space: SpaceDa
                 <button className="muted" onClick={() => { setFolder(null); setQ(""); }}>Home</button><ChevronRight size={14} className="faint" />
                 {q ? <span>Results for “{q}”</span> : <span>{folder!.name}</span>}
               </div>
-              {list.length === 0 ? <p className="muted">{q ? "No documents match." : "This folder is empty."}</p> : <FileList items={list} isNew={isNew} busyId={busyId} onOpen={open} countOf={(id) => deepDocs(id).length} />}
+              {list.length === 0 ? <p className="muted">{q ? "No documents match." : "This folder is empty."}</p> : <FileList idx={spaceIdx} items={list} isNew={isNew} busyId={busyId} onOpen={open} countOf={(id) => deepDocs(id).length} />}
             </>
           )}
         </main>
@@ -232,14 +275,14 @@ function SpaceBrowser({ space, email, visitId, error, onOpen }: { space: SpaceDa
   );
 }
 
-function FileList({ items, isNew, busyId, onOpen, countOf }: { items: SpaceItem[]; isNew: (i: SpaceItem) => boolean; busyId: string | null; onOpen: (i: SpaceItem) => void; countOf?: (id: string) => number }) {
+function FileList({ items, isNew, busyId, onOpen, countOf, idx }: { items: SpaceItem[]; isNew: (i: SpaceItem) => boolean; busyId: string | null; onOpen: (i: SpaceItem) => void; countOf?: (id: string) => number; idx?: Map<string, string> | null }) {
   const LV: Record<string, string> = { download: "Download", view_watermark: "View only · watermarked", view: "View only" };
   return (
     <div className="sv-files">
       {items.map((it, i) => (
         <button key={it.id} className="sv-file" style={{ animationDelay: `${Math.min(i, 12) * 30}ms` }} onClick={() => onOpen(it)} disabled={busyId === it.id}>
           {it.kind === "folder" ? <Folder size={22} fill="#a9c4fb" color="#a9c4fb" /> : <FileText size={22} color="#4D94F7" />}
-          <span className="col grow" style={{ minWidth: 0, textAlign: "left" }}><span className="medium ellipsis">{it.name}</span>
+          <span className="col grow" style={{ minWidth: 0, textAlign: "left" }}><span className="medium ellipsis">{idx?.get(it.id) && <span className="item-index">{idx.get(it.id)}</span>}{it.name}</span>
             <span className="caption muted">{it.kind === "folder" ? `${countOf?.(it.id) ?? 0} files` : [it.page_count ? `${it.page_count} page${it.page_count === 1 ? "" : "s"}` : (it.file_type || "").toUpperCase(), LV[it.level]].filter(Boolean).join(" · ")}</span></span>
           {isNew(it) && it.kind === "document" && <span className="badge badge-brand">New</span>}
           {busyId === it.id ? <span className="spinner" style={{ width: 16, height: 16 }} /> : <ChevronRight size={16} className="faint" />}

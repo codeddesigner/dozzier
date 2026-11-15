@@ -2,13 +2,13 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { Folder as FolderIcon, ImageIcon, Plus, FilePlus2, Share2, Trash2, Pencil, ChevronRight, UserPlus, Eye } from "lucide-react";
+import { Folder as FolderIcon, ImageIcon, Plus, FilePlus2, Share2, Trash2, Pencil, ChevronRight, UserPlus, Eye, ArrowUp, ArrowDown } from "lucide-react";
 import { supabase, Space, SpaceItem, Doc, Link as LinkT } from "@/lib/supabase";
 import { Avatar, DocThumb, Loading, Menu, Modal, Tabs, toast, useLoad } from "@/components/ui";
 import { useApp } from "@/components/AppContext";
 import { LinkModal, linkUrl } from "@/components/LinkModal";
 import { LinksTable } from "@/components/DocTables";
-import { timeAgo } from "@/lib/format";
+import { timeAgo, indexItems } from "@/lib/format";
 import { audit, Level, spaceLink } from "@/lib/space";
 import { Permissions } from "@/components/space/Permissions";
 import { Requests } from "@/components/space/Requests";
@@ -63,6 +63,16 @@ export default function SpacePage() {
   const viewers = [...new Set(visits.map((v) => v.visitor_email).filter(Boolean))] as string[];
   const topFolders = items.filter((i) => !i.parent_id && i.kind === "folder");
   const linkIds = links.map((l) => l.id);
+  const idx = space.auto_index !== false ? indexItems(items) : null;
+  // Swap an item with its neighbour; positions are renumbered so the order is stable.
+  async function moveItem(it: SpaceItem, dir: -1 | 1) {
+    const sib = [...level].sort((a, b) => a.position - b.position || a.name.localeCompare(b.name));
+    const i = sib.findIndex((x) => x.id === it.id), j = i + dir;
+    if (j < 0 || j >= sib.length) return;
+    [sib[i], sib[j]] = [sib[j], sib[i]];
+    await Promise.all(sib.map((x, k) => supabase.from("space_items").update({ position: k }).eq("id", x.id)));
+    reload();
+  }
   const defaultLevel: Level = space.allow_download ? "download" : space.watermark ?? true ? "view_watermark" : "view";
 
   async function addFolder() {
@@ -112,10 +122,10 @@ export default function SpacePage() {
                   {level.map((it) => (
                     <tr key={it.id} className="clickable" onClick={() => it.kind === "folder" ? setFolder(it) : router.push(`/app/content/${it.document_id}`)}>
                       <td>{it.kind === "folder" ? <FolderIcon size={22} fill="#a9c4fb" color="#a9c4fb" /> : <DocThumb kind={docType(it.document_id)} />}</td>
-                      <td><div className="col"><span className="medium ellipsis" style={{ maxWidth: 320 }}>{it.name}</span>{it.kind === "folder" && <span className="caption muted">{childCount(it.id)} items</span>}</div></td>
+                      <td><div className="col"><span className="medium ellipsis" style={{ maxWidth: 320 }}>{idx && <span className="item-index">{idx.get(it.id)}</span>}{it.name}</span>{it.kind === "folder" && <span className="caption muted">{childCount(it.id)} items</span>}</div></td>
                       <td className="hide-sm muted">{it.kind === "folder" ? "Folder" : "Document"}</td>
                       <td className="hide-sm muted">{timeAgo(it.created_at)}</td>
-                      <td><Menu items={[{ label: "Remove", icon: <Trash2 size={14} />, danger: true, onClick: () => remove(it) }]} /></td>
+                      <td onClick={(e) => e.stopPropagation()}><Menu items={[{ label: "Move up", icon: <ArrowUp size={14} />, onClick: () => moveItem(it, -1) }, { label: "Move down", icon: <ArrowDown size={14} />, onClick: () => moveItem(it, 1) }, { label: "Remove", icon: <Trash2 size={14} />, danger: true, onClick: () => remove(it) }]} /></td>
                     </tr>
                   ))}
                 </tbody>

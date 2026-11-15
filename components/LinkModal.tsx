@@ -1,6 +1,6 @@
 "use client";
 import { useMemo, useState } from "react";
-import { Mail, Download, Lock, Calendar, FileCheck2, FileSignature, Users, Scan, Bell, Link2, Copy } from "lucide-react";
+import { Mail, Download, Lock, Calendar, FileCheck2, FileSignature, Users, Scan, Bell, Link2, Copy, ShieldCheck } from "lucide-react";
 import { Modal, Tabs, Toggle, copy, toast } from "./ui";
 import { supabase, Link } from "@/lib/supabase";
 import { slugify } from "@/lib/format";
@@ -21,7 +21,7 @@ export function LinkModal({ documentId, spaceId, existing, defaultName, docName,
   const preset = standardPreset(profile.settings);
   const initial = useMemo<Draft>(() => existing ? { ...existing } : {
     name: defaultName || "", slug: slugify(defaultName || "link"), enabled: true,
-    require_email: preset.require_email.on, allow_download: preset.allow_download.on, passcode: null,
+    require_email: preset.require_email.on, verify_email: false, allow_download: preset.allow_download.on, passcode: null,
     expires_at: preset.expiry.on ? new Date(Date.now() + 30 * 86400000).toISOString() : null,
     watermark: preset.watermark.on, require_nda: preset.require_nda.on, allowed_domains: null, screenshot_protection: false, notify: preset.notify.on,
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -37,7 +37,7 @@ export function LinkModal({ documentId, spaceId, existing, defaultName, docName,
     if (!d.name.trim()) return setErr("Give this link a name, e.g. the recipient's company");
     setBusy(true); setErr(null);
     const payload = {
-      name: d.name.trim(), slug: d.slug, enabled: d.enabled, require_email: d.require_email, allow_download: d.allow_download,
+      name: d.name.trim(), slug: d.slug, enabled: d.enabled, require_email: d.require_email || d.verify_email, verify_email: d.verify_email, allow_download: d.allow_download,
       passcode: d.passcode?.trim() || null, expires_at: d.expires_at, watermark: d.watermark, require_nda: d.require_nda,
       allowed_domains: d.allowed_domains?.trim() || null, screenshot_protection: d.screenshot_protection, notify: d.notify,
     };
@@ -54,7 +54,8 @@ export function LinkModal({ documentId, spaceId, existing, defaultName, docName,
   const lockKey: Record<string, string> = { "Require email to view": "require_email", "Allow downloads": "allow_download", "Dynamic watermark": "watermark", "Require NDA": "require_nda", "Link expiration": "expiry", "Notify me on every visit": "notify" };
   const locked = (title: string) => !!preset[lockKey[title]]?.locked;
   const rows: { icon: typeof Mail; title: string; desc: string; on: boolean; set: (v: boolean) => void; extra?: React.ReactNode }[] = [
-    { icon: Mail, title: "Require email to view", desc: "Visitors verify their email before the document opens.", on: d.require_email, set: (v) => set("require_email", v) },
+    { icon: Mail, title: "Require email to view", desc: "Visitors enter their email before the document opens.", on: d.require_email || d.verify_email, set: (v) => { set("require_email", v); if (!v) set("verify_email", false); } },
+    { icon: ShieldCheck, title: "Verify email with a code", desc: "We email visitors a 6-digit code, so every view is tied to a real inbox.", on: d.verify_email, set: (v) => { set("verify_email", v); if (v) set("require_email", true); } },
     { icon: Download, title: "Allow downloads", desc: "Let visitors download a copy of the file.", on: d.allow_download, set: (v) => set("allow_download", v) },
     { icon: Lock, title: "Require passcode", desc: "Share a passcode separately for extra protection.", on: d.passcode !== null, set: (v) => set("passcode", v ? "" : null),
       extra: d.passcode !== null && <input className="input" placeholder="Passcode" value={d.passcode || ""} onChange={(e) => set("passcode", e.target.value)} /> },
@@ -69,7 +70,7 @@ export function LinkModal({ documentId, spaceId, existing, defaultName, docName,
     { icon: Scan, title: "Screenshot protection", desc: "Blur content when the window loses focus.", on: d.screenshot_protection, set: (v) => set("screenshot_protection", v) },
     { icon: Bell, title: "Notify me on every visit", desc: "Real-time in-app alert with page analytics.", on: d.notify, set: (v) => set("notify", v) },
   ];
-  const visible = tab === "access" ? rows.slice(0, 7) : tab === "security" ? [rows[2], rows[6], rows[7]] : tab === "notifications" ? [rows[8]] : [];
+  const visible = tab === "access" ? rows.slice(0, 8) : tab === "security" ? [rows[1], rows[3], rows[7], rows[8]] : tab === "notifications" ? [rows[9]] : [];
 
   if (ready) return <LinkReady link={ready} docName={docName || defaultName} documentId={documentId} onDone={() => onSaved(ready)} />;
   return (

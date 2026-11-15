@@ -40,3 +40,32 @@ function mimeOf(n: string) {
     pptx: "application/vnd.openxmlformats-officedocument.presentationml.presentation", docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
     xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", txt: "text/plain", csv: "text/csv" } as Record<string, string>)[ext] || "application/octet-stream";
 }
+
+/** Lists every entry (including folders and dotfiles) with a lazy reader — used to peek inside Office files. */
+export async function unzipEntries(file: Blob): Promise<{ name: string; read: () => Promise<Uint8Array> }[]> {
+  const buf = new Uint8Array(await file.arrayBuffer());
+  const dv = new DataView(buf.buffer);
+  let eocd = -1;
+  for (let i = buf.length - 22; i >= Math.max(0, buf.length - 65557); i--) if (dv.getUint32(i, true) === 0x06054b50) { eocd = i; break; }
+  if (eocd < 0) throw new Error("Not a ZIP file");
+  const count = dv.getUint16(eocd + 10, true);
+  let p = dv.getUint32(eocd + 16, true);
+  const dec = new TextDecoder();
+  const out: { name: string; read: () => Promise<Uint8Array> }[] = [];
+  for (let n = 0; n < count; n++) {
+    if (dv.getUint32(p, true) !== 0x02014b50) break;
+    const method = dv.getUint16(p + 10, true), csize = dv.getUint32(p + 20, true);
+    const nameLen = dv.getUint16(p + 28, true), extraLen = dv.getUint16(p + 30, true), commentLen = dv.getUint16(p + 32, true);
+    const local = dv.getUint32(p + 42, true);
+    const name = dec.decode(buf.subarray(p + 46, p + 46 + nameLen));
+    p += 46 + nameLen + extraLen + commentLen;
+    out.push({ name, read: async () => {
+      const start = local + 30 + dv.getUint16(local + 26, true) + dv.getUint16(local + 28, true);
+      const raw = buf.slice(start, start + csize);
+      if (method === 0) return raw;
+      const stream = new Blob([raw]).stream().pipeThrough(new DecompressionStream("deflate-raw" as CompressionFormat));
+      return new Uint8Array(await new Response(stream).arrayBuffer());
+    } });
+  }
+  return out;
+}

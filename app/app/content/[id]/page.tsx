@@ -4,7 +4,7 @@ import { LinksTable, VisitRow, V, PV } from "@/components/DocTables";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { Eye, Upload, ChevronDown, Pencil, Link2, Download, Building2, Copy, Trash2, Settings2, ExternalLink, X, ChevronLeft, ChevronRight } from "lucide-react";
-import { supabase, Doc, Link as LinkT, BUCKET } from "@/lib/supabase";
+import { supabase, Doc, Link as LinkT, BUCKET , DOC_COLS } from "@/lib/supabase";
 import { Avatar, Kpi, Loading, Menu, Modal, Tabs, Toggle, copy, toast, useLoad } from "@/components/ui";
 import { PageBars, LineChart, dailySeries } from "@/components/charts";
 import { LinkModal, linkUrl } from "@/components/LinkModal";
@@ -13,12 +13,14 @@ import { Versions } from "@/components/Versions";
 import { DocRenderer, sourceFor } from "@/components/DocRenderer";
 import { displayName, duration, timeAgo, fileKind } from "@/lib/format";
 import { countPdfPages } from "@/lib/pdf";
+import { extractText } from "@/lib/extractText";
+import { officeFormat, countOfficePages } from "@/components/OfficeView";
 import { useApp } from "@/components/AppContext";
 
 export default function DocumentPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
-  const { userId, email } = useApp();
+  const { userId, wsId, email } = useApp();
   const [tab, setTab] = useState<"activity" | "performance" | "links" | "versions" | "settings">("activity");
   useEffect(() => { const t = new URLSearchParams(window.location.search).get("tab"); if (t === "links" || t === "performance" || t === "versions") setTab(t); }, []);
   const [linkModal, setLinkModal] = useState<{ existing?: LinkT | null } | null>(null);
@@ -29,7 +31,7 @@ export default function DocumentPage() {
 
   const { data, loading, reload, error } = useLoad(async () => {
     const [d, l, v] = await Promise.all([
-      supabase.from("documents").select("*").eq("id", id).single(),
+      supabase.from("documents").select(DOC_COLS).eq("id", id).single(),
       supabase.from("links").select("*").eq("document_id", id).order("created_at", { ascending: false }),
       supabase.from("visits").select("id,link_id,contact_id,visitor_email,location,duration_seconds,pages_viewed,downloaded,is_sample,started_at").eq("document_id", id).order("started_at", { ascending: false }),
     ]);
@@ -70,16 +72,17 @@ export default function DocumentPage() {
 
   async function replace(file: File) {
     toast("Uploading new version…");
-    const path = `${userId}/${crypto.randomUUID()}-${file.name.replace(/[^\w.\-]+/g, "_")}`;
+    const path = `${wsId}/${crypto.randomUUID()}-${file.name.replace(/[^\w.\-]+/g, "_")}`;
     const up = await supabase.storage.from(BUCKET).upload(path, file, { contentType: file.type });
     if (up.error) return toast(up.error.message);
     const kind = fileKind(file.type || file.name);
-    const pages = kind === "pdf" ? await countPdfPages(file) : 1;
+    const office = officeFormat(file.type, file.name);
+    const pages = kind === "pdf" ? await countPdfPages(file) : office ? await countOfficePages(file, office) : 1;
     if (doc.file_path) {
       const { count } = await supabase.from("document_versions").select("id", { count: "exact", head: true }).eq("document_id", doc.id);
       await supabase.from("document_versions").insert({ document_id: doc.id, version: (count || 0) + 1, file_path: doc.file_path, file_type: doc.file_type, mime_type: doc.mime_type, page_count: doc.page_count, size_bytes: doc.size_bytes, uploaded_at: doc.updated_at, replaced_by: email });
     }
-    await supabase.from("documents").update({ file_path: path, file_type: kind, mime_type: file.type, size_bytes: file.size, page_count: pages, is_sample: false, updated_at: new Date().toISOString() }).eq("id", doc.id);
+    await supabase.from("documents").update({ content_text: await extractText(file), file_path: path, file_type: kind, mime_type: file.type, size_bytes: file.size, page_count: pages, is_sample: false, updated_at: new Date().toISOString() }).eq("id", doc.id);
     toast("New version live on all links — the old one is in Versions"); reload();
   }
 

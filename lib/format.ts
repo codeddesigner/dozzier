@@ -81,3 +81,12 @@ export function colorFor(s: string): string {
   for (const c of s) h = (h * 31 + c.charCodeAt(0)) >>> 0;
   return AVATAR_COLORS[h % AVATAR_COLORS.length];
 }
+
+/** Data-room numbering: 1, 1.1, 1.2, 2 … following each folder's order (position, then name). */
+export function indexItems<T extends { id: string; parent_id: string | null; position?: number; name: string }>(items: T[]): Map<string, string> {
+  const out = new Map<string, string>();
+  const kids = (pid: string | null) => items.filter((i) => i.parent_id === pid).sort((a, b) => (a.position ?? 0) - (b.position ?? 0) || a.name.localeCompare(b.name));
+  const walk = (pid: string | null, prefix: string) => kids(pid).forEach((it, i) => { const n = prefix ? `${prefix}.${i + 1}` : String(i + 1); out.set(it.id, n); walk(it.id, n); });
+  walk(null, "");
+  return out;
+}

@@ -6,12 +6,15 @@ import { Modal, Tabs, toast } from "./ui";
 import { supabase, BUCKET } from "@/lib/supabase";
 import { countPdfPages } from "@/lib/pdf";
 import { fileKind } from "@/lib/format";
+import { limitsFor, fmtBytes, MAX_FILE_BYTES } from "@/lib/limits";
+import { extractText } from "@/lib/extractText";
+import { officeFormat, countOfficePages } from "@/components/OfficeView";
 import { useApp } from "./AppContext";
 
 const SOURCES: [string, string][] = [["Google Drive", ""], ["Dropbox", "Db"], ["Box", "Bx"], ["OneDrive", "Od"], ["SharePoint", "Sp"]];
 
 export function UploadModal({ folderId, onClose, onDone }: { folderId?: string | null; onClose: () => void; onDone: (docIds: string[]) => void }) {
-  const { userId } = useApp();
+  const { userId, wsId, profile } = useApp();
   const [tab, setTab] = useState<"file" | "url" | "zip">("file");
   const zipInput = useRef<HTMLInputElement>(null);
   async function pickZip(f?: File | null) {
@@ -33,16 +36,23 @@ export function UploadModal({ folderId, onClose, onDone }: { folderId?: string |
     setBusy(true); setErr(null);
     const ids: string[] = [];
     try {
+      // Plan storage quota for the whole workspace.
+      const { data: used } = await supabase.from("documents").select("size_bytes").is("deleted_at", null);
+      const usedBytes = (used || []).reduce((a, d: { size_bytes: number | null }) => a + (d.size_bytes || 0), 0);
+      const quota = limitsFor(profile.plan).gb * 1e9;
+      const adding = files.reduce((a, f) => a + f.size, 0);
+      if (usedBytes + adding > quota) throw new Error(`That would use ${fmtBytes(usedBytes + adding)} of your ${limitsFor(profile.plan).gb} GB storage. Delete old files or upgrade your plan.`);
       for (const [i, f] of files.entries()) {
-        setProgress(`Uploading ${i + 1} of ${files.length}…`);
-        if (f.size > 50 * 1024 * 1024) throw new Error(`${f.name} is larger than 50 MB`);
+        setProgress(`Uploading ${i + 1} of ${files.length}${f.size > 20e6 ? ` (${fmtBytes(f.size)}) — large files take a moment` : ""}…`);
+        if (f.size > MAX_FILE_BYTES) throw new Error(`${f.name} is larger than 2 GB`);
         const kind = fileKind(f.type || f.name);
-        const pages = kind === "pdf" || f.type === "application/pdf" ? await countPdfPages(f) : 1;
-        const path = `${userId}/${crypto.randomUUID()}-${f.name.replace(/[^\w.\-]+/g, "_")}`;
+        const office = officeFormat(f.type, f.name);
+        const pages = kind === "pdf" || f.type === "application/pdf" ? await countPdfPages(f) : office ? await countOfficePages(f, office) : 1;
+        const path = `${wsId}/${crypto.randomUUID()}-${f.name.replace(/[^\w.\-]+/g, "_")}`;
         const up = await supabase.storage.from(BUCKET).upload(path, f, { contentType: f.type || "application/octet-stream" });
         if (up.error) throw up.error;
         const { data, error } = await supabase.from("documents").insert({
-          name: f.name.replace(/\.[^.]+$/, ""), file_path: path, file_type: kind, mime_type: f.type, size_bytes: f.size, page_count: pages, folder_id: folderId || null,
+          name: f.name.replace(/\.[^.]+$/, ""), content_text: await extractText(f), file_path: path, file_type: kind, mime_type: f.type, size_bytes: f.size, page_count: pages, folder_id: folderId || null,
         }).select("id").single();
         if (error) throw error;
         ids.push(data.id);
@@ -89,7 +99,7 @@ export function UploadModal({ folderId, onClose, onDone }: { folderId?: string |
             style={{ border: `1.5px dashed ${drag ? "var(--dz-border-brand)" : "var(--dz-border-strong)"}`, borderRadius: 12, padding: 28, textAlign: "center", background: drag ? "var(--dz-bg-brand-subtle)" : "var(--dz-bg-subtle)", cursor: "pointer" }}>
             <Upload size={20} />
             <div className="medium mt-8">{files.length ? files.map((f) => f.name).join(", ") : "Drag files here, or browse"}</div>
-            <div className="caption faint">PDF, PPTX, DOCX, XLSX, images and video up to 50 MB each</div>
+            <div className="caption faint">PDF, PowerPoint, Word, Excel, images and video up to 2 GB each</div>
           </div>
           <input ref={input} type="file" multiple hidden onChange={(e) => setFiles(Array.from(e.target.files || []))} />
         </div>

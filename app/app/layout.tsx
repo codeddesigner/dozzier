@@ -129,7 +129,8 @@ function SetupRing({ done, total }: { done: number; total: number }) {
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const path = usePathname();
-  const [state, setState] = useState<{ userId: string; email: string; profile: Profile } | null>(null);
+  const [state, setState] = useState<{ userId: string; wsId: string; role: string; email: string; profile: Profile } | null>(null);
+  const [invites, setInvites] = useState<{ id: string; role: string; workspace: string; inviter: string | null }[]>([]);
   const [collapsed, setCollapsed] = useState(false);
   const [help, setHelp] = useState(false);
   const [more, setMore] = useState(false);
@@ -156,7 +157,16 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     const prefs = ((data as Profile)?.settings || {}).prefs || {};
     try { if (prefs.theme && !localStorage.getItem("dz-theme")) applyTheme(prefs.theme); } catch {}
     document.documentElement.classList.toggle("compact", !!prefs.compact);
-    setState({ userId: session.user.id, email: session.user.email || "", profile: (data as Profile) || { id: session.user.id, full_name: null, workspace_name: null, plan: "trial", created_at: "" } });
+    let profile: Profile = (data as Profile) || { id: session.user.id, full_name: null, workspace_name: null, plan: "trial", created_at: "" };
+    const [{ data: wsId }, { data: role }, { data: inv }] = await Promise.all([supabase.rpc("ws"), supabase.rpc("ws_role"), supabase.rpc("my_invites")]);
+    const w = (wsId as string) || session.user.id;
+    // Teammates see the workspace owner's name, plan and branding.
+    if (w !== session.user.id) {
+      const { data: o } = await supabase.from("profiles").select("workspace_name,plan,brand_color,brand_logo_path,hide_branding,custom_domain,crm_connected,created_at").eq("id", w).maybeSingle();
+      if (o) profile = { ...profile, ...o, created_at: profile.created_at };
+    }
+    setInvites((inv as typeof invites) || []);
+    setState({ userId: session.user.id, wsId: w, role: (role as string) || "Owner", email: session.user.email || "", profile });
   }, [router]);
 
   useEffect(() => {
@@ -170,7 +180,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!state) return;
     const ch = supabase.channel("visits-live")
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "visits", filter: `owner_id=eq.${state.userId}` }, (p) => {
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "visits", filter: `owner_id=eq.${state.wsId}` }, (p) => {
         const v = p.new as { visitor_email: string | null };
         toast(`${displayName(v.visitor_email)} just opened your document`);
       }).subscribe();
@@ -239,6 +249,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             </Link>); })()}
         </aside>
         <div className="main-col">
+          {invites[0] && (
+            <div className="ws-banner ws-invite" style={{ display: "flex" }}>
+              <span>{invites[0].inviter || "A teammate"} invited you to join <b>{invites[0].workspace}</b> as {invites[0].role}. You’ll work on their shared content, links and data rooms.</span>
+              <button className="ws-banner-link" onClick={async () => { const { error } = await supabase.rpc("accept_invite", { p_invite: invites[0].id }); if (error) return toast(error.message); toast(`You joined ${invites[0].workspace}`); await loadProfile(); router.push("/app"); }}>Join workspace</button>
+              <button className="ws-banner-x" aria-label="Dismiss" onClick={() => setInvites(invites.slice(1))}><X size={14} /></button>
+            </div>
+          )}
           {!state.profile.crm_connected && !bannerOff && (
             <div className="ws-banner">
               <span>Connect your CRM to sync every visit and intent score to your deals automatically.</span>

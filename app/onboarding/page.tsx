@@ -1,4 +1,5 @@
 "use client";
+import { sendInviteEmails } from "@/lib/invites";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Check, Plus, Copy, X, BarChart3, Target, HousePlus, Signature, Palette, User, ShieldCheck, Upload } from "lucide-react";
@@ -94,7 +95,9 @@ export default function Onboarding() {
         if (rows.length) {
           const { error } = await supabase.from("invites").upsert(rows, { onConflict: "owner_id,email" });
           if (error) throw error;
-          toast(`${rows.length} invite${rows.length > 1 ? "s" : ""} saved — email delivery isn’t connected yet`);
+          const byRole = new Map<string, string[]>(); rows.forEach((r) => byRole.set(r.role, [...(byRole.get(r.role) || []), r.email]));
+          let failed = 0; for (const [r, list] of byRole) failed += (await sendInviteEmails(list, r, email || "A teammate", ws.trim() || "their workspace")).failed;
+          toast(failed ? `${rows.length - failed} of ${rows.length} invites sent` : `${rows.length} invite${rows.length > 1 ? "s" : ""} sent`);
         }
         await save({ invite_link_enabled: linkOn });
       } else if (step === 4) {

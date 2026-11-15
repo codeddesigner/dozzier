@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { FileText, ExternalLink } from "lucide-react";
 import { loadPdfJs } from "@/lib/pdf";
 import { SampleSlide } from "./SampleDeck";
+import { OfficeView, officeFormat, type OfficeFormat } from "./OfficeView";
 
 export type Source =
   | { kind: "sample" }
@@ -10,6 +11,7 @@ export type Source =
   | { kind: "image"; url: string }
   | { kind: "video"; url: string }
   | { kind: "external"; url: string }
+  | { kind: "office"; url: string; format: OfficeFormat }
   | { kind: "file"; url: string; name: string };
 
 type PdfDoc = Awaited<ReturnType<Awaited<ReturnType<typeof loadPdfJs>>["getDocument"]>["promise"]>;
@@ -75,6 +77,7 @@ export function DocRenderer({ source, page, maxW, maxH, onPages, watermark }: {
   if (source.kind === "video") {
     return <div className="viewer-page" style={{ background: "#000" }}><video src={source.url} controls style={{ display: "block", maxWidth: maxW, maxHeight: maxH }} /></div>;
   }
+  if (source.kind === "office") return <OfficeView url={source.url} format={source.format} page={page} maxW={maxW} maxH={maxH} onPages={onPages} watermark={watermark} />;
   if (source.kind === "external") {
     return <Fallback title="This content lives on another site" action={<a className="btn btn-primary" href={source.url} target="_blank" rel="noreferrer"><ExternalLink size={16} />Open content</a>} />;
   }
@@ -96,5 +99,7 @@ export function sourceFor(doc: { is_sample: boolean; file_type: string; mime_typ
   if (doc.file_type === "pdf" || doc.mime_type === "application/pdf") return { kind: "pdf", url };
   if (doc.file_type === "image" || doc.mime_type?.startsWith("image/")) return { kind: "image", url };
   if (doc.file_type === "video" || doc.mime_type?.startsWith("video/")) return { kind: "video", url };
+  const office = officeFormat(doc.mime_type, doc.name);
+  if (office) return { kind: "office", url, format: office };
   return { kind: "file", url, name: doc.name || "File" };
 }

@@ -2,7 +2,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Folder as FolderIcon, ChevronDown, Plus, Upload, Share2, FolderPlus, FileInput, ArrowDown, Trash2, RotateCcw, Pencil, Search } from "lucide-react";
-import { supabase, Doc, Folder } from "@/lib/supabase";
+import { supabase, Doc, Folder , DOC_COLS } from "@/lib/supabase";
 import { DocThumb, Loading, Menu, Modal, useLoad, toast } from "@/components/ui";
 import { UploadModal } from "@/components/UploadModal";
 import { LinkModal } from "@/components/LinkModal";
@@ -31,7 +31,7 @@ export default function ContentLibrary() {
 
   const { data, loading, reload } = useLoad(async () => {
     const [d, f, v] = await Promise.all([
-      supabase.from("documents").select("*").order("updated_at", { ascending: false }),
+      supabase.from("documents").select(DOC_COLS).order("updated_at", { ascending: false }),
       supabase.from("folders").select("*").order("created_at"),
       supabase.from("visits").select("document_id"),
     ]);
@@ -40,13 +40,29 @@ export default function ContentLibrary() {
     return { docs: (d.data || []) as Doc[], folders: (f.data || []) as Folder[], counts };
   }, []);
 
+  // Full-text search over names and file contents (debounced).
+  const [hits, setHits] = useState<Map<string, string | null> | null>(null);
+  useEffect(() => {
+    if (q.trim().length < 2) { setHits(null); return; }
+    const t = setTimeout(async () => {
+      const { data: r } = await supabase.rpc("search_documents", { p_q: q.trim(), p_limit: 50 });
+      setHits(new Map(((r || []) as { id: string; snippet: string | null }[]).map((x) => [x.id, x.snippet])));
+    }, 220);
+    return () => clearTimeout(t);
+  }, [q]);
+
   const docs = useMemo(() => {
     if (!data) return [];
     let list = data.docs.filter((d) => (view.kind === "deleted" ? d.deleted_at : !d.deleted_at));
     if (view.kind === "folder") list = list.filter((d) => d.folder_id === view.id);
-    if (q) list = list.filter((d) => d.name.toLowerCase().includes(q.toLowerCase()));
+    if (q) {
+      const name = (d: Doc) => d.name.toLowerCase().includes(q.toLowerCase());
+      list = list.filter((d) => name(d) || hits?.has(d.id));
+      if (hits) { const order = [...hits.keys()]; list = [...list].sort((a, b) => (order.indexOf(a.id) + 1 || 999) - (order.indexOf(b.id) + 1 || 999)); return list; }
+    }
     return asc ? [...list].reverse() : list;
-  }, [data, view, q, asc]);
+  }, [data, view, q, asc, hits]);
+  const snippet = (id: string) => { const s = hits?.get(id); if (!s) return null; return <span className="caption muted search-snip" dangerouslySetInnerHTML={{ __html: s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/«/g, "<mark>").replace(/»/g, "</mark>") }} />; };
 
   const title = view.kind === "all" ? "All content" : view.kind === "deleted" ? "Deleted content" : data?.folders.find((f) => f.id === view.id)?.name || "Folder";
 
@@ -111,7 +127,7 @@ export default function ContentLibrary() {
               {docs.map((d) => (
                 <tr key={d.id} className="clickable" onClick={() => view.kind !== "deleted" && router.push(`/app/content/${d.id}`)}>
                   <td><DocThumb kind={d.file_type} /></td>
-                  <td className="medium">{d.name}</td>
+                  <td><div className="col"><span className="medium">{d.name}</span>{snippet(d.id)}</div></td>
                   <td><div className="col"><span>{timeAgo(d.updated_at)}</span><span className="caption faint">By {profile.full_name?.split(" ")[0] || "you"}</span></div></td>
                   <td>{data?.counts[d.id] || 0} visits</td>
                   <td>

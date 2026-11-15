@@ -8,7 +8,16 @@ type Payload = {
   to: string; owner_name?: string | null; settings?: { notifications?: { matrix?: Record<string, string[]>; quiet?: boolean; quiet_from?: string; quiet_to?: string }; workspace?: { timezone?: string } } | null;
   who?: string | null; company?: string | null; doc?: string | null; location?: string | null; page?: number | null; body?: string | null; count?: number | null;
   file?: string | null; title?: string | null; completed?: boolean | null; href?: string | null; returning?: boolean | null;
+  hooks?: { slack?: string; teams?: string; zapier?: string } | null;
 };
+// Events that go to Slack/Teams when the person hasn't changed their notification settings.
+const CHAT_DEFAULT: Record<string, boolean> = { open: true, question: true, signed: true, download: false, upload: false, request: true };
+const HOOK_HOSTS = /^https:\/\/(hooks\.slack\.com\/services\/|[a-z0-9-]+\.webhook\.office\.com\/|prod-[0-9]+\.[a-z0-9-]+\.logic\.azure\.com|[a-z0-9-]+\.[a-z]+\.environment\.api\.powerplatform\.com|hooks\.zapier\.com\/hooks\/catch\/)/;
+
+async function postHook(url: string | undefined, body: unknown) {
+  if (!url || !HOOK_HOSTS.test(url)) return;
+  try { await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body), signal: AbortSignal.timeout(4000) }); } catch {}
+}
 // Events that default to email when the person hasn't changed their notification settings.
 const EMAIL_DEFAULT: Record<string, boolean> = { open: true, question: true, download: true, signed: true, upload: true, request: true };
 
@@ -29,8 +38,8 @@ export async function POST(req: NextRequest) {
   const n = p.settings?.notifications || {};
   const key = p.event === "request" ? "question" : p.event;
   const wantsEmail = n.matrix?.[key] ? n.matrix[key].includes("email") : EMAIL_DEFAULT[p.event];
-  if (!wantsEmail) return NextResponse.json({ skipped: "settings" });
-  if (inQuiet(n, p.settings?.workspace?.timezone)) return NextResponse.json({ skipped: "quiet hours" });
+  const wantsChat = n.matrix?.[key] ? n.matrix[key].includes("slack") : CHAT_DEFAULT[p.event];
+  const quiet = inQuiet(n, p.settings?.workspace?.timezone);
 
   const who = p.who || "Someone";
   const from = p.company ? `${who} (${p.company})` : who;
@@ -56,6 +65,16 @@ export async function POST(req: NextRequest) {
       text = `${from} asked for “${p.title}” in ${p.doc || "your Space"}.${p.body ? `\n\n${p.body.slice(0, 500)}` : ""}`; cta = "Open request tracker"; break;
     default: return NextResponse.json({ skipped: "unknown" });
   }
+  // Zapier gets every event as structured data; Slack and Teams get a short message unless quiet hours are on.
+  const hookJobs: Promise<void>[] = [postHook(p.hooks?.zapier, { event: p.event, who: p.who, company: p.company, document: p.doc, location: p.location, page: p.page, text: p.body, title: p.title, url, at: new Date().toISOString() })];
+  if (wantsChat && !quiet) {
+    const line = `*${subject}*\n${text.split("\n\n")[0]}`;
+    hookJobs.push(postHook(p.hooks?.slack, { text: `${subject} — ${url}`, blocks: [{ type: "section", text: { type: "mrkdwn", text: line } }, { type: "actions", elements: [{ type: "button", text: { type: "plain_text", text: cta }, url }] }] }));
+    hookJobs.push(postHook(p.hooks?.teams, { "@type": "MessageCard", "@context": "https://schema.org/extensions", summary: subject, themeColor: "2577EA", title: subject, text: text.split("\n\n")[0], potentialAction: [{ "@type": "OpenUri", name: cta, targets: [{ os: "default", uri: url }] }] }));
+  }
+  await Promise.all(hookJobs);
+  if (!wantsEmail) return NextResponse.json({ ok: true, skipped: "email settings" });
+  if (quiet) return NextResponse.json({ ok: true, skipped: "quiet hours" });
   try {
     await deliver({ to: [p.to], subject, tag: `alert_${p.event}`, text: `${text}\n\n${cta}: ${url}`,
       html: layout({ preheader: text.slice(0, 120), heading, bodyHtml: textToHtml(text), cta: { label: cta, url }, footer: "You’re getting this because email alerts are on for this event. Change them in Settings → Notifications." }) });

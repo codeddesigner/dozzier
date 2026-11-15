@@ -5,27 +5,24 @@ import { supabase } from "@/lib/supabase";
 import { useApp } from "@/components/AppContext";
 import { Loading, useLoad } from "@/components/ui";
 import { Card, SettingsHead } from "@/components/settings/kit";
+import { PLAN_LIMITS } from "@/lib/limits";
 
-const PLAN: Record<string, { name: string; price: string; seats: number; rooms: number; esign: number; gb: number }> = {
-  trial: { name: "Free trial", price: "14 days free · no card needed", seats: 3, rooms: 10, esign: 100, gb: 100 },
-  personal: { name: "Personal", price: "$5 / user / month", seats: 1, rooms: 0, esign: 4, gb: 10 },
-  standard: { name: "Standard", price: "$25 / user / month", seats: 5, rooms: 3, esign: 1000, gb: 50 },
-  datarooms: { name: "Data Rooms", price: "$140 / month", seats: 3, rooms: 10, esign: 1000, gb: 100 },
-};
+const PLAN = PLAN_LIMITS;
 
 export default function Billing() {
   const { profile } = useApp();
   const plan = PLAN[profile.plan] || PLAN.trial;
   const trialEnds = new Date(new Date(profile.created_at).getTime() + 14 * 86400000);
   const { data, loading } = useLoad(async () => {
-    const [inv, sp, ag, docs] = await Promise.all([
-      supabase.from("invites").select("id", { count: "exact", head: true }),
+    const [inv, mem, sp, ag, docs] = await Promise.all([
+      supabase.from("invites").select("id", { count: "exact", head: true }).is("accepted_at", null),
+      supabase.from("workspace_members").select("user_id", { count: "exact", head: true }),
       supabase.from("spaces").select("id", { count: "exact", head: true }),
       supabase.from("agreements").select("id", { count: "exact", head: true }),
       supabase.from("documents").select("size_bytes").is("deleted_at", null),
     ]);
     const bytes = (docs.data || []).reduce((a, d: { size_bytes: number | null }) => a + (d.size_bytes || 0), 0);
-    return { seats: 1 + (inv.count || 0), rooms: sp.count || 0, esign: ag.count || 0, gb: bytes / 1e9 };
+    return { seats: 1 + (mem.count || 0) + (inv.count || 0), rooms: sp.count || 0, esign: ag.count || 0, gb: bytes / 1e9 };
   }, []);
   const meters: [string, number, number, (n: number) => string][] = data ? [
     ["Seats", data.seats, plan.seats, (n) => `${n}`], ["Data rooms", data.rooms, plan.rooms, (n) => `${n}`],

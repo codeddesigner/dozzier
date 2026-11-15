@@ -1,4 +1,5 @@
 "use client";
+import { sendInviteEmails } from "@/lib/invites";
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { Check, ChevronRight, Sparkles } from "lucide-react";
@@ -65,7 +66,8 @@ export function GettingStarted({ onUpload }: { onUpload: () => void }) {
     if (!/^\S+@\S+\.\S+$/.test(e)) return toast("Enter a valid email");
     const { error } = await supabase.from("invites").upsert({ email: e, role: "Editor" }, { onConflict: "owner_id,email" });
     if (error) return toast(error.message);
-    setInviteEmail(""); refreshChecklist(); toast("Invite saved — email delivery isn’t connected yet");
+    const r = await sendInviteEmails([e], "Editor", profile.full_name || "A teammate", profile.workspace_name || "their workspace");
+    setInviteEmail(""); refreshChecklist(); toast(r.failed ? `Invite saved, but the email failed: ${r.error}` : `Invite sent to ${e}`);
   }
 
   const action = (id: string) => {

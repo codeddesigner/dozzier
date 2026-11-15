@@ -129,7 +129,7 @@ function CreateReq({ onClose, onDone }: { onClose: () => void; onDone: (id: stri
 }
 
 function ReqDetail({ r, ups, onClose, onChange }: { r: Req; ups: Up[]; onClose: () => void; onChange: () => void }) {
-  const { userId, profile, email: me } = useApp();
+  const { userId, wsId, profile, email: me } = useApp();
   const { data: dests } = useDests();
   const [saving, setSaving] = useState<string | null>(null);
   const [mail, setMail] = useState<Record<string, string>>({});
@@ -149,7 +149,7 @@ function ReqDetail({ r, ups, onClose, onChange }: { r: Req; ups: Up[]; onClose: 
     setSaving(list.length === 1 ? list[0].id : "all");
     let n = 0;
     for (const u of list.filter((x) => !x.saved_document_id)) {
-      const to = `${userId}/${crypto.randomUUID()}-${u.file_name.replace(/[^\w.\-]+/g, "_")}`;
+      const to = `${wsId}/${crypto.randomUUID()}-${u.file_name.replace(/[^\w.\-]+/g, "_")}`;
       const c = await supabase.storage.from(BUCKET).copy(u.file_path, to);
       if (c.error) { toast(c.error.message); continue; }
       const kind = fileKind(u.file_name);

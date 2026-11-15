@@ -58,7 +58,7 @@ export function CommandPalette() {
       const since = new Date(Date.now() - 7 * 86400000).toISOString();
       const [a, d, l, s, c] = await Promise.all([
         supabase.from("accounts").select("id,name,domain").ilike("name", like).limit(4),
-        supabase.from("documents").select("id,name,file_type").is("deleted_at", null).ilike("name", like).limit(4),
+        supabase.rpc("search_documents", { p_q: t, p_limit: 5 }),
         supabase.from("links").select("id,name,document_id,space_id").ilike("name", like).limit(4),
         supabase.from("spaces").select("id,name").ilike("name", like).limit(3),
         supabase.from("contacts").select("id,name,email").or(`name.ilike.${like},email.ilike.${like}`).limit(4),
@@ -76,7 +76,7 @@ export function CommandPalette() {
           return { id: `acc-${x.id}`, group: "Accounts", icon: Users, title: x.name, meta: `Account · ${intentLevel(sc).label}${wk ? ` · ${wk} visit${wk === 1 ? "" : "s"} this week` : ""}`, href: `/app/accounts/${x.id}` }; }),
         ...(c.data || []).map((x) => ({ id: `con-${x.id}`, group: "Contacts", icon: CircleUserRound, title: displayName(x.email, x.name), meta: x.email, href: `/app/contacts/${x.id}` })),
         ...(l.data || []).map((x) => ({ id: `lnk-${x.id}`, group: "Content", icon: FileText, title: x.name, meta: `Link · ${(lv.data || []).filter((v: { link_id: string }) => v.link_id === x.id).length} visits`, href: x.space_id ? `/app/spaces/${x.space_id}` : `/app/links/${x.id}` })),
-        ...(d.data || []).map((x) => ({ id: `doc-${x.id}`, group: "Content", icon: FileText, title: x.name, meta: `Document · ${x.file_type.toUpperCase()}`, href: `/app/content/${x.id}` })),
+        ...((d.data || []) as { id: string; name: string; file_type: string; snippet: string | null }[]).map((x) => ({ id: `doc-${x.id}`, group: "Content", icon: FileText, title: x.name, meta: x.snippet ? `“…${x.snippet.replace(/[«»]/g, "").slice(0, 70)}…”` : `Document · ${x.file_type.toUpperCase()}`, href: `/app/content/${x.id}` })),
         ...(s.data || []).map((x) => ({ id: `sp-${x.id}`, group: "Content", icon: House, title: x.name, meta: `Space · ${(si.data || []).filter((v: { space_id: string }) => v.space_id === x.id).length} folders`, href: `/app/spaces/${x.id}` })),
         ...actions,
       ];
