@@ -2,7 +2,7 @@ import Link from "next/link";
 import {
   Upload, Link2, Sparkles, MessageSquareText, Signature, History, Kanban, CheckCircle2, Lock, KeyRound, Globe, ShieldCheck,
   Info, AtSign, Mail, User, Settings2, BarChart3, Users, Files, TrendingUp, FileCheck2, Palette, Puzzle, HousePlus, List, CircleCheck,
-  Image as ImageIcon, Search, Zap, Bell, CircleHelp, Calendar, ChevronDown, Flame, Eye, Download as DownloadIcon, Clock3, Mail as MailIcon,
+  Image as ImageIcon, Search, Check, Play, Zap, Bell, CircleHelp, Calendar, ChevronDown, Flame, Eye, Download as DownloadIcon, Clock3, Mail as MailIcon,
 } from "lucide-react";
 import { Logo, AppIcon, FooterLogo } from "@/components/Logo";
 import { Faq } from "@/components/Faq";
@@ -20,7 +20,7 @@ const DEMO = "mailto:sales@dozzier.io?subject=Dozzier%20demo";
 function Nav() {
   return (
     <header className="lp-nav">
-      <a href="/signup" className="announce-bar">Read the 2026 State of Secure Document Sharing report&nbsp;&nbsp;<span className="arrow">→</span></a>
+      <a href="#ai" className="announce-bar"><span className="announce-check"><Check size={14} strokeWidth={2.5} /></span>New: Ask Dozzier answers questions across every deal&nbsp;&nbsp;<span className="arrow">→</span></a>
       <div className="lp-nav-inner">
         <Link href="/" aria-label="Dozzier home"><Logo height={30} /></Link>
         <nav className="lp-links">
@@ -28,8 +28,9 @@ function Nav() {
           <a href="#integrations">Integrations</a><a href="#pricing">Pricing</a><Link href="/docs">Docs</Link>
         </nav>
         <div className="spacer" />
-        <Link href="/login" className="lp-signin">Sign in<ChevronDown size={16} /></Link>
-        <Link href="/signup" className="btn btn-secondary">Try for free</Link>
+        <Link href="/login" className="btn btn-ghost">Log in</Link>
+        <a href={DEMO} className="btn btn-secondary btn-xs-shadow">Talk to Sales</a>
+        <Link href="/signup" className="btn btn-dark">Try for free</Link>
       </div>
     </header>
   );
@@ -84,21 +85,26 @@ function Hero() {
   return (
     <section className="hero" id="product">
       <Link href="/signup" className="announce h-in"><span className="badge badge-brand">New</span>Ask Dozzier — AI answers across every deal <span className="arrow">→</span></Link>
-      <h1 className="display-xl" style={{ maxWidth: 948 }}><WordReveal text="The secure platform to share, track, and move business forward." delay={80} /></h1>
+      <h1 className="display-xl hero-title"><WordReveal text="The secure platform to share, track, and move business forward." delay={80} /></h1>
       <p className="body-l muted h-in" style={{ maxWidth: 732, animationDelay: ".45s" }}>
         Dozzier turns every deck, proposal and data room into a secure link with page-by-page analytics, live alerts and AI follow-ups — so you know who’s interested and exactly what to do next.
       </p>
       <div className="row gap-12 wrap h-in" style={{ justifyContent: "center", animationDelay: ".6s" }}>
-        <Link href="/signup" className="btn btn-primary btn-l">Start free — no card needed<span className="arrow">→</span></Link>
-        <a href={DEMO} className="btn btn-secondary btn-l">Book a demo</a>
+        <Link href="/signup" className="btn btn-lime btn-l">Try for free</Link>
+        <a href="#how-it-works" className="btn btn-ghost btn-l"><Play size={18} />See how it works (1:00)</a>
       </div>
-      <p className="caption faint h-in" style={{ animationDelay: ".72s" }}>Free 14-day trial on every plan · Set up in 2 minutes · Cancel anytime</p>
+      <div className="hero-explore h-in" style={{ animationDelay: ".72s" }}>
+        <span>Explore:</span>
+        <a href="#product-analytics"><TrendingUp size={18} />Analytics</a>
+        <a href="#data-rooms"><HousePlus size={18} />Data rooms</a>
+        <a href="#ai"><Sparkles size={18} />AI agent</a>
+      </div>
       <div className="product-shot" data-tilt-scroll>
         <div className="browser">
           <div className="browser-bar"><span className="dot" style={{ background: "#ff5f57" }} /><span className="dot" style={{ background: "#febc2e" }} /><span className="dot" style={{ background: "#28c840" }} /><div className="browser-url">app.dozzier.io/dashboard</div></div>
           <DashboardMock />
         </div>
-        <div className="float-card f1" style={{ left: -48, top: 250, padding: "14px 16px", width: 372 }}>
+        <div className="float-card f1" style={{ left: -48, top: 250, padding: "14px 16px", width: 351 }}>
           <HeroLiveAlert />
         </div>
         <div className="float-card f2 col gap-8" style={{ left: 1010, top: 170, padding: "14px 16px" }}>
@@ -126,16 +132,14 @@ function AiCardBody({ title, body }: { title: string; body: string }) {
 
 function Logos() {
   const items: [string, React.CSSProperties][] = [
-    ["northwind", { fontSize: 24, fontWeight: 700, letterSpacing: "-0.03em" }], ["Halcyon Capital", { fontSize: 20, fontWeight: 600, letterSpacing: "-0.02em" }],
-    ["LUMEN BIO", { fontSize: 18, fontWeight: 300, letterSpacing: "0.18em" }], ["arcadia", { fontSize: 24, fontWeight: 600, letterSpacing: "-0.03em" }],
-    ["Foundry & Co.", { fontSize: 22, fontWeight: 400, letterSpacing: "-0.02em" }], ["KESTREL", { fontSize: 20, fontWeight: 700, letterSpacing: "0.16em" }],
+    ["northwind", { fontSize: 24, fontWeight: 700, letterSpacing: "-0.96px" }], ["Halcyon Capital", { fontSize: 20, fontWeight: 500 }],
+    ["LUMEN BIO", { fontSize: 18, fontWeight: 500, letterSpacing: "3.24px" }], ["arcadia", { fontSize: 24, fontWeight: 500, letterSpacing: "-0.48px" }],
+    ["Foundry & Co.", { fontSize: 22, fontWeight: 400, letterSpacing: "-0.22px" }], ["KESTREL", { fontSize: 20, fontWeight: 700, letterSpacing: "4px" }],
   ];
   return (
-    <section style={{ padding: "56px 24px", borderTop: "1px solid var(--dz-border-subtle)", borderBottom: "1px solid var(--dz-border-subtle)" }}>
-      <p className="center muted" style={{ marginBottom: 28 }} data-reveal>Trusted by founders, sales teams and dealmakers at <CountUp to={4000} duration={1800} />+ companies</p>
-      <div className="marquee" style={{ maxWidth: 1018, margin: "0 auto", color: "#6b7280" }} data-reveal="fade">
-        <div className="marquee-track">{[...items, ...items].map(([n, s], i) => <span key={i} style={s} aria-hidden={i >= items.length}>{n}</span>)}</div>
-      </div>
+    <section className="logo-strip">
+      <p className="medium" data-reveal>Trusted by founders, sales teams and dealmakers at <CountUp to={4000} duration={1800} />+ companies</p>
+      <div className="logo-row" data-stagger="70">{items.map(([n, s]) => <span key={n} style={s}>{n}</span>)}</div>
     </section>
   );
 }
@@ -147,7 +151,7 @@ function HowItWorks() {
     [Sparkles, "Act on real intent", "See every page view in real time, get an intent score per account, and send AI-drafted follow-ups that land."],
   ] as const;
   return (
-    <section className="lp-section">
+    <section className="lp-section" id="how-it-works">
       <div className="lp-head" data-stagger="90"><span className="overline">How it works</span><h2 className="display-l">From upload to “yes” in three steps</h2></div>
       <div className="lp-container grid-3" style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 24 }} data-stagger="140">
         {steps.map(([Icon, t, b], i) => (
@@ -172,7 +176,7 @@ function Features() {
       </div>
       <div className="lp-container col gap-24">
         <div className="grid-2" style={{ display: "grid", gridTemplateColumns: "776fr 400fr", gap: 24 }} data-stagger="120">
-          <div className="feature-card spotlight">
+          <div className="feature-card spotlight" id="product-analytics">
             <span className="overline">Analytics</span><div className="h1">Page-by-page engagement</div>
             <p className="body-m muted">Time on every page, every visitor, every version — with heatmaps that show where attention really goes.</p>
             <div className="card" style={{ padding: 16, marginTop: 24 }}>
@@ -247,17 +251,29 @@ function Integrations() {
 }
 
 function Security() {
-  const items = [
-    [Lock, "Encrypted end to end", "AES-256 at rest and TLS 1.3 in transit, with screenshot protection on sensitive links."],
-    [KeyRound, "SSO, SAML & SCIM", "Granular roles, IP allow-lists and automatic provisioning for your whole team."],
-    [Globe, "Data residency", "Choose where your documents live, with region-locked storage in the EU or US."],
-    [ShieldCheck, "Full audit trail", "Every view, download, permission change and signature — exportable anytime."],
-  ] as const;
+  const Chips = ({ items }: { items: string[] }) => <div className="sec-chips">{items.map((t) => <span key={t}><Check size={14} />{t}</span>)}</div>;
+  const Card = ({ I, t, b, children, style }: { I: typeof Lock; t: string; b: string; children?: React.ReactNode; style?: React.CSSProperties }) => (
+    <div className="sec-card spotlight" style={style}><span className="icon-tile"><I size={22} /></span><div className="h1">{t}</div><p className="body-m muted">{b}</p>{children}</div>
+  );
   return (
-    <section className="lp-section" style={{ background: "var(--dz-bg-inverse)", color: "#fff" }}>
-      <div className="lp-head" data-stagger="90"><span className="overline" style={{ color: "#9ca3af" }}>Security</span><h2 className="display-l">Enterprise-grade by default</h2><p className="body-l" style={{ color: "#9ca3af" }}>Your documents stay yours — locked down, logged, and revocable at any moment.</p></div>
-      <div className="lp-container grid-4" style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 24 }} data-stagger="110">
-        {items.map(([I, t, b]) => <div className="sec-card spotlight" key={t}><I size={22} /><div className="h3">{t}</div><p className="caption" style={{ color: "#9ca3af" }}>{b}</p></div>)}
+    <section className="sec-wrap">
+      <div className="sec-panel">
+        <div className="lp-head" style={{ marginBottom: 0 }} data-stagger="90"><span className="overline">Security</span><h2 className="display-l">Enterprise-grade by default</h2><p className="body-l muted">Your documents stay yours — locked down, logged, and revocable at any moment.</p></div>
+        <div className="sec-bento" data-stagger="110">
+          <div className="sec-row">
+            <Card I={Lock} t="Encrypted end to end" b="Every file is encrypted at rest and in transit, with screenshot protection and dynamic watermarks on sensitive links." style={{ flex: 1, height: 360 }}>
+              <span className="grow" /><Chips items={["AES-256 at rest", "TLS 1.3 in transit", "Screenshot protection", "Dynamic watermarks", "Revoke access anytime"]} />
+            </Card>
+            <Card I={ShieldCheck} t="Full audit trail" b="Every view, download and permission change — exportable anytime." style={{ width: 380, height: 360 }}>
+              <div className="sec-log">{[["Paul · Viewed Series A Deck", "2m"], ["Cynthia · Downloaded Term sheet", "1h"], ["Stella · Revoked link · Globex", "3h"]].map(([a, b]) => <div key={a}><i /><span className="grow">{a}</span><span className="faint">{b}</span></div>)}</div>
+            </Card>
+          </div>
+          <div className="sec-row">
+            <Card I={KeyRound} t="SSO, SAML & SCIM" b="Granular roles, IP allow-lists and automatic provisioning." style={{ flex: 1, height: 300 }}><span className="grow" /><Chips items={["Okta", "Google", "Microsoft Entra"]} /></Card>
+            <Card I={Globe} t="Data residency" b="Region-locked storage — choose where your documents live." style={{ flex: 1, height: 300 }}><span className="grow" /><Chips items={["EU", "US"]} /></Card>
+            <Card I={FileCheck2} t="Access controls" b="Email verification, passcodes, NDAs, expiry and allow/block lists on every link." style={{ flex: 1, height: 300 }} />
+          </div>
+        </div>
       </div>
     </section>
   );
@@ -313,12 +329,12 @@ export default function Landing() {
         <div className="lp-head" style={{ marginBottom: 32 }} data-stagger="90"><span className="overline">FAQ</span><h2 className="display-l">Questions, answered</h2></div>
         <div data-reveal><Faq /></div>
       </section>
-      <section style={{ padding: "0 24px 96px" }}>
+      <section className="cta-wrap">
         <div className="lp-container cta-box" data-reveal="scale">
-          <span className="cta-icon" style={{ borderRadius: 13, display: "inline-flex" }}><AppIcon size={56} tone="white" /></span>
+          <span className="cta-icon"><LogoMark size={28} color="#fff" /></span>
           <h2 className="display-l">Stop guessing. Start knowing.</h2>
-          <p className="body-l" style={{ opacity: 0.85 }}>Send your first tracked link in under two minutes.</p>
-          <div className="row gap-12"><Link href="/signup" className="btn btn-secondary btn-l">Start free trial</Link><a href={DEMO} className="btn btn-dark btn-l">Book a demo<span className="arrow">→</span></a></div>
+          <p className="body-l" style={{ opacity: 0.85, marginTop: 0 }}>Send your first tracked link in under two minutes.</p>
+          <div className="row gap-12"><Link href="/signup" className="btn btn-secondary btn-xs-shadow">Start free trial</Link><a href={DEMO} className="btn btn-dark">Book a demo</a></div>
         </div>
       </section>
       <Footer />
