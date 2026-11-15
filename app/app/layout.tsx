@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { LayoutGrid, Inbox as InboxIcon, Folder as FolderIcon, Building2, Settings as SettingsIcon, Search, Bell, CircleHelp, ChevronUp, ChevronDown, LogOut, Zap, Moon, User as UserIcon, Check, Sparkles, Plus, Flag, Star, X, PanelLeft } from "lucide-react";
+import { LayoutGrid, Inbox as InboxIcon, Folder as FolderIcon, Building2, Settings as SettingsIcon, Search, Bell, CircleHelp, ChevronUp, ChevronDown, ChevronRight, LogOut, Zap, Moon, User as UserIcon, Check, Sparkles, Plus, Flag, Star, X, PanelLeft } from "lucide-react";
 import { applyTheme, type Theme } from "@/components/Theme";
 import { supabase } from "@/lib/supabase";
 import { Avatar, ToastHost, toast } from "@/components/ui";
@@ -199,6 +199,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     <Ctx.Provider value={{ ...state, refreshProfile: loadProfile }}>
       <div className={`app ${collapsed ? "side-collapsed" : ""}`}>
         <aside ref={sideRef} className="sidebar">
+          <button className="side-expand" aria-label="Expand sidebar" data-label="Expand sidebar" onClick={toggle}><ChevronRight size={16} /></button>
           <WorkspaceSwitcher profile={state.profile} email={state.email} onHelp={() => setHelp(true)} onCollapse={toggle} collapsed={collapsed} />
           <div className="side-nav">
             <span className="nav-indicator" style={{ transform: `translateY(${ind?.y ?? 0}px)`, height: ind?.h ?? 40, opacity: ind ? 1 : 0 }} />

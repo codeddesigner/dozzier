@@ -1574,3 +1574,10 @@ body { overflow-x: clip; }
 }
 html[data-theme="dark"]:has(.app) { --dz-bg-banner: #15233a; --dz-bg-danger: #e5483e; }
 html[data-theme="dark"] .ws-switch-logo { background: #fff; color: #111827; }
+.side-expand { display: none; }
+.app.side-collapsed { padding-left: 0; }
+.app.side-collapsed .sidebar { background: var(--dz-bg-surface); margin: -8px 8px -8px 0; padding: 12px 12px; border-right: 1px solid var(--dz-border-subtle); align-items: stretch; }
+.app.side-collapsed .side-expand { display: inline-flex; align-self: center; width: 28px; height: 28px; border-radius: 8px; border: 1px solid var(--dz-border-default); background: var(--dz-bg-surface); align-items: center; justify-content: center; color: var(--dz-icon-secondary); margin: 2px 0 14px; flex-shrink: 0; }
+.app.side-collapsed .side-expand:hover { background: var(--dz-bg-muted); color: var(--dz-icon-primary); }
+.app.side-collapsed .ws-switch-wrap, .app.side-collapsed .side-space, .app.side-collapsed .side-invite, .app.side-collapsed .side-promo { display: none; }
+.app.side-collapsed .sidebar [data-label]:hover::after { left: 74px; }
