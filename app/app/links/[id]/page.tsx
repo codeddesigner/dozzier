@@ -32,15 +32,15 @@ export default function LinkPage() {
   return (
     <div className="content">
       {banner && typeof Notification !== "undefined" && Notification.permission === "default" && (
-        <div className="banner" style={{ marginBottom: 24 }}><Info size={16} color="#4D94F7" /><span className="grow">Dozzier needs your permission to enable desktop notifications. <button className="semibold" onClick={() => Notification.requestPermission().then(() => setBanner(false))}>Allow</button></span>
+        <div className="banner" style={{ marginBottom: 24 }}><Info size={18} color="#2577ea" /><span className="grow">Dozzier needs your permission to enable desktop notifications. <button className="semibold" onClick={() => Notification.requestPermission().then(() => setBanner(false))}>Allow</button></span>
           <button className="icon-btn s" onClick={() => setBanner(false)} aria-label="Dismiss"><X size={16} /></button></div>
       )}
-      <div className="row gap-8 wrap">
-        <div className="row gap-6 grow body-m"><Link href={link.documents ? "/app/content" : "/app/spaces"} className="muted">{link.documents ? "My Content" : "Spaces"}</Link><ChevronRight size={14} className="faint" />
-          {parent && <><Link href={parent.href} className="muted">{parent.name}</Link><ChevronRight size={14} className="faint" /></>}<span className="semibold">{link.name}</span></div>
-        <span className="muted">Owned by</span><Avatar name={profile.full_name} email={email} size={32} />
+      <div className="row gap-8 wrap" style={{ marginTop: 40 }}>
+        <div className="row gap-10 grow body-m link-crumbs">{parent ? <Link href={parent.href} className="muted">{parent.name}</Link> : <Link href="/app/content" className="muted">My Content</Link>}<ChevronRight size={16} />
+          <Link href={parent ? `${parent.href}${link.documents ? "?tab=links" : ""}` : "/app/content"} className="muted">Links</Link><ChevronRight size={16} /><span>{link.name}</span></div>
+        <span className="body-m">Owned by</span><Avatar name={profile.full_name} email={email} size={28} color="#ff7a3d" />
       </div>
-      <div className="mt-24"><LinksTable links={[link]} visitCounts={{ [link.id]: visits.length }} lastVisit={{ [link.id]: visits[0]?.started_at }} onChange={() => { reload(); }} onEdit={() => setEdit(true)} /></div>
+      <div style={{ marginTop: 56 }}><LinksTable links={[link]} visitCounts={{ [link.id]: visits.length }} lastVisit={{ [link.id]: visits[0]?.started_at }} onChange={() => { reload(); }} onEdit={() => setEdit(true)} /></div>
       <h2 className="h1 mt-32" style={{ marginBottom: 16 }}>Visits to this link</h2>
       <table className="table caps">
         <thead><tr><th>Visitor</th><th className="hide-sm">Link</th><th className="hide-sm" /><th>Time</th><th /></tr></thead>

@@ -1,7 +1,7 @@
 "use client";
 import { useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Eye, Clock3, Info, X, Link2, Trash2, Archive } from "lucide-react";
+import { Eye, Clock3, Info, X, Link2, Trash2, Archive, ArrowDown, MoreHorizontal } from "lucide-react";
 import { supabase, Account } from "@/lib/supabase";
 import { Avatar, DocThumb, Loading, Menu, Tabs, useLoad } from "@/components/ui";
 import { displayName, duration, timeAgo } from "@/lib/format";
@@ -73,10 +73,10 @@ export default function AccountPage() {
           </table>
           <h2 className="h1 mt-32" style={{ marginBottom: 12 }}>Content</h2>
           <table className="table">
-            <thead><tr><th style={{ width: 40 }} /><th>Name</th><th>Updated</th><th>Visits</th></tr></thead>
+            <thead><tr><th style={{ width: 40 }} /><th>Name</th><th className="sorted">Updated <ArrowDown size={14} /></th><th>Visits</th><th style={{ width: 40 }} /></tr></thead>
             <tbody>{content.map((c) => (
-              <tr key={c.id} className="clickable" onClick={() => router.push(`/app/content/${c.id}`)}><td><DocThumb kind={c.type} /></td><td className="medium">{c.name}</td><td><div className="col"><span>{timeAgo(c.last)}</span><span className="caption faint">Last visited</span></div></td><td>{c.n} visits</td></tr>
-            ))}{content.length === 0 && <tr><td colSpan={4} className="table-empty">No content viewed.</td></tr>}</tbody>
+              <tr key={c.id} className="clickable" onClick={() => router.push(`/app/content/${c.id}`)}><td><DocThumb kind={c.type} /></td><td className="medium">{c.name}</td><td><div className="col"><span>{timeAgo(c.last)}</span><span className="caption faint">Last visited</span></div></td><td>{c.n} visit{c.n === 1 ? "" : "s"}</td><td><MoreHorizontal size={16} /></td></tr>
+            ))}{content.length === 0 && <tr><td colSpan={5} className="table-empty">No content viewed.</td></tr>}</tbody>
           </table>
         </>
       )}

@@ -41,7 +41,7 @@ export default function ContactPage() {
           <span className="muted body-m">{[c.title && `${c.title}${c.accounts ? `, ${c.accounts.name}` : ""}`, !c.title && c.accounts?.name, c.email, loc].filter(Boolean).join(" · ")}</span>
         </div>
         <a className="btn btn-secondary" href={`mailto:${c.email}`}><Mail size={16} />Email</a>
-        <Link className="btn btn-primary" href={`/app/contacts/${c.id}/follow-up`}><Sparkles size={16} />Draft follow-up</Link>
+        <Link className="btn btn-brand" href={`/app/contacts/${c.id}/follow-up`}><Sparkles size={16} />Draft follow-up</Link>
         <Menu items={[{ label: "Delete contact", icon: <Trash2 size={14} />, danger: true, onClick: async () => { await supabase.from("contacts").delete().eq("id", c.id); router.push("/app/contacts"); } }]} />
       </div>
 
@@ -75,7 +75,7 @@ export default function ContactPage() {
             <span className="row gap-6 caption medium brand"><Sparkles size={14} />Dozzier Copilot</span>
             <span className="h3">{ins.headline}</span>
             <span className="muted" style={{ fontSize: 14 }}>{ins.read}</span>
-            <div className="row gap-8 mt-8"><Link href={`/app/contacts/${c.id}/follow-up`} className="btn btn-primary btn-s">Draft follow-up</Link><button className="btn btn-ghost btn-s" onClick={() => setTab("activity")}>View timeline</button></div>
+            <div className="row gap-8 mt-8"><Link href={`/app/contacts/${c.id}/follow-up`} className="btn btn-dark btn-s">Draft follow-up</Link><button className="btn btn-ghost btn-s" onClick={() => setTab("activity")}>View timeline</button></div>
           </section>
           <section className="card" style={{ padding: 20 }}>
             <div className="h3" style={{ marginBottom: 12 }}>Activity</div>

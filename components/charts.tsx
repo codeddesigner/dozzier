@@ -47,7 +47,7 @@ export function LineChart({ points, labels, height = 200 }: { points: number[]; 
         setHover(Math.max(0, Math.min(points.length - 1, i)));
       }}>
       <defs>
-        <linearGradient id="lcg" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stopColor="#4D94F7" stopOpacity=".22" /><stop offset="1" stopColor="#4D94F7" stopOpacity="0" /></linearGradient>
+        <linearGradient id="lcg" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stopColor="#2577ea" stopOpacity=".22" /><stop offset="1" stopColor="#2577ea" stopOpacity="0" /></linearGradient>
       </defs>
       {[0, 1, 2, 3, 4].map((k) => (
         <g key={k}>
@@ -56,20 +56,20 @@ export function LineChart({ points, labels, height = 200 }: { points: number[]; 
         </g>
       ))}
       <path className="area-fade" d={area} fill="url(#lcg)" />
-      <path key={d} className="line-draw" pathLength={1} d={d} fill="none" stroke="#4D94F7" strokeWidth="2" vectorEffect="non-scaling-stroke" strokeLinejoin="round" />
+      <path key={d} className="line-draw" pathLength={1} d={d} fill="none" stroke="#2577ea" strokeWidth="2" vectorEffect="non-scaling-stroke" strokeLinejoin="round" />
       {labels.map((l, i) => (i % tickEvery === 0 || i === labels.length - 1) && (
         <text key={i} x={x(i)} y={H - 6} fontSize="11" fill="#6b7280" textAnchor="middle">{l}</text>
       ))}
       {hover !== null && (
         <g>
           <line x1={x(hover)} x2={x(hover)} y1={padT} y2={y(0)} stroke="#9ca3af" strokeDasharray="3 3" vectorEffect="non-scaling-stroke" />
-          <circle cx={x(hover)} cy={y(points[hover])} r="4" fill="#4D94F7" />
+          <circle cx={x(hover)} cy={y(points[hover])} r="4" fill="#2577ea" />
           <text x={Math.min(W - 80, x(hover) + 8)} y={Math.max(20, y(points[hover]) - 8)} fontSize="12" fill="#111827" fontWeight="600">
             {labels[hover]} · {points[hover]} visit{points[hover] === 1 ? "" : "s"}
           </text>
         </g>
       )}
-      {hover === null && points.length > 0 && <circle cx={x(points.length - 1)} cy={y(points[points.length - 1])} r="3.5" fill="#4D94F7" />}
+      {hover === null && points.length > 0 && <circle cx={x(points.length - 1)} cy={y(points[points.length - 1])} r="3.5" fill="#2577ea" />}
     </svg>
   );
 }

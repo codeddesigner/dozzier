@@ -32,12 +32,12 @@ export default function Contacts() {
     <div className="content">
       <div className="page-head"><h1 className="page-title">Contacts</h1><span className="stat-pill"><Users size={14} />{data?.contacts.filter((c) => !c.archived).length ?? "–"}</span><span className="spacer" />
         <button className="btn btn-dark" onClick={() => setAdd(true)}><Plus size={16} />Add contact</button></div>
-      <div className="row gap-8 mt-24 wrap">
+      <div className="row gap-8 wrap list-filters">
         {(["personal", "team", "archived"] as const).map((f) => <button key={f} className={`chip ${filter === f ? "active" : ""}`} onClick={() => setFilter(f)}>{f[0].toUpperCase() + f.slice(1)}</button>)}
         <span className="spacer" /><div className="search"><Search size={16} /><input placeholder="Search" value={q} onChange={(e) => setQ(e.target.value)} /></div>
       </div>
       {loading && !data ? <Loading /> : (
-        <table className="table mt-24">
+        <table className="table list-table">
           <thead><tr><th>Name</th><th className="hide-sm">Last activity</th><th>Visits</th><th className="hide-sm">Tags</th><th style={{ width: 40 }} /></tr></thead>
           <tbody>
             {list.length === 0 && <tr><td colSpan={5} className="table-empty">No contacts here. Visitors who enter their email on your links are added automatically.</td></tr>}

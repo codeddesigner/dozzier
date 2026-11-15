@@ -1,6 +1,7 @@
 "use client";
+import { DocArt } from "@/components/DocArt";
 import { useEffect, useMemo, useState } from "react";
-import { Plus, Copy, Lock, Unlock, Trash2, Download, FileInput, Mail, Bell, FolderInput, Check, ChevronRight } from "lucide-react";
+import { Plus, Copy, Lock, Unlock, Trash2, Download, FileInput, Mail, Bell, FolderInput, Check, ChevronRight, ChevronDown } from "lucide-react";
 import { supabase, BUCKET } from "@/lib/supabase";
 import { Avatar, Empty, Loading, Menu, Modal, Tabs, Toggle, copy, toast, useLoad } from "@/components/ui";
 import { useApp } from "@/components/AppContext";
@@ -45,12 +46,16 @@ export default function FileRequests() {
 
   return (
     <div className="content">
-      <div className="page-head"><h1 className="page-title grow">File requests</h1><button className="btn btn-dark" onClick={() => setCreate(true)}><Plus size={16} />New file request</button></div>
-      <div className="mt-8"><Tabs value={show} onChange={setShow} tabs={[{ id: "all", label: `All${data ? ` (${data.reqs.length})` : ""}` }, { id: "open", label: "Open" }, { id: "closed", label: "Closed" }]} /></div>
+      <div className="page-head"><h1 className="page-title grow">File requests</h1><button className="btn btn-dark" onClick={() => setCreate(true)}>Create file request</button></div>
+      <div className="fr-show"><span className="semibold">Show</span>
+        <label className="chip"><select value={show} onChange={(e) => setShow(e.target.value as typeof show)} aria-label="Show"><option value="all">My requests{data ? ` (${data.reqs.length})` : ""}</option><option value="open">Open</option><option value="closed">Closed</option></select><ChevronDown size={14} /></label></div>
       {loading && !data ? <Loading /> : list.length === 0 ? (
-        <Empty art={<FileInput size={44} className="brand" />} title="Request files from anyone" body="Send a private upload link to clients or investors. Their files land here — no account needed on their side.">
-          <button className="btn btn-dark" onClick={() => setCreate(true)}>New file request</button>
-        </Empty>
+        <div className="ag-empty" style={{ paddingTop: 56 }}>
+          <DocArt big />
+          <div className="ag-empty-title">Need to receive files from someone?</div>
+          <p className="muted">Request files from anyone — whether they have a Dozzier account or not.</p>
+          <button className="btn btn-outline" onClick={() => setCreate(true)}>Create file request</button>
+        </div>
       ) : (
         <div className="card mt-16">
           {list.map((r, i) => {

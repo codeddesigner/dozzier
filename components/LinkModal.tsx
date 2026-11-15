@@ -77,8 +77,8 @@ export function LinkModal({ documentId, spaceId, existing, defaultName, docName,
       footer={<><span className="caption faint grow">Changes apply to this link only</span><button className="btn btn-ghost" onClick={onClose}>Cancel</button>
         <button className="btn btn-primary" disabled={busy} onClick={save}>{busy ? "Saving…" : existing ? "Save" : "Create link"}</button></>}>
       <label className="field"><span className="label">Link name</span>
-        <input className="input" autoFocus value={d.name} placeholder="Randombase — Series A" onChange={(e) => { set("name", e.target.value); if (!existing) set("slug", slugify(e.target.value)); }} /></label>
-      <div className="row gap-8 brand mt-16" style={{ background: "var(--dz-bg-brand-subtle)", borderRadius: 8, padding: "8px 12px" }}>
+        <input className="input" autoFocus value={d.name} placeholder="Thiscompany — Series A" onChange={(e) => { set("name", e.target.value); if (!existing) set("slug", slugify(e.target.value)); }} /></label>
+      <div className="row gap-8 brand mt-16" style={{ background: "var(--dz-bg-brand-subtle)", borderRadius: 8, padding: "10px 12px" }}>
         <Link2 size={16} /><span className="grow ellipsis medium">{linkUrl(d.slug).replace(/^https?:\/\//, "")}</span>
         <button className="icon-btn s" aria-label="Copy link" onClick={() => copy(linkUrl(d.slug))}><Copy size={14} /></button>
       </div>
@@ -86,14 +86,14 @@ export function LinkModal({ documentId, spaceId, existing, defaultName, docName,
       <div className="col mt-8">
         {tab === "branding" && <p className="muted" style={{ padding: "16px 0" }}>Links use your workspace branding from Settings → Branding (logo, accent colour and welcome message).</p>}
         {visible.map((r) => (
-          <div key={r.title} className="col gap-8" style={{ padding: "12px 0", borderBottom: "1px solid var(--dz-border-subtle)" }}>
-            <div className="row gap-12">
-              <span className="icon-tile" style={{ width: 28, height: 28, borderRadius: 8, background: r.on ? "var(--dz-bg-brand-subtle)" : "var(--dz-bg-muted)", color: r.on ? "var(--dz-text-brand)" : "var(--dz-text-secondary)" }}><r.icon size={14} /></span>
-              <div className="grow"><div className="medium">{r.title}</div><div className="caption muted">{r.desc}</div></div>
+          <div key={r.title} className="col gap-8" style={{ padding: "12px 0" }}>
+            <div className="row" style={{ gap: 14 }}>
+              <span className="icon-tile" style={{ width: 36, height: 36, borderRadius: 8, background: r.on ? "var(--dz-bg-brand-subtle)" : "var(--dz-bg-muted)", color: r.on ? "var(--dz-icon-brand)" : "var(--dz-icon-secondary)" }}><r.icon size={18} /></span>
+              <div className="grow col" style={{ gap: 2 }}><div className="medium body-m">{r.title}</div><div className="caption muted">{r.desc}</div></div>
               {locked(r.title) && <span className="caption faint row gap-6" title="Locked in Settings → Link defaults"><Lock size={12} />Locked</span>}
               <Toggle on={r.on} onChange={r.set} disabled={locked(r.title)} />
             </div>
-            {r.extra && <div style={{ paddingLeft: 40 }}>{r.extra}</div>}
+            {r.extra && <div style={{ paddingLeft: 50 }}>{r.extra}</div>}
           </div>
         ))}
       </div>

@@ -3,7 +3,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import { ChevronLeft, ChevronRight, Maximize, ZoomIn, ZoomOut, Download, Printer, Flag, CircleHelp, ShieldCheck, Folder, ArrowLeft, FileText, MessageSquare, CalendarDays, X, Search, ImageIcon } from "lucide-react";
 import { supabase, BUCKET } from "@/lib/supabase";
-import { Logo, AppIcon } from "@/components/Logo";
+import { Logo, AppIcon, LogoMark } from "@/components/Logo";
 import { Avatar } from "@/components/ui";
 import { DocRenderer, Source, sourceFor } from "@/components/DocRenderer";
 import { NDA_TEMPLATE } from "@/components/nda";
@@ -101,12 +101,19 @@ export default function Viewer() {
     const accent = b?.color && /^#[0-9a-f]{6}$/i.test(b.color) ? b.color : undefined;
     return (
       <div className={`viewer ${b?.viewer === "light" ? "viewer-light" : ""}`}>
-        <Bar counter={pub.page_count ? `1 / ${pub.is_sample ? 12 : pub.page_count}` : undefined} />
+        <Bar counter={pub.page_count ? `${pub.is_sample ? 3 : 1} / ${pub.is_sample ? 12 : pub.page_count}` : undefined}>
+          <div className="row gap-4 gate-tools" aria-hidden="true">
+            <span className="vb-icon"><Maximize size={18} /></span><span className="vb-icon"><ZoomIn size={18} /></span><span className="vb-icon"><ZoomOut size={18} /></span>
+            {pub.allow_download && <><span className="vb-icon"><Download size={18} /></span><span className="vb-icon hide-sm"><Printer size={18} /></span></>}
+            <Avatar name="You" size={30} color="#ff7a3d" />
+            <span className="vb-icon hide-sm"><Flag size={18} /></span><span className="vb-icon hide-sm"><CircleHelp size={18} /></span>
+          </div>
+        </Bar>
         <div className="viewer-stage">
           <div className="blurred-page" />
           <form className="gate" style={{ position: "relative" }} onSubmit={(e) => { e.preventDefault(); if (pub.require_nda && !nda) return setErr("Please accept the agreement to continue"); start(pub, email, pass); }}>
-            <div style={{ alignSelf: "center" }}>{b?.logo_path ? <BrandAsset path={b.logo_path} alt={pub.sender} style={{ height: 36, maxWidth: 160, objectFit: "contain" }} /> : <AppIcon size={36} />}</div>
-            <div className="h3 center" style={{ fontSize: 19 }}>{pub.sender} shared “{title}”</div>
+            <div style={{ alignSelf: "center" }}>{b?.logo_path ? <BrandAsset path={b.logo_path} alt={pub.sender} style={{ height: 36, maxWidth: 160, objectFit: "contain" }} /> : <LogoMark size={30} />}</div>
+            <div className="h3 center gate-title">{pub.sender} shared “{title}”</div>
             {b?.welcome && <p className="caption center" style={{ color: "var(--dz-text-secondary)" }}>{b.welcome}</p>}
             <p className="caption muted center">{pub.require_email ? "Enter your email to view. The sender will see that you opened it." : "Enter the details below to view."}</p>
             {pub.require_email && <label className="field"><span className="label">Email</span><input className="input" type="email" required autoFocus value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@company.com" /></label>}

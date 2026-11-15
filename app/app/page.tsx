@@ -2,12 +2,12 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Calendar, ChevronDown, ChevronRight, Link2, Search, Users, Upload } from "lucide-react";
+import { ArrowDown, Calendar, ChevronDown, ChevronRight, Link2, Search, Users, Upload } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useApp } from "@/components/AppContext";
 import { Avatar, Kpi, Loading, Tabs, useLoad, DocThumb } from "@/components/ui";
 import { LineChart, dailySeries } from "@/components/charts";
-import { displayName, duration, timeAgo, intentScore, intentLevel } from "@/lib/format";
+import { displayName, duration, timeAgo, intentScore } from "@/lib/format";
 import { UploadModal } from "@/components/UploadModal";
 import { GettingStarted, useChecklist } from "@/components/GettingStarted";
 
@@ -30,6 +30,9 @@ export default function Dashboard() {
   const [days, setDays] = useState(30);
   const [tab, setTab] = useState<"visitors" | "content" | "links" | "spaces" | "chart">("visitors");
   const [q, setQ] = useState("");
+  const [fSpace, setFSpace] = useState("");
+  const [fOwner, setFOwner] = useState("");
+  const [fDomain, setFDomain] = useState("");
   const [upload, setUpload] = useState(false);
 
   const { data, loading } = useLoad(async () => {
@@ -51,11 +54,15 @@ export default function Dashboard() {
     downloads: list.filter((v) => v.downloaded).length,
   });
   const s = stats(cur), p = stats(prev);
+  const spaceOpts = useMemo(() => [...new Map(cur.filter((v) => v.links?.space_id).map((v) => [v.links!.space_id as string, v.links!.spaces?.name || "Space"])).entries()], [cur]);
+  const domainOpts = useMemo(() => [...new Set(cur.map((v) => (v.visitor_email || "").split("@")[1]).filter(Boolean))].sort(), [cur]);
 
   const groups = useMemo(() => {
     const key = (v: V) => tab === "visitors" ? (v.visitor_email || "anonymous") : tab === "content" ? (v.document_id || "—") : tab === "links" ? (v.link_id || "—") : (v.links?.space_id || "");
     const m = new Map<string, { key: string; rows: V[] }>();
     for (const v of cur) {
+      if (fSpace && v.links?.space_id !== fSpace) continue;
+      if (fDomain && (v.visitor_email || "").split("@")[1] !== fDomain) continue;
       const k = key(v);
       if (tab === "spaces" && !k) continue;
       if (!m.has(k)) m.set(k, { key: k, rows: [] });
@@ -74,7 +81,7 @@ export default function Dashboard() {
       };
     }).filter((g) => !term || (g.title + " " + g.sub).toLowerCase().includes(term))
       .sort((a, b) => (tab === "visitors" ? +new Date(b.last) - +new Date(a.last) : b.visits - a.visits));
-  }, [cur, tab, q]);
+  }, [cur, tab, q, fSpace, fDomain]);
 
   const series = useMemo(() => dailySeries(cur.map((v) => v.started_at), days), [cur, days]);
   const first = (profile.full_name || "").split(" ")[0];
@@ -82,14 +89,14 @@ export default function Dashboard() {
   return (
     <div className="content">
       <div className="muted body-m">{onboarding ? `Welcome to Dozzier${first ? `, ${first}` : ""}` : `${greeting()}${first ? `, ${first}` : ""}`}</div>
-      <div className="row gap-12 wrap"><h1 className="page-title grow">{onboarding ? "Let’s get your first link out" : "See what’s new"}</h1><button className="btn btn-dark" onClick={() => setUpload(true)}><Upload size={16} />Upload</button></div>
+      <div className="row gap-12 wrap"><h1 className="page-title grow">{onboarding ? "Let’s get your first link out" : "See what’s new"}</h1>{onboarding && <button className="btn btn-dark" onClick={() => setUpload(true)}><Upload size={16} />Upload</button>}</div>
       {onboarding && <GettingStarted onUpload={() => setUpload(true)} />}
       <div className="row gap-8 mt-24">
         <label className="chip"><Calendar size={16} />
           <select value={days} onChange={(e) => setDays(+e.target.value)} aria-label="Date range">
             <option value={7}>Last 7 days</option><option value={30}>Last 30 days</option><option value={90}>Last 90 days</option>
           </select><ChevronDown size={14} /></label>
-        <span className="chip"><Users size={16} />Team visits</span>
+        <label className="chip"><Users size={16} /><select defaultValue="team" aria-label="Whose visits"><option value="team">Team visits</option><option value="mine">My visits</option></select><ChevronDown size={14} /></label>
       </div>
       {loading && !data ? <Loading /> : (
         <>
@@ -107,29 +114,31 @@ export default function Dashboard() {
             </div>
           ) : (
             <>
-              <div className="row gap-8 mt-24" style={{ justifyContent: "flex-end" }}>
-                <div className="search"><Search size={16} /><input placeholder="Search" value={q} onChange={(e) => setQ(e.target.value)} /></div>
+              <div className="row gap-8 dash-filters">
+                <label className="chip"><select value={fSpace} onChange={(e) => setFSpace(e.target.value)} aria-label="Spaces"><option value="">Spaces</option>{spaceOpts.map(([id, n]) => <option key={id} value={id}>{n}</option>)}</select><ChevronDown size={14} /></label>
+                <label className="chip"><select value={fOwner} onChange={(e) => setFOwner(e.target.value)} aria-label="Link owners"><option value="">Link owners</option><option value="me">{profile.full_name || "Me"}</option></select><ChevronDown size={14} /></label>
+                <label className="chip"><select value={fDomain} onChange={(e) => setFDomain(e.target.value)} aria-label="Domains"><option value="">Domains</option>{domainOpts.map((d) => <option key={d} value={d}>{d}</option>)}</select><ChevronDown size={14} /></label>
+                <span className="grow" />
+                <div className="search dash-search"><Search size={18} /><input placeholder="Search" value={q} onChange={(e) => setQ(e.target.value)} /></div>
               </div>
-              <table className="table mt-16">
+              <table className="table dash-table">
                 <thead><tr>
                   <th style={{ width: 24 }} /><th>{tab === "visitors" ? "Name" : tab === "content" ? "Content" : tab === "links" ? "Link" : "Space"}</th>
                   {tab === "visitors" && <th className="hide-sm">Space or link visited</th>}
-                  <th>Visits</th><th className="hide-sm">Downloads</th><th>Time spent</th><th className="hide-sm">Intent</th><th>Last visit</th>
+                  <th>Visits</th><th className="hide-sm">Downloads</th><th>Time spent</th><th className="sorted">Last visit <ArrowDown size={14} /></th>
                 </tr></thead>
                 <tbody>
-                  {groups.length === 0 && <tr><td colSpan={8} className="table-empty">No visits in this period yet. Create a link from <Link className="brand" href="/app/content">Content</Link> and share it.</td></tr>}
+                  {groups.length === 0 && <tr><td colSpan={7} className="table-empty">No visits in this period yet. Create a link from <Link className="brand" href="/app/content">Content</Link> and share it.</td></tr>}
                   {groups.map((g) => {
-                    const lvl = intentLevel(g.score);
                     const href = tab === "visitors" ? (g.first.contact_id ? `/app/contacts/${g.first.contact_id}` : null) : tab === "content" ? `/app/content/${g.key}` : tab === "links" ? `/app/links/${g.key}` : `/app/spaces/${g.key}`;
                     return (
                       <tr key={g.key} className="clickable" onClick={() => href && router.push(href)}>
-                        <td><ChevronRight size={16} className="faint" /></td>
+                        <td><ChevronRight size={18} /></td>
                         <td><div className="row gap-12">
                           {tab === "content" ? <DocThumb kind={g.first.documents?.file_type || "file"} /> : <Avatar name={g.title} email={tab === "visitors" ? g.first.visitor_email : undefined} size={32} />}
                           <div className="col" style={{ minWidth: 0 }}><span className="medium ellipsis">{g.title}</span><span className="caption muted ellipsis">{g.sub}</span></div></div></td>
                         {tab === "visitors" && <td className="hide-sm"><span className="row gap-6"><Link2 size={14} />{g.first.links?.name || g.first.documents?.name}</span></td>}
                         <td>{g.visits}</td><td className="hide-sm">{g.dls}</td><td>{duration(g.secs)}</td>
-                        <td className="hide-sm"><span className={`intent ${lvl.tone}`}>{lvl.label} · {g.score}</span></td>
                         <td className="nowrap">{timeAgo(g.last)}</td>
                       </tr>
                     );

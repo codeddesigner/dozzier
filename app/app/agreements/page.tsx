@@ -1,8 +1,9 @@
 "use client";
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { FileSignature, Trash2, Download, Eye, Plus, Upload, FileText, Copy, ShieldCheck } from "lucide-react";
+import { FileSignature, Trash2, Download, Eye, Plus, Upload, FileText, Copy, ShieldCheck, ChevronDown } from "lucide-react";
 import { supabase, BUCKET } from "@/lib/supabase";
+import { DocArt } from "@/components/DocArt";
 import { Avatar, Empty, Loading, Menu, Modal, Tabs, toast, useLoad } from "@/components/ui";
 import { NDA_TEMPLATE } from "@/components/nda";
 import { useApp } from "@/components/AppContext";
@@ -14,18 +15,6 @@ type Agreement = { id: string; name: string; file_path: string | null; body: str
 type S = { agreement_id: string; name: string; email: string; signed_at: string | null };
 const STATUS: Record<Agreement["status"], [string, string]> = { draft: ["Draft", "badge-muted"], sent: ["Waiting", "badge-warn"], completed: ["Completed", "badge-success"], voided: ["Voided", "badge-muted"] };
 
-function Art() {
-  return (
-    <svg width="96" height="80" viewBox="0 0 96 80" aria-hidden="true">
-      <ellipse cx="48" cy="74" rx="44" ry="4" fill="#f2f4f7" />
-      <rect x="14" y="10" width="44" height="56" rx="4" fill="#dbe7ff" transform="rotate(-8 36 38)" />
-      <rect x="26" y="6" width="48" height="62" rx="4" fill="#fff" stroke="#111827" strokeWidth="2" />
-      <rect x="34" y="16" width="26" height="3" rx="1.5" fill="#9ca3af" /><rect x="34" y="24" width="32" height="3" rx="1.5" fill="#9ca3af" /><rect x="34" y="32" width="20" height="3" rx="1.5" fill="#9ca3af" />
-      <rect x="40" y="46" width="30" height="12" rx="2" fill="#4D94F7" />
-      <circle cx="74" cy="8" r="8" fill="#4D94F7" /><path d="M70 8l3 3 5-6" stroke="#fff" strokeWidth="2" fill="none" />
-    </svg>
-  );
-}
 
 export default function Agreements() {
   const router = useRouter();
@@ -93,21 +82,39 @@ export default function Agreements() {
   }
 
   const newMenu = (
-    <div className="row gap-8">
-      <button className="btn btn-secondary" disabled={busy} onClick={fromNda}><FileText size={16} />Mutual NDA</button>
-      <button className="btn btn-dark" disabled={busy} onClick={() => pdfInput.current?.click()}><Upload size={16} />{busy ? "Preparing…" : "Upload PDF to sign"}</button>
-    </div>
+    <Menu label="Upload" trigger={<>{busy ? "Preparing…" : "Upload"}<ChevronDown size={16} /></>} items={[
+      { label: "PDF to sign", icon: <Upload size={14} />, onClick: () => pdfInput.current?.click() },
+      { label: "Gating agreement (NDA)", icon: <ShieldCheck size={14} />, onClick: () => gateInput.current?.click() },
+      { label: "Mutual NDA template", icon: <FileText size={14} />, onClick: fromNda },
+    ]} />
   );
+  const isEmpty = !!data && envelopes.length === 0 && templates.length === 0 && gates.length === 0;
+  async function downloadTemplate() {
+    const { bytes } = await textToPdf("Mutual NDA", NDA_TEMPLATE);
+    const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([bytes as BlobPart], { type: "application/pdf" })); a.download = "Mutual-NDA-template.pdf"; a.click();
+  }
 
   return (
     <div className="content">
       <div className="page-head"><h1 className="page-title grow">Agreements</h1>{newMenu}</div>
       <input ref={pdfInput} type="file" hidden accept="application/pdf,.pdf" onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ""; if (f) uploadPdf(f); }} />
       <input ref={gateInput} type="file" hidden accept=".pdf,.txt" onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ""; if (f) uploadGate(f); }} />
+      {isEmpty ? (
+        <div className="ag-empty">
+          <DocArt big />
+          <div className="ag-empty-title">Need to protect sensitive content?</div>
+          <p className="muted">Set up a legally-binding agreement that viewers must sign before accessing your content. Upload an NDA or any gating document.</p>
+          <button className="btn btn-outline" onClick={() => gateInput.current?.click()}>Upload agreement</button>
+          <div className="row gap-8" style={{ marginTop: 40 }}>
+            <button className="btn btn-secondary" disabled={busy} onClick={fromNda}>Use template</button>
+            <button className="btn btn-secondary" onClick={downloadTemplate}>Download template</button>
+          </div>
+        </div>
+      ) : <>
       <div className="mt-8"><Tabs value={tab} onChange={setTab} tabs={[{ id: "envelopes", label: `Sent for signature${envelopes.length ? ` (${envelopes.length})` : ""}` }, { id: "templates", label: `Templates${templates.length ? ` (${templates.length})` : ""}` }, { id: "gate", label: "Click-through NDA" }]} /></div>
       {loading && !data ? <Loading /> : tab === "envelopes" ? (
         envelopes.length === 0 ? (
-          <Empty art={<Art />} title="Get agreements signed" body="Upload a PDF, place signature fields for each signer, and send. Everyone signs in the browser — you get a certified, tamper-evident copy.">{newMenu}</Empty>
+          <Empty art={<DocArt />} title="Get agreements signed" body="Upload a PDF, place signature fields for each signer, and send. Everyone signs in the browser — you get a certified, tamper-evident copy.">{newMenu}</Empty>
         ) : (
           <div className="card mt-16">{envelopes.map((a, i) => {
             const ss = data!.signers.filter((s) => s.agreement_id === a.id);
@@ -151,6 +158,7 @@ export default function Agreements() {
           </table>
         </>
       )}
+      </>}
       {view && <Modal title={view.name} onClose={() => setView(null)}><pre style={{ whiteSpace: "pre-wrap", fontFamily: "inherit" }} className="body-m">{view.body}</pre></Modal>}
     </div>
   );

@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Pipeline } from "@/components/Pipeline";
 import { useRouter } from "next/navigation";
 import { Building2, Archive, ArchiveRestore, Trash2 } from "lucide-react";
+import { useApp } from "@/components/AppContext";
 import { supabase, Account } from "@/lib/supabase";
 import { Avatar, Loading, Menu, useLoad } from "@/components/ui";
 import { timeAgo, intentScore, intentLevel } from "@/lib/format";
@@ -10,13 +11,15 @@ import { timeAgo, intentScore, intentLevel } from "@/lib/format";
 type V = { account_id: string; visitor_email: string | null; started_at: string; duration_seconds: number; downloaded: boolean };
 
 export default function Accounts() {
-  const [view, setView] = useState<"pipeline" | "list">("pipeline");
-  useEffect(() => { try { if (localStorage.getItem("dz-accounts-view") === "list") setView("list"); } catch {} }, []);
+  const [view, setView] = useState<"pipeline" | "list">("list");
+  useEffect(() => { try { if (localStorage.getItem("dz-accounts-view") === "pipeline") setView("pipeline"); } catch {} }, []);
   const pick = (v: "pipeline" | "list") => { setView(v); try { localStorage.setItem("dz-accounts-view", v); } catch {} };
   return view === "pipeline" ? <div className="content content-wide"><Pipeline onList={() => pick("list")} /></div> : <AccountList onPipeline={() => pick("pipeline")} />;
 }
 
 function AccountList({ onPipeline }: { onPipeline: () => void }) {
+  const [scope, setScope] = useState<"personal" | "team">("personal");
+  const { profile, email } = useApp();
   const router = useRouter();
   const [activity, setActivity] = useState<"active" | "idle" | "all">("active");
   const [archived, setArchived] = useState(false);
@@ -42,24 +45,23 @@ function AccountList({ onPipeline }: { onPipeline: () => void }) {
   return (
     <div className="content">
       <div className="page-head"><h1 className="page-title">Accounts</h1><span className="stat-pill"><Building2 size={14} />{data?.accounts.filter((a) => !a.archived).length ?? "–"}</span><span className="grow" /><button className="btn btn-secondary" onClick={onPipeline}>Pipeline view</button></div>
-      <div className="row gap-8 mt-24 wrap">
+      <div className="row gap-8 wrap list-filters">
         {(["active", "idle", "all"] as const).map((f) => <button key={f} className={`chip ${activity === f ? "active" : ""}`} onClick={() => setActivity(f)}>{f[0].toUpperCase() + f.slice(1)}</button>)}
-        <span style={{ width: 1, height: 20, background: "var(--dz-border-default)" }} />
-        <label className="checkbox"><input type="checkbox" checked={archived} onChange={(e) => setArchived(e.target.checked)} />Include archived accounts</label>
+        <span style={{ width: 4 }} />
+        {(["personal", "team"] as const).map((f) => <button key={f} className={`chip ${scope === f ? "active" : ""}`} onClick={() => setScope(f)}>{f === "personal" ? "Personal" : "Team"}</button>)}
+        <label className="checkbox" style={{ marginLeft: 6 }}><input type="checkbox" checked={archived} onChange={(e) => setArchived(e.target.checked)} />Include archived accounts</label>
       </div>
       {loading && !data ? <Loading /> : (
-        <table className="table caps mt-24">
-          <thead><tr><th>Name</th><th className="hide-sm">Last activity</th><th className="hide-sm">Contributors</th><th>Intent</th><th className="num">Visits</th><th className="num">Visitors</th><th style={{ width: 40 }} /></tr></thead>
+        <table className="table caps list-table">
+          <thead><tr><th>Name</th><th className="hide-sm">Last activity</th><th className="hide-sm">Contributors</th><th className="num">Visits</th><th className="num">Visitors</th><th style={{ width: 40 }} /></tr></thead>
           <tbody>
-            {rows.length === 0 && <tr><td colSpan={7} className="table-empty">No accounts match. Accounts are created automatically from visitors’ company email domains.</td></tr>}
+            {rows.length === 0 && <tr><td colSpan={6} className="table-empty">No accounts match. Accounts are created automatically from visitors’ company email domains.</td></tr>}
             {rows.map(({ a, vs, last, visitors, score }) => {
-              const lvl = intentLevel(score);
               return (
                 <tr key={a.id} className="clickable" onClick={() => router.push(`/app/accounts/${a.id}`)}>
                   <td><span className="medium">{a.name}</span> {a.is_sample && <span className="tag">Sample account</span>} {a.archived && <span className="tag">Archived</span>}</td>
                   <td className="hide-sm">{last ? timeAgo(last) : "No activity"}</td>
-                  <td className="hide-sm"><div className="avatar-stack">{visitors.slice(0, 3).map((e) => <Avatar key={e} email={e} size={24} />)}</div></td>
-                  <td><span className={`intent ${lvl.tone}`}>{lvl.label} · {score}</span></td>
+                  <td className="hide-sm"><Avatar name={profile.full_name} email={email} size={22} color="#ff7a3d" /></td>
                   <td className="num">{vs.length}</td><td className="num">{visitors.length}</td>
                   <td><Menu items={[
                     a.archived ? { label: "Unarchive", icon: <ArchiveRestore size={14} />, onClick: async () => { await supabase.from("accounts").update({ archived: false }).eq("id", a.id); reload(); } }

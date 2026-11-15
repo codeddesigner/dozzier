@@ -1,7 +1,7 @@
 "use client";
-import { Share2 } from "lucide-react";
+import { DocArt } from "@/components/DocArt";
 import { supabase } from "@/lib/supabase";
-import { Empty, Loading, useLoad } from "@/components/ui";
+import { Loading, useLoad } from "@/components/ui";
 import { timeAgo } from "@/lib/format";
 
 type Row = { slug: string; link_name: string; document_name: string; sender: string; last_visit: string; visits: number };
@@ -12,7 +12,11 @@ export default function Shared() {
     <div className="content">
       <div className="page-head"><h1 className="page-title">Shared with me</h1></div>
       {loading && !data ? <Loading /> : !data?.length ? (
-        <Empty art={<Share2 size={44} className="brand" />} title="Nothing shared with you yet" body="When someone shares a Dozzier link with you and you open it with this account’s email, it shows up here so you can find it again." />
+        <div className="ag-empty" style={{ paddingTop: 120 }}>
+          <DocArt big />
+          <div className="ag-empty-title">When you open an invite, it will appear here</div>
+          <p className="muted">You haven’t visited any data rooms or documents yet.</p>
+        </div>
       ) : (
         <table className="table mt-24">
           <thead><tr><th>Content</th><th>Shared by</th><th>Your visits</th><th>Last opened</th></tr></thead>

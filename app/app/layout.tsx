@@ -230,7 +230,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           </div>
           {state.profile.plan === "trial" && (() => { const left = Math.max(0, 14 - Math.floor((Date.now() - new Date(state.profile.created_at || Date.now()).getTime()) / 86400000)); return (
             <Link href="/app/upgrade" className="side-promo" data-label="Upgrade">
-              <span className="side-promo-text"><span className="caption muted">{left > 0 ? `All premium features unlocked for ${left} more day${left === 1 ? "" : "s"}` : "Your free trial has ended"}</span><span className="semibold">Upgrade now</span></span>
+              <span className="side-promo-text"><span className="caption muted">{left > 0 ? `All premium features unlocked for ${left} day${left === 1 ? "" : "s"}` : "Your free trial has ended"}</span><span className="semibold">Upgrade now</span></span>
               <span className="side-promo-icon"><Sparkles size={20} /></span>
             </Link>); })()}
         </aside>

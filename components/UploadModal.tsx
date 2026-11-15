@@ -1,17 +1,25 @@
 "use client";
 import { useRef, useState } from "react";
-import { Upload, Link2 } from "lucide-react";
+import { Upload, Link2, FileArchive } from "lucide-react";
+import { unzip } from "@/lib/unzip";
 import { Modal, Tabs, toast } from "./ui";
 import { supabase, BUCKET } from "@/lib/supabase";
 import { countPdfPages } from "@/lib/pdf";
 import { fileKind } from "@/lib/format";
 import { useApp } from "./AppContext";
 
-const SOURCES: [string, string][] = [["Google Drive", "G"], ["Dropbox", "Db"], ["Box", "Bx"], ["OneDrive", "Od"], ["SharePoint", "Sp"]];
+const SOURCES: [string, string][] = [["Google Drive", ""], ["Dropbox", "Db"], ["Box", "Bx"], ["OneDrive", "Od"], ["SharePoint", "Sp"]];
 
 export function UploadModal({ folderId, onClose, onDone }: { folderId?: string | null; onClose: () => void; onDone: (docIds: string[]) => void }) {
   const { userId } = useApp();
-  const [tab, setTab] = useState<"file" | "url">("file");
+  const [tab, setTab] = useState<"file" | "url" | "zip">("file");
+  const zipInput = useRef<HTMLInputElement>(null);
+  async function pickZip(f?: File | null) {
+    if (!f) return;
+    setErr(null); setProgress("Extracting…");
+    try { const list = await unzip(f); if (!list.length) throw new Error("No files found in that ZIP"); setFiles(list); setProgress(`${list.length} file${list.length === 1 ? "" : "s"} ready`); }
+    catch (e) { setErr(e instanceof Error ? e.message : "Couldn’t read the ZIP"); setProgress(""); }
+  }
   const [files, setFiles] = useState<File[]>([]);
   const [drag, setDrag] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -61,19 +69,19 @@ export function UploadModal({ folderId, onClose, onDone }: { folderId?: string |
   return (
     <Modal title="Upload" onClose={onClose} width={640}
       footer={<><span className="caption faint grow">{progress}</span><button className="btn btn-ghost" onClick={onClose}>Cancel</button>
-        <button className="btn btn-dark" disabled={busy} onClick={tab === "file" ? uploadFiles : addUrl}>{busy ? "Uploading…" : tab === "file" ? (files.length ? "Upload" : "Choose files") : "Add"}</button></>}>
-      <Tabs tabs={[{ id: "file", label: "Upload file" }, { id: "url", label: "Add URL" }]} value={tab} onChange={(t) => { setTab(t); setErr(null); }} />
+        <button className="btn btn-dark" disabled={busy} onClick={tab === "url" ? addUrl : tab === "zip" && !files.length ? () => zipInput.current?.click() : uploadFiles}>{busy ? "Uploading…" : tab === "url" ? "Add" : "Upload"}</button></>}>
+      <div className="up-tabs"><Tabs tabs={[{ id: "file", label: "Upload file" }, { id: "url", label: "Add URL" }, { id: "zip", label: "Extract ZIP" }]} value={tab} onChange={(t) => { setTab(t); setErr(null); if (t !== "file") setFiles([]); }} /></div>
       {tab === "file" ? (
         <div className="col gap-16 mt-16">
-          <span className="muted">Choose a source to upload from</span>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 8 }}>
-            <button className="int-tile" style={{ borderColor: "var(--dz-border-brand)", background: "var(--dz-bg-brand-subtle)" }} onClick={() => input.current?.click()}><Upload size={20} /><span className="caption medium">My device</span></button>
+          <span className="caption" style={{ color: "var(--dz-text-secondary)" }}>Choose a source to upload from</span>
+          <div className="up-sources">
+            <button className="up-src on" onClick={() => input.current?.click()}><Upload size={20} /><span>My device</span></button>
             {SOURCES.map(([n, a]) => (
-              <button key={n} className="int-tile" onClick={() => toast(`${n} import needs the ${n} integration — upload from your device for now`)}>
-                <span className="int-logo" style={{ width: 22, height: 22, fontSize: 10, border: "1px dashed var(--dz-border-strong)", borderRadius: 6 }}>{a}</span><span className="caption medium">{n}</span>
+              <button key={n} className="up-src" onClick={() => toast(`${n} import needs the ${n} integration — upload from your device for now`)}>
+                {a ? <span className="up-mono">{a}</span> : <img src="/logos/google-drive.png" alt="" width={22} height={20} />}<span>{n}</span>
               </button>
             ))}
-            <button className="int-tile" onClick={() => setTab("url")}><Link2 size={20} /><span className="caption medium">From URL</span></button>
+            <button className="up-src" onClick={() => setTab("url")}><Link2 size={20} /><span>From URL</span></button>
           </div>
           <div onDragOver={(e) => { e.preventDefault(); setDrag(true); }} onDragLeave={() => setDrag(false)}
             onDrop={(e) => { e.preventDefault(); setDrag(false); setFiles(Array.from(e.dataTransfer.files)); }}
@@ -81,9 +89,21 @@ export function UploadModal({ folderId, onClose, onDone }: { folderId?: string |
             style={{ border: `1.5px dashed ${drag ? "var(--dz-border-brand)" : "var(--dz-border-strong)"}`, borderRadius: 12, padding: 28, textAlign: "center", background: drag ? "var(--dz-bg-brand-subtle)" : "var(--dz-bg-subtle)", cursor: "pointer" }}>
             <Upload size={20} />
             <div className="medium mt-8">{files.length ? files.map((f) => f.name).join(", ") : "Drag files here, or browse"}</div>
-            <div className="caption faint">PDF, PPTX, DOCX, XLSX, images and video up to 50 MB</div>
+            <div className="caption faint">PDF, PPTX, DOCX, XLSX, images and video up to 50 MB each</div>
           </div>
           <input ref={input} type="file" multiple hidden onChange={(e) => setFiles(Array.from(e.target.files || []))} />
+        </div>
+      ) : tab === "zip" ? (
+        <div className="col gap-12 mt-16">
+          <span className="caption" style={{ color: "var(--dz-text-secondary)" }}>Upload a .zip — we unpack it and add each file to your content.</span>
+          <div onDragOver={(e) => { e.preventDefault(); setDrag(true); }} onDragLeave={() => setDrag(false)}
+            onDrop={(e) => { e.preventDefault(); setDrag(false); pickZip(e.dataTransfer.files[0]); }} onClick={() => zipInput.current?.click()}
+            className={`up-drop ${drag ? "on" : ""}`}>
+            <FileArchive size={22} />
+            <div className="medium mt-8">{files.length ? `${files.length} file${files.length === 1 ? "" : "s"}: ${files.slice(0, 4).map((f) => f.name).join(", ")}${files.length > 4 ? "…" : ""}` : "Drag a ZIP here, or browse"}</div>
+            <div className="caption faint">Folders are flattened; hidden files are skipped</div>
+          </div>
+          <input ref={zipInput} type="file" accept=".zip,application/zip" hidden onChange={(e) => { pickZip(e.target.files?.[0]); e.target.value = ""; }} />
         </div>
       ) : (
         <label className="field mt-16"><span className="label">URL</span><input className="input" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://www.figma.com/proto/…" /></label>

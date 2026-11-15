@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, House } from "lucide-react";
@@ -24,7 +25,7 @@ export default function Spaces() {
 
   return (
     <div className="content">
-      <div className="page-head"><h1 className="page-title grow">Spaces</h1><button className="btn btn-dark" onClick={() => setPicker(true)}><Plus size={16} />Create a Space</button></div>
+      <div className="page-head"><h1 className="page-title grow">Spaces</h1><Link href="/app/spaces/templates" className="btn btn-secondary">Templates</Link><button className="btn btn-dark" onClick={() => setPicker(true)}><Plus size={16} />Create a Space</button></div>
       {loading && !data ? <Loading /> : data!.spaces.length === 0 ? (
         <Empty art={<House size={40} className="brand" />} title="Create your first data room" body="Spaces bundle many documents behind one secure link — perfect for fundraising, M&A and client portals.">
           <button className="btn btn-dark" onClick={() => setPicker(true)}>Create a Space</button>

@@ -36,7 +36,7 @@ export function TemplatePicker({ onClose, initial = 0 }: { onClose: () => void; 
     catch (e: unknown) { toast(e instanceof Error ? e.message : "Couldn’t create space"); setBusy(false); }
   };
   return (
-    <Modal title="Create a Space" onClose={onClose} width={720} footer={<><span className="grow" /><button className="btn btn-ghost" onClick={onClose}>Cancel</button><button className="btn btn-dark" disabled={busy} onClick={go}>{busy ? "Creating…" : "Create Space"}</button></>}>
+    <Modal title="Create a Space" onClose={onClose} width={720} footer={<><span className="grow" /><button className="btn btn-ghost" onClick={onClose}>Cancel</button><button className="btn btn-brand" disabled={busy} onClick={go}>{busy ? "Creating…" : "Create Space"}</button></>}>
       <div className="cs-grid">
         <div className="col gap-16">
           <label className="field"><span className="label">Space name</span><input className="input" autoFocus value={name} onChange={(e) => setName(e.target.value)} placeholder="Acme — Series A diligence" onKeyDown={(e) => e.key === "Enter" && go()} /></label>

@@ -1,4 +1,5 @@
 "use client";
+import { createPortal } from "react-dom";
 import { ReactNode, useEffect, useLayoutEffect, useRef, useState, useCallback } from "react";
 import { CountUp } from "@/components/Motion";
 import { X, MoreHorizontal, CheckCircle2 } from "lucide-react";
@@ -68,21 +69,25 @@ export function Modal({ title, onClose, children, footer, width = 600 }: { title
     window.addEventListener("keydown", k);
     return () => window.removeEventListener("keydown", k);
   }, [onClose]);
-  return (
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  const node = (
     <div className="scrim" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
       <div className="modal" style={{ maxWidth: width }} role="dialog" aria-modal="true">
         <div className="modal-head">
-          <div className="h2 grow">{title}</div>
-          <button className="icon-btn" onClick={onClose} aria-label="Close"><X size={18} /></button>
+          <div className="modal-title grow">{title}</div>
+          <button className="icon-btn" onClick={onClose} aria-label="Close"><X size={20} /></button>
         </div>
         <div className="modal-body">{children}</div>
         {footer && <div className="modal-foot">{footer}</div>}
       </div>
     </div>
   );
+  // Portal to <body>: an animated (transformed) ancestor would otherwise trap the fixed scrim inside the page card.
+  return mounted ? createPortal(node, document.body) : null;
 }
 
-export function Menu({ items }: { items: { label: string; onClick: () => void; danger?: boolean; icon?: ReactNode }[] }) {
+export function Menu({ items, trigger, triggerClass = "btn btn-dark", label = "More actions" }: { items: { label: string; onClick: () => void; danger?: boolean; icon?: ReactNode }[]; trigger?: ReactNode; triggerClass?: string; label?: string }) {
   const [open, setOpen] = useState<{ top?: number; bottom?: number; right: number } | null>(null);
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -101,7 +106,8 @@ export function Menu({ items }: { items: { label: string; onClick: () => void; d
   }
   return (
     <div ref={ref} style={{ position: "relative", display: "inline-block" }} onClick={(e) => e.stopPropagation()}>
-      <button className="icon-btn s" aria-label="More actions" aria-expanded={!!open} onClick={toggle}><MoreHorizontal size={16} /></button>
+      {trigger ? <button className={triggerClass} aria-label={label} aria-haspopup="menu" aria-expanded={!!open} onClick={toggle}>{trigger}</button>
+        : <button className="icon-btn s" aria-label={label} aria-expanded={!!open} onClick={toggle}><MoreHorizontal size={16} /></button>}
       {open && (
         <div className="menu" style={{ position: "fixed", top: open.top, bottom: open.bottom, right: open.right, zIndex: 90 }}>
           {items.map((it) => (

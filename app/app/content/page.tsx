@@ -73,7 +73,7 @@ export default function ContentLibrary() {
   const FolderBtn = ({ v, label, indent = 0 }: { v: View; label: string; indent?: number }) => {
     const active = JSON.stringify(v) === JSON.stringify(view);
     return (
-      <button className={`nav-item ${active ? "active" : ""}`} style={{ paddingLeft: 10 + indent, height: 36, width: "100%" }} onClick={() => setView(v)}>
+      <button className={`nav-item ${active ? "active" : ""}`} style={{ paddingLeft: 10 + indent, height: 40, width: "100%", gap: 10 }} onClick={() => setView(v)}>
         <FolderIcon size={16} fill="#8ab2ff" color="#8ab2ff" /><span className="ellipsis">{label}</span>
       </button>
     );
@@ -87,15 +87,14 @@ export default function ContentLibrary() {
         <FolderBtn v={{ kind: "deleted" }} label="Deleted content" />
         {(["team", "personal"] as const).map((k) => (
           <div key={k}>
-            <div className="row nav-item" style={{ height: 36 }}><ChevronDown size={14} /><span className="grow">{k === "team" ? "Team folders" : "Personal folders"}</span>
+            <div className="row nav-item" style={{ height: 40 }}><ChevronDown size={14} /><span className="grow">{k === "team" ? "Team folders" : "Personal folders"}</span>
               <button className="icon-btn s" aria-label="New folder" onClick={() => setNewFolder(k)}><Plus size={16} /></button></div>
             {data?.folders.filter((f) => f.kind === k).map((f) => <FolderBtn key={f.id} v={{ kind: "folder", id: f.id }} label={f.name} indent={18} />)}
           </div>
         ))}
       </aside>
       <div className="content grow" style={{ maxWidth: 1000 }}>
-        <div className="row gap-12 wrap head-row"><h1 className="page-title grow head-main">{title}</h1>
-          <div className="search"><Search size={16} /><input placeholder="Filter" value={q} onChange={(e) => setQ(e.target.value)} /></div></div>
+        <div className="row gap-12 wrap head-row"><h1 className="page-title grow head-main">{title}</h1></div>
         <div className="row gap-8 mt-24 wrap">
           <button className="btn btn-dark" onClick={() => setUpload(true)}><Upload size={16} />Add content<ChevronDown size={14} /></button>
           <button className="btn btn-secondary" onClick={() => docs[0] ? setShare(true) : toast("Upload a document first")}><Share2 size={16} />Share</button>
@@ -112,7 +111,7 @@ export default function ContentLibrary() {
               {docs.map((d) => (
                 <tr key={d.id} className="clickable" onClick={() => view.kind !== "deleted" && router.push(`/app/content/${d.id}`)}>
                   <td><DocThumb kind={d.file_type} /></td>
-                  <td className="medium">{d.name} {d.is_sample && <span className="tag">Sample</span>}</td>
+                  <td className="medium">{d.name}</td>
                   <td><div className="col"><span>{timeAgo(d.updated_at)}</span><span className="caption faint">By {profile.full_name?.split(" ")[0] || "you"}</span></div></td>
                   <td>{data?.counts[d.id] || 0} visits</td>
                   <td>

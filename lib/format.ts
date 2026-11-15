@@ -36,8 +36,9 @@ export function pct(cur: number, prev: number): { label: string; tone: "up" | "d
 export function initials(name?: string | null, email?: string | null): string {
   const src = (name || email || "?").trim();
   const parts = src.split(/[\s@._-]+/).filter(Boolean);
-  if (parts.length >= 2 && name) return (parts[0][0] + parts[1][0]).toUpperCase();
-  return src.slice(0, 2).replace(/^./, (c) => c.toUpperCase());
+  // Figma Avatar: first two letters of the first name — "Paul" → "Pa", "Priya Raman" → "Pr".
+  const first = parts[0] || "?";
+  return first.slice(0, 2).replace(/^./, (c) => c.toUpperCase());
 }
 
 export function displayName(email?: string | null, name?: string | null): string {

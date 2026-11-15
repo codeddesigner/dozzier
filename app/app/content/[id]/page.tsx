@@ -104,7 +104,7 @@ export default function DocumentPage() {
         <div className="split-btn"><button className="btn btn-dark" onClick={() => setLinkModal({})}>Create link</button>
           <button className="btn btn-dark" aria-label="Link options" onClick={() => setTab("links")}><ChevronDown size={16} /></button></div>
       </div>
-      <div className="row gap-8 caption muted mt-8"><Avatar name="You" email={data.lastReplace?.replaced_by || email} size={20} />{data.vcount ? <button className="link caption" onClick={() => setTab("versions")}>v{data.vcount + 1} · Replaced {new Date(data.lastReplace!.replaced_at).toLocaleDateString("en-GB", { month: "short", day: "numeric" })}</button> : <>Last updated {timeAgo(doc.updated_at)}</>} · {doc.page_count} page{doc.page_count === 1 ? "" : "s"}</div>
+      <div className="row gap-8 caption muted mt-8"><Avatar name="You" email={data.lastReplace?.replaced_by || email} size={20} />{data.vcount ? <button className="link caption" onClick={() => setTab("versions")}>v{data.vcount + 1} · Replaced {new Date(data.lastReplace!.replaced_at).toLocaleDateString("en-GB", { month: "short", day: "numeric" })}</button> : <>Last updated {timeAgo(doc.updated_at)}</>}</div>
 
       {links.length === 0 && Date.now() - new Date(doc.created_at).getTime() < 3 * 86400000 && <ProcessingCard doc={doc} onCreateLink={() => setLinkModal({})} />}
       <div className="mt-24"><Tabs value={tab} onChange={setTab} tabs={[{ id: "activity", label: "Activity" }, { id: "performance", label: "Performance" }, { id: "links", label: "Links" }, { id: "versions", label: data.vcount ? `Versions ${data.vcount + 1}` : "Versions" }, { id: "settings", label: "Settings" }]} /></div>
