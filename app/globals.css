@@ -1728,3 +1728,4 @@ textarea.input { height: auto; }
 .help-tour:hover { background: color-mix(in srgb, var(--dz-bg-brand) 14%, var(--dz-bg-surface)); }
 @media (max-width: 760px) { .tour-resume { left: 16px; bottom: 80px; } .tour-layer, .tour-card { display: none; } }
 html[data-theme="dark"] .tour-hero { background: rgba(77,148,247,.14); }
+.tour-item { text-align: left; justify-content: flex-start; } .tour-item .grow { text-align: left; }
