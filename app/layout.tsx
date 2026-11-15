@@ -5,10 +5,11 @@ import { THEME_BOOT } from "@/lib/theme";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://dozzier.co"),
-  title: "Dozzier | Cheaper and better than Docsend",
-  description: "Secure document sharing with page-by-page analytics, live alerts, data rooms and AI follow-ups.",
+  title: "Dozzier | Secure Document Sharing & Data Rooms with Analytics",
+  description: "Share decks, proposals and data rooms as secure links. See who reads every page, get live alerts and send AI follow-ups.",
   icons: { icon: [{ url: "/favicon.svg", type: "image/svg+xml" }, { url: "/favicon.ico", sizes: "48x48" }], apple: "/apple-touch-icon.png" },
-  openGraph: { title: "Dozzier | Cheaper and better than Docsend", siteName: "Dozzier", url: "https://dozzier.co", type: "website" },
+  openGraph: { title: "Dozzier | Secure Document Sharing & Data Rooms with Analytics", description: "Share decks, proposals and data rooms as secure links. See who reads every page, get live alerts and send AI follow-ups.", siteName: "Dozzier", url: "https://dozzier.co", type: "website" },
+  twitter: { card: "summary", title: "Dozzier | Secure Document Sharing & Data Rooms with Analytics", description: "Share decks, proposals and data rooms as secure links. See who reads every page, get live alerts and send AI follow-ups." },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
