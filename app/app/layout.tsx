@@ -37,7 +37,8 @@ function WorkspaceSwitcher({ profile, email, onHelp, onCollapse, collapsed }: { 
     });
   };
   const ws = profile.workspace_name || "My workspace";
-  const initials = ws.split(/\s+/).map((w) => w[0]).join("").slice(0, 2).toUpperCase() || "W";
+  const words = ws.trim().split(/\s+/).filter(Boolean);
+  const initials = (words.length > 1 ? words[0][0] + words[1][0] : ws.trim().slice(0, 2)).toUpperCase() || "W";
   const first = (profile.full_name || displayName(email)).split(" ")[0];
   return (
     <div className="ws-switch-wrap" ref={ref}>
@@ -90,7 +91,7 @@ function useSidebarData(userId: string | null) {
     (async () => {
       const day = new Date(Date.now() - 86400000).toISOString();
       const [sp, act] = await Promise.all([
-        supabase.from("spaces").select("id,name,updated_at").neq("status", "archived").order("updated_at", { ascending: false }).limit(3),
+        supabase.from("spaces").select("id,name,updated_at").neq("status", "archived").order("updated_at", { ascending: false }).limit(2),
         supabase.from("visits").select("id", { count: "exact", head: true }).eq("is_sample", false).gte("started_at", day),
       ]);
       const list = (sp.data || []) as { id: string; name: string }[];

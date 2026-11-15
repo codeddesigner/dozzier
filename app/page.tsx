@@ -7,7 +7,7 @@ import {
 import { Logo, AppIcon, FooterLogo } from "@/components/Logo";
 import { Faq } from "@/components/Faq";
 import { PageBars } from "@/components/charts";
-import { NAV_GROUPS, APPS } from "@/components/nav";
+import { NAV_GROUPS } from "@/components/nav";
 import { LogoMark } from "@/components/Logo";
 import { PricingCards } from "@/components/Pricing";
 import { Avatar } from "@/components/ui";
@@ -40,35 +40,25 @@ function DashboardMock() {
     <div style={{ height: 620, overflow: "hidden" }}>
       <div style={{ zoom: 0.7556, width: 1440, pointerEvents: "none" }}>
         <div className="app" style={{ height: 900 }}>
-          <div className="rail">
-            <LogoMark size={28} />
-            <span className="rail-collapse"><ChevronDown size={16} style={{ transform: "rotate(-90deg)" }} /></span>
-            <span className="rail-sep" />
-            {APPS.map((a, i) => <span key={a.label} className={`rail-app ${i === 0 ? "active" : ""}`}><a.icon size={20} /></span>)}
-            <span className="spacer" />
-            <span className="rail-btn"><Search size={18} /></span><span className="rail-btn"><CircleHelp size={18} /></span>
-            <Avatar size={32} name="Chidera" color="#ff7a3d" />
-          </div>
-          <div className="shell">
           <aside className="sidebar">
-            <div className="ws"><span className="h3">Randombase</span><ChevronDown size={16} /></div>
-            {NAV_GROUPS.map((g) => (
-              <div key={g.label} className="nav-group"><div className="nav-label">{g.label}</div>
-                {g.items.map((n) => <div key={n.href} className={`nav-item ${n.href === "/app" ? "active" : ""}`}><n.icon size={20} /><span>{n.label}</span></div>)}
-              </div>
-            ))}
+            <div className="ws-switch-wrap"><span className="ws-switch"><span className="ws-switch-logo">TC</span><span className="ws-switch-text"><span className="ws-switch-name">Thiscompany</span><span className="ws-switch-sub">Stella · Owner</span></span><span className="ws-switch-chev"><ChevronDown size={14} style={{ transform: "rotate(180deg)" }} /><ChevronDown size={14} /></span></span></div>
+            <div className="side-nav">
+              <span className="nav-item"><Search size={20} /><span>Search</span></span>
+              <span className="nav-item"><Bell size={20} /><span className="grow">Activity</span><span className="nav-count">3</span></span>
+              {NAV_GROUPS.flatMap((g) => g.items).map((n) => <span key={n.href} className={`nav-item ${n.href === "/app" ? "active" : ""}`} style={n.href === "/app" ? { background: "var(--dz-bg-emphasis)" } : undefined}><n.icon size={20} /><span>{n.label}</span></span>)}
+            </div>
+            <div className="side-section">Spaces</div>
+            <span className="side-space on"><span className="side-space-dot"><i style={{ background: "#ff7a3d" }} /></span><span className="side-space-text"><span className="side-space-name">Acme — Series A</span><span className="side-space-sub">11 visitors · 2 new</span></span><span className="side-space-badge">2</span></span>
+            <span className="side-space"><span className="side-space-dot"><i style={{ background: "#14c7b0" }} /></span><span className="side-space-text"><span className="side-space-name">Board pack · Q3</span><span className="side-space-sub">5 visitors</span></span></span>
+            <span className="side-invite">+ Invite your team</span>
           </aside>
-          <div className="shell-main">
-          <div className="page-header">
-            <div className="crumbs"><span className="muted">Randombase</span><span className="sep">/</span><span className="cur">Dashboard</span></div>
-            <span className="spacer" />
-            <span className="hdr-search"><Search size={14} /><span className="grow">Search</span><span className="kbd">⌘K</span></span>
-            <span className="icon-btn hdr-icon"><Bell size={18} /></span>
-            <span className="support-link"><Files size={16} />Support</span>
-          </div>
+          <div className="main-col">
+          <div className="ws-banner" style={{ display: "flex" }}><span>Connect your CRM to sync every visit and intent score to your deals automatically.</span><span className="ws-banner-link">Connect HubSpot</span></div>
+          <div className="shell">
+          <div className="main">
           <div className="content" style={{ flex: 1, padding: "32px 48px" }}>
             <div className="muted body-m">Good evening, Chidera</div>
-            <div className="page-title" style={{ fontSize: 36 }}>See what’s new</div>
+            <div className="page-title">See what’s new</div>
             <div className="row gap-8 mt-24"><span className="chip"><Calendar size={16} />Last 30 days<ChevronDown size={14} /></span><span className="chip"><Users size={16} />Team visits<ChevronDown size={14} /></span></div>
             <MockKpis />
             <div className="tabs mt-24">{["Visitor activity", "Popular content", "Top groups & links", "Top Spaces", "Visit chart"].map((t, i) => <span key={t} className={`tab ${i === 0 ? "active" : ""}`}>{t}</span>)}</div>
@@ -80,6 +70,7 @@ function DashboardMock() {
               <thead><tr><th style={{ width: 24 }} /><th>Name</th><th>Space or link visited</th><th>Visits</th><th>Downloads</th><th>Time spent</th><th>Last visit</th></tr></thead>
               <MockRows />
             </table>
+          </div>
           </div>
           </div>
           </div>
