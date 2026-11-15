@@ -1819,3 +1819,7 @@ html[data-theme="dark"] .app { background: #1b2433; } html[data-theme="dark"] .a
   .hero-title { font-size: 38px; letter-spacing: -1px; }
   .cta-box { padding: 56px 24px; }
 }
+.hero-title { max-width: 1120px; text-wrap: balance; }
+.step-top { height: 100px; }
+.step-card .h2, .step-card p { margin: 0; }
+.step-card { gap: 14px; }

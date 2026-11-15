@@ -104,10 +104,10 @@ function Hero() {
           <div className="browser-bar"><span className="dot" style={{ background: "#ff5f57" }} /><span className="dot" style={{ background: "#febc2e" }} /><span className="dot" style={{ background: "#28c840" }} /><div className="browser-url">app.dozzier.io/dashboard</div></div>
           <DashboardMock />
         </div>
-        <div className="float-card f1" style={{ left: -48, top: 250, padding: "14px 16px", width: 351 }}>
+        <div className="float-card f1" style={{ left: -48, top: 250, padding: "14px 16px", minWidth: 351, whiteSpace: "nowrap" }}>
           <HeroLiveAlert />
         </div>
-        <div className="float-card f2 col gap-8" style={{ left: 1010, top: 170, padding: "14px 16px" }}>
+        <div className="float-card f2 col gap-8" style={{ left: 1010, top: 170, padding: "14px 16px", whiteSpace: "nowrap" }}>
           <span className="overline" style={{ color: "var(--dz-text-tertiary)" }}>Intent score</span>
           <div className="row gap-12"><span className="semibold">Acme Ventures</span><IntentScore /></div>
         </div>
@@ -156,8 +156,8 @@ function HowItWorks() {
       <div className="lp-container grid-3" style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 24 }} data-stagger="140">
         {steps.map(([Icon, t, b], i) => (
           <div className="step-card spotlight" key={t}>
-            <div className="row"><span className="icon-tile"><Icon size={22} /></span><span className="spacer" /><span className="h2 step-num" style={{ color: "var(--dz-text-disabled)" }}>0{i + 1}</span></div>
-            <div className="h2 mt-24">{t}</div>
+            <div className="row step-top"><span className="icon-tile"><Icon size={22} /></span><span className="spacer" /><span className="h2 step-num" style={{ color: "var(--dz-text-disabled)" }}>0{i + 1}</span></div>
+            <div className="h2">{t}</div>
             <p className="body-m muted">{b}</p>
           </div>
         ))}
