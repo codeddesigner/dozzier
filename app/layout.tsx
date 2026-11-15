@@ -15,9 +15,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <link rel="preload" href="/fonts/Kolosa-Regular.woff" as="font" type="font/woff" crossOrigin="" />
-        <link rel="preload" href="/fonts/Kolosa-Medium.woff" as="font" type="font/woff" crossOrigin="" />
-        <link rel="preload" href="/fonts/Kolosa-SemiBold.woff" as="font" type="font/woff" crossOrigin="" />
+        <link rel="preload" href="/fonts/Calamantus-Regular.woff" as="font" type="font/woff" crossOrigin="" />
+        <link rel="preload" href="/fonts/Calamantus-Medium.woff" as="font" type="font/woff" crossOrigin="" />
+        <link rel="preload" href="/fonts/Calamantus-SemiBold.woff" as="font" type="font/woff" crossOrigin="" />
         <script dangerouslySetInnerHTML={{ __html: "document.documentElement.classList.add('motion');" + THEME_BOOT }} />
       </head>
       <body><MotionRoot />{children}</body>

@@ -2,30 +2,20 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { LayoutGrid, Inbox as InboxIcon, Folder as FolderIcon, Building2, Settings as SettingsIcon, Search, Bell, CircleHelp, ChevronLeft, ChevronRight, ChevronDown, LogOut, FileText, Users, Zap, Moon, User as UserIcon, Check, Sparkles } from "lucide-react";
+import { LayoutGrid, Inbox as InboxIcon, Folder as FolderIcon, Building2, Settings as SettingsIcon, Search, Bell, CircleHelp, ChevronUp, ChevronDown, LogOut, Zap, Moon, User as UserIcon, Check, Sparkles, Plus, Flag, Star, X, PanelLeft } from "lucide-react";
 import { applyTheme, type Theme } from "@/components/Theme";
 import { supabase } from "@/lib/supabase";
-import { LogoMark } from "@/components/Logo";
 import { Avatar, ToastHost, toast } from "@/components/ui";
-import { NAV_GROUPS, NAV_ALL, APPS } from "@/components/nav";
+import { NAV_GROUPS, NAV_ALL, NAV_SIDE } from "@/components/nav";
 import { Ctx, Profile } from "@/components/AppContext";
 import { useChecklist } from "@/components/GettingStarted";
 import { HelpPanel } from "@/components/HelpPanel";
-import { NotificationsMenu } from "@/components/NotificationsMenu";
 import { CommandPalette, openPalette } from "@/components/CommandPalette";
-import { displayName, timeAgo } from "@/lib/format";
+import { displayName } from "@/lib/format";
 
 const PLAN_LABEL: Record<string, string> = { trial: "Free trial", personal: "Personal", standard: "Standard", datarooms: "Advanced Data Rooms" };
 
-function SearchButton() {
-  return (
-    <button className="hdr-search" onClick={openPalette} aria-label="Search (⌘K)">
-      <Search size={14} /><span className="grow faint" style={{ textAlign: "left" }}>Search</span><span className="kbd">⌘K</span>
-    </button>
-  );
-}
-
-function UserMenu({ profile, email, onHelp }: { profile: Profile; email: string; onHelp: () => void }) {
+function WorkspaceSwitcher({ profile, email, onHelp, onCollapse, collapsed }: { profile: Profile; email: string; onHelp: () => void; onCollapse: () => void; collapsed: boolean }) {
   const [open, setOpen] = useState(false);
   const [theme, setThemeState] = useState<Theme>("light");
   const ref = useRef<HTMLDivElement>(null);
@@ -47,13 +37,17 @@ function UserMenu({ profile, email, onHelp }: { profile: Profile; email: string;
     });
   };
   const ws = profile.workspace_name || "My workspace";
+  const initials = ws.split(/\s+/).map((w) => w[0]).join("").slice(0, 2).toUpperCase() || "W";
+  const first = (profile.full_name || displayName(email)).split(" ")[0];
   return (
-    <div style={{ position: "relative" }} ref={ref}>
-      <button className="rail-avatar" aria-label="Account menu" aria-expanded={open} onClick={() => setOpen((o) => !o)}>
-        <Avatar name={profile.full_name} email={email} size={32} color="#ff7a3d" />
+    <div className="ws-switch-wrap" ref={ref}>
+      <button className="ws-switch" aria-label="Workspace and account menu" aria-expanded={open} onClick={() => setOpen((o) => !o)} data-label={ws}>
+        <span className="ws-switch-logo">{initials}</span>
+        <span className="ws-switch-text"><span className="ws-switch-name">{ws}</span><span className="ws-switch-sub">{first} · Owner</span></span>
+        <span className="ws-switch-chev"><ChevronUp size={14} /><ChevronDown size={14} /></span>
       </button>
       {open && (
-        <div className="menu rail-menu acct-menu">
+        <div className="menu acct-menu ws-menu">
           <div className="row gap-10" style={{ padding: "10px 10px 12px" }}>
             <Avatar name={profile.full_name} email={email} size={36} color="#ff7a3d" />
             <div className="col" style={{ minWidth: 0 }}><span className="medium ellipsis">{profile.full_name || displayName(email)}</span><span className="caption muted ellipsis">{email}</span></div>
@@ -72,6 +66,7 @@ function UserMenu({ profile, email, onHelp }: { profile: Profile; email: string;
           <button className="acct-ws on" onClick={() => go("/app/settings/general")}><span className="acct-ws-badge">{ws.slice(0, 1).toUpperCase()}</span><span className="grow">{ws}</span><span className="caption faint">{PLAN_LABEL[profile.plan] || profile.plan}</span><Check size={14} className="brand" /></button>
           <button onClick={() => go("/app/upgrade")}><Zap size={16} />Upgrade plan</button>
           <div className="acct-sep" />
+          <button onClick={() => { setOpen(false); onCollapse(); }}><PanelLeft size={16} /><span className="grow">{collapsed ? "Expand sidebar" : "Collapse sidebar"}</span><span className="caption faint">⌘\\</span></button>
           <button onClick={() => { setOpen(false); onHelp(); }}><CircleHelp size={16} />Help &amp; docs</button>
           <a href="/docs/changelog" target="_blank" rel="noreferrer" onClick={() => setOpen(false)}><Sparkles size={16} />What’s new</a>
           <button onClick={async () => { await supabase.auth.signOut(); router.replace("/login"); }}><LogOut size={16} />Sign out</button>
@@ -79,6 +74,43 @@ function UserMenu({ profile, email, onHelp }: { profile: Profile; email: string;
       )}
     </div>
   );
+}
+
+type SideSpace = { id: string; name: string; visitors: number; fresh: number };
+const SPACE_DOTS = ["#ff7a3d", "#14c7b0", "#a66bff", "#2577ea", "#ffb020"];
+
+/** Recent Spaces with visitor counts, and new visits in the last day (Activity badge). */
+function useSidebarData(userId: string | null) {
+  const [spaces, setSpaces] = useState<SideSpace[]>([]);
+  const [activity, setActivity] = useState(0);
+  const path = usePathname();
+  useEffect(() => {
+    if (!userId) return;
+    let off = false;
+    (async () => {
+      const day = new Date(Date.now() - 86400000).toISOString();
+      const [sp, act] = await Promise.all([
+        supabase.from("spaces").select("id,name,updated_at").neq("status", "archived").order("updated_at", { ascending: false }).limit(3),
+        supabase.from("visits").select("id", { count: "exact", head: true }).eq("is_sample", false).gte("started_at", day),
+      ]);
+      const list = (sp.data || []) as { id: string; name: string }[];
+      let rows: { visitor_email: string | null; started_at: string; links: { space_id: string } | null }[] = [];
+      if (list.length) {
+        const r = await supabase.from("visits").select("visitor_email,started_at,links!inner(space_id)").in("links.space_id", list.map((x) => x.id)).is("parent_visit_id", null).limit(1000);
+        rows = (r.data || []) as unknown as typeof rows;
+      }
+      if (off) return;
+      setSpaces(list.map((x) => {
+        const mine = rows.filter((v) => v.links?.space_id === x.id);
+        const who = new Set(mine.map((v) => v.visitor_email || "anon"));
+        const fresh = new Set(mine.filter((v) => v.started_at >= day).map((v) => v.visitor_email || "anon"));
+        return { id: x.id, name: x.name, visitors: who.size, fresh: fresh.size };
+      }));
+      setActivity(act.count || 0);
+    })();
+    return () => { off = true; };
+  }, [userId, path]);
+  return { spaces, activity };
 }
 
 function SetupRing({ done, total }: { done: number; total: number }) {
@@ -100,6 +132,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [more, setMore] = useState(false);
   useEffect(() => setMore(false), [path]);
   const checklist = useChecklist(state?.userId || null, state?.profile || null);
+  const side = useSidebarData(state?.userId || null);
+  const [bannerOff, setBannerOff] = useState(true);
+  useEffect(() => { try { setBannerOff(localStorage.getItem("dz-banner-crm") === "1"); } catch { setBannerOff(false); } }, []);
   const sideRef = useRef<HTMLElement>(null);
   const [ind, setInd] = useState<{ y: number; h: number } | null>(null);
   useLayoutEffect(() => {
@@ -158,88 +193,83 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   if (!state) return <div className="loading" style={{ paddingTop: 200 }}><span className="spinner" /></div>;
   const isActive = (href: string) => (href === "/app" ? path === "/app" : path.startsWith(href));
   const ws = state.profile.workspace_name || "My workspace";
-  const current = [...NAV_ALL, { href: "/app/upgrade", label: "Upgrade" }, { href: "/app/help", label: "Help" }, { href: "/app/links", label: "Links" }, { href: "/app/inbox", label: "Inbox" }]
-    .filter((n) => isActive(n.href)).sort((x, y) => y.href.length - x.href.length)[0];
-  const deeper = current && path.replace(/\/$/, "") !== current.href;
   const toggle = () => { const c = !collapsed; setCollapsed(c); try { localStorage.setItem("dz-sidebar", c ? "1" : "0"); } catch {} };
 
   return (
     <Ctx.Provider value={{ ...state, refreshProfile: loadProfile }}>
-      <div className="app">
-        <nav className="rail" aria-label="Apps">
-          <Link href="/app" aria-label="Dozzier home"><LogoMark size={28} /></Link>
-          <button className="rail-collapse" aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"} onClick={toggle}>
-            {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
-          </button>
-          <span className="rail-sep" />
-          {APPS.map((a) => (
-            <Link key={a.label} href={a.href} data-label={a.label} aria-label={a.label} className={`rail-app ${a.match(path) ? "active" : ""}`}><a.icon size={20} /></Link>
-          ))}
-          <span className="spacer" />
-          <button className="rail-btn" data-label="Search" aria-label="Search" onClick={openPalette}><Search size={18} /></button>
-          <button className={`rail-btn ${help ? "on" : ""}`} data-label="Help" aria-label="Help" onClick={() => setHelp((h) => !h)}><CircleHelp size={18} /></button>
-          <UserMenu profile={state.profile} email={state.email} onHelp={() => setHelp(true)} />
-        </nav>
-        <div className="shell">
-          <aside ref={sideRef} className={`sidebar ${collapsed ? "collapsed" : ""}`}>
+      <div className={`app ${collapsed ? "side-collapsed" : ""}`}>
+        <aside ref={sideRef} className="sidebar">
+          <WorkspaceSwitcher profile={state.profile} email={state.email} onHelp={() => setHelp(true)} onCollapse={toggle} collapsed={collapsed} />
+          <div className="side-nav">
             <span className="nav-indicator" style={{ transform: `translateY(${ind?.y ?? 0}px)`, height: ind?.h ?? 40, opacity: ind ? 1 : 0 }} />
-            <Link href="/app/settings/general" className="ws"><span className="h3 ellipsis">{ws}</span><ChevronDown size={16} /></Link>
-            {NAV_GROUPS.map((g) => (
-              <div key={g.label} className="nav-group">
-                <div className="nav-label">{g.label}</div>
-                {g.items.map((n) => (
-                  <Link key={n.href} href={n.href} className={`nav-item ${isActive(n.href) ? "active" : ""}`}><n.icon size={20} /><span>{n.label}</span></Link>
-                ))}
-              </div>
+            <button className="nav-item" onClick={openPalette} data-label="Search"><Search size={20} /><span className="grow">Search</span><span className="kbd side-kbd">⌘K</span></button>
+            <Link href="/app/inbox" className={`nav-item ${isActive("/app/inbox") ? "active" : ""}`} data-label="Activity"><Bell size={20} /><span className="grow">Activity</span>{side.activity > 0 && <span className="nav-count">{side.activity > 99 ? "99+" : side.activity}</span>}</Link>
+            {NAV_SIDE.map((n) => (
+              <Link key={n.href} href={n.href} className={`nav-item ${isActive(n.href) ? "active" : ""}`} data-label={n.label}><n.icon size={20} /><span>{n.label}</span></Link>
             ))}
-            <div className="spacer" />
-            {checklist && (() => { const d = checklist.filter((i) => i.done).length; return (
-              <button className="setup-btn" onClick={async () => { if (state.profile.checklist_dismissed) { await supabase.from("profiles").update({ checklist_dismissed: false }).eq("id", state.userId); await loadProfile(); } router.push("/app"); }}>
-                <SetupRing done={d} total={checklist.length} /><span className="grow" style={{ textAlign: "left" }}>Setup guide</span><span className="faint">{d}/{checklist.length}</span>
-              </button>); })()}
-            <Link href="/app/settings/members" className="invite-btn"><Users size={16} />Invite member</Link>
-          </aside>
-          <div className="shell-main">
-            <header className="page-header">
-              <div className="crumbs">
-                <span className="muted">{ws}</span>
-                {current && <><span className="sep">/</span>{deeper ? <Link href={current.href} className="muted">{current.label}</Link> : <span className="cur">{current.label}</span>}</>}
-                {deeper && <><span className="sep">/</span><span className="cur">Details</span></>}
-              </div>
-              <span className="spacer" />
-              <SearchButton />
-              <NotificationsMenu />
-              <button className="support-link hide-sm" onClick={() => setHelp(true)}><FileText size={16} />Support</button>
-            </header>
+          </div>
+          {side.spaces.length > 0 && <div className="side-section">Spaces</div>}
+          {side.spaces.map((sp, i) => (
+            <Link key={sp.id} href={`/app/spaces/${sp.id}`} className={`side-space ${path.startsWith(`/app/spaces/${sp.id}`) ? "on" : ""}`} data-label={sp.name}>
+              <span className="side-space-dot"><i style={{ background: SPACE_DOTS[i % SPACE_DOTS.length] }} /></span>
+              <span className="side-space-text"><span className="side-space-name">{sp.name}</span><span className="side-space-sub">{sp.visitors} visitor{sp.visitors === 1 ? "" : "s"}{sp.fresh ? ` · ${sp.fresh} new` : ""}</span></span>
+              {sp.fresh > 0 && <span className="side-space-badge">{sp.fresh}</span>}
+            </Link>
+          ))}
+          <Link href="/app/settings/members" className="side-invite" data-label="Invite your team"><Plus size={18} /><span>Invite your team</span></Link>
+          <div className="spacer" />
+          <div className="side-bottom">
+            {checklist ? (() => { const d = checklist.filter((i) => i.done).length; return (
+              <button className="side-link" data-label="Getting started" onClick={async () => { if (state.profile.checklist_dismissed) { await supabase.from("profiles").update({ checklist_dismissed: false }).eq("id", state.userId); await loadProfile(); } router.push("/app"); }}>
+                <Flag size={18} /><span className="grow">Getting started</span>{d < checklist.length && <span className="side-progress"><SetupRing done={d} total={checklist.length} />{d}/{checklist.length}</span>}
+              </button>); })() : <Link className="side-link" href="/app" data-label="Getting started"><Flag size={18} /><span>Getting started</span></Link>}
+            <button className="side-link" data-label="Refer and earn" onClick={() => { const u = `https://dozzier.co/signup?ref=${state.userId.slice(0, 8)}`; navigator.clipboard?.writeText(u).catch(() => {}); toast("Referral link copied — you both get a free month when they upgrade"); }}><Star size={18} /><span>Refer and earn</span></button>
+            <button className="side-link" data-label="Help and support" onClick={() => setHelp(true)}><CircleHelp size={18} /><span className="grow">Help and support</span><span className="side-live"><i />Live</span></button>
+          </div>
+          {state.profile.plan === "trial" && (() => { const left = Math.max(0, 14 - Math.floor((Date.now() - new Date(state.profile.created_at || Date.now()).getTime()) / 86400000)); return (
+            <Link href="/app/upgrade" className="side-promo" data-label="Upgrade">
+              <span className="side-promo-text"><span className="caption muted">{left > 0 ? `All premium features unlocked for ${left} more day${left === 1 ? "" : "s"}` : "Your free trial has ended"}</span><span className="semibold">Upgrade now</span></span>
+              <span className="side-promo-icon"><Sparkles size={20} /></span>
+            </Link>); })()}
+        </aside>
+        <div className="main-col">
+          {!state.profile.crm_connected && !bannerOff && (
+            <div className="ws-banner">
+              <span>Connect your CRM to sync every visit and intent score to your deals automatically.</span>
+              <Link href="/app/settings/integrations" className="ws-banner-link">Connect HubSpot</Link>
+              <button className="ws-banner-x" aria-label="Dismiss" onClick={() => { setBannerOff(true); try { localStorage.setItem("dz-banner-crm", "1"); } catch {} }}><X size={14} /></button>
+            </div>
+          )}
+          <div className="shell">
             <main className="main">{children}</main>
-            <nav className="mob-tabs" aria-label="Main">
-              {[{ href: "/app/inbox", label: "Inbox", I: InboxIcon }, { href: "/app/content", label: "Content", I: FolderIcon }, { href: "/app/accounts", label: "Accounts", I: Building2 }, { href: "/app/settings", label: "Settings", I: SettingsIcon }].map((t) => (
-                <Link key={t.href} href={t.href} className={path.startsWith(t.href) || (t.href === "/app/inbox" && path === "/app") ? "on" : ""}><t.I size={20} /><span>{t.label}</span></Link>
-              ))}
-              <button className={more ? "on" : ""} onClick={() => setMore((m) => !m)} aria-expanded={more}><LayoutGrid size={20} /><span>More</span></button>
-            </nav>
-            {more && (
-              <div className="mob-sheet-back" onClick={() => setMore(false)}>
-                <div className="mob-sheet" onClick={(e) => e.stopPropagation()} role="dialog" aria-label="All sections">
-                  <span className="mob-grab" />
-                  <div className="row gap-10" style={{ padding: "4px 4px 12px" }}><span className="h3 grow ellipsis">{ws}</span><button className="btn btn-secondary btn-s" onClick={() => { setMore(false); openPalette(); }}><Search size={14} />Search</button></div>
-                  {NAV_GROUPS.map((g) => (
-                    <div key={g.label} className="mob-sheet-group">
-                      <div className="nav-label">{g.label}</div>
-                      <div className="mob-sheet-grid">
-                        {g.items.map((n) => <Link key={n.href} href={n.href} className={isActive(n.href) ? "on" : ""}><n.icon size={20} /><span>{n.label}</span></Link>)}
-                      </div>
+          </div>
+          <nav className="mob-tabs" aria-label="Main">
+            {[{ href: "/app/inbox", label: "Inbox", I: InboxIcon }, { href: "/app/content", label: "Content", I: FolderIcon }, { href: "/app/accounts", label: "Accounts", I: Building2 }, { href: "/app/settings", label: "Settings", I: SettingsIcon }].map((t) => (
+              <Link key={t.href} href={t.href} className={path.startsWith(t.href) || (t.href === "/app/inbox" && path === "/app") ? "on" : ""}><t.I size={20} /><span>{t.label}</span></Link>
+            ))}
+            <button className={more ? "on" : ""} onClick={() => setMore((m) => !m)} aria-expanded={more}><LayoutGrid size={20} /><span>More</span></button>
+          </nav>
+          {more && (
+            <div className="mob-sheet-back" onClick={() => setMore(false)}>
+              <div className="mob-sheet" onClick={(e) => e.stopPropagation()} role="dialog" aria-label="All sections">
+                <span className="mob-grab" />
+                <div className="row gap-10" style={{ padding: "4px 4px 12px" }}><span className="h3 grow ellipsis">{ws}</span><button className="btn btn-secondary btn-s" onClick={() => { setMore(false); openPalette(); }}><Search size={14} />Search</button></div>
+                {NAV_GROUPS.map((g) => (
+                  <div key={g.label} className="mob-sheet-group">
+                    <div className="nav-label">{g.label}</div>
+                    <div className="mob-sheet-grid">
+                      {g.items.map((n) => <Link key={n.href} href={n.href} className={isActive(n.href) ? "on" : ""}><n.icon size={20} /><span>{n.label}</span></Link>)}
                     </div>
-                  ))}
-                  <div className="mob-sheet-foot">
-                    <button onClick={() => { setMore(false); setHelp(true); }}><CircleHelp size={16} />Help</button>
-                    <Link href="/app/upgrade"><Zap size={16} />Upgrade</Link>
-                    <button onClick={async () => { await supabase.auth.signOut(); router.replace("/login"); }}><LogOut size={16} />Sign out</button>
                   </div>
+                ))}
+                <div className="mob-sheet-foot">
+                  <button onClick={() => { setMore(false); setHelp(true); }}><CircleHelp size={16} />Help</button>
+                  <Link href="/app/upgrade"><Zap size={16} />Upgrade</Link>
+                  <button onClick={async () => { await supabase.auth.signOut(); router.replace("/login"); }}><LogOut size={16} />Sign out</button>
                 </div>
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
         <HelpPanel open={help} onClose={() => setHelp(false)} />
         <CommandPalette />

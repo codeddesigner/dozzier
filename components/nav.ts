@@ -38,3 +38,6 @@ export const APPS = [
   { href: "/app/spaces", label: "Data rooms", icon: FolderLock, match: (p: string) => p.startsWith("/app/spaces") },
   { href: "/app/agreements", label: "eSign", icon: FileSignature, match: (p: string) => p.startsWith("/app/agreements") },
 ];
+
+/** Flat sidebar list (Figma: Sidebar / Mode=Expanded). Search and Activity are rendered by the layout. */
+export const NAV_SIDE = NAV_ALL;
