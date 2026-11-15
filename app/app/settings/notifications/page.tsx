@@ -32,7 +32,6 @@ export default function Notifications() {
   return (
     <>
       <SettingsHead title="Notifications" sub="Choose what you hear about, and where." action={<SaveButton onClick={() => s.save()} saving={s.saving} />} />
-      <div className="notice info" style={{ fontSize: 13 }}>In-app alerts are live today. Email, Slack and push delivery are rolling out — your choices here will apply as soon as each channel is switched on.</div>
       <section className="set-card" style={{ padding: 0, overflow: "hidden" }}>
         <table className="table notif-table">
           <thead><tr><th>Event</th>{["In-app", "Email", "Slack", "Push"].map((h) => <th key={h} className="center">{h}</th>)}</tr></thead>

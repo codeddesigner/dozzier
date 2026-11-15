@@ -94,7 +94,8 @@ const easeOut = (t: number) => 1 - Math.pow(1 - t, 4);
 /** Counts up to `to` once visible (and re-animates when `to` changes). */
 export function CountUp({ to, duration = 1200, format = (n: number) => Math.round(n).toLocaleString(), className }: { to: number; duration?: number; format?: (n: number) => string; className?: string }) {
   const [ref, inView] = useInView<HTMLSpanElement>();
-  const [val, setVal] = useState(0);
+  // Start at the real value so it never reads "0" if the animation can't run (no IO / rAF, print, screenshots).
+  const [val, setVal] = useState(to);
   const from = useRef(0);
   useEffect(() => {
     if (!inView) return;

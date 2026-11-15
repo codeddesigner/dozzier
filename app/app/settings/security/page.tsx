@@ -93,7 +93,7 @@ export default function Security() {
       </Card>
       <Card title="Your data">
         <Row title="Export my data" sub="Download everything in your workspace as JSON"><button className="btn btn-secondary btn-s" disabled={busy} onClick={exportData}><Download size={14} />Export</button></Row>
-        <Row title="Delete account" sub="Permanently delete your account, files, links and analytics"><button className="btn btn-danger btn-s" onClick={() => setDel(true)}><Trash2 size={14} />Delete account</button></Row>
+        <Row title="Delete account" sub="Permanently delete your account, files, links and analytics"><button className="btn btn-danger-solid btn-s" onClick={() => setDel(true)}>Delete account</button></Row>
       </Card>
 
       {pwOpen && (

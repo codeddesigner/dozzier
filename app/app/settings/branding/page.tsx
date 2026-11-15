@@ -7,13 +7,13 @@ import { Toggle, toast } from "@/components/ui";
 import { LogoMark } from "@/components/Logo";
 import { Card, Row, SettingsHead, SaveButton, useSetting } from "@/components/settings/kit";
 
-const SWATCHES = ["#4d94f7", "#111827", "#1e9e5a", "#6b5bd6", "#e8508f", "#f08a24"];
+const SWATCHES = ["#2577ea", "#111827", "#1e9e5a", "#6b5bd6", "#e8508f", "#f08a24"];
 type B = { viewer: "dark" | "light"; welcome: string; show_shared_by: boolean };
 
 export default function Branding() {
   const { profile, userId, refreshProfile } = useApp();
   const s = useSetting<B>("branding", { viewer: "dark", welcome: "Thanks for taking a look — questions welcome on any page.", show_shared_by: true });
-  const [color, setColor] = useState(profile.brand_color || "#4d94f7");
+  const [color, setColor] = useState(profile.brand_color || "#2577ea");
   const [hide, setHide] = useState(!!profile.hide_branding);
   const [logo, setLogo] = useState<string | null>(null);
   const file = useRef<HTMLInputElement>(null);
@@ -59,11 +59,11 @@ export default function Branding() {
             <div style={{ background: dark ? "#111827" : "#f3f5f7", padding: "28px 20px 0", transition: "background-color .4s ease", minHeight: 380 }}>
               <div className="col gap-10 preview-gate" style={{ background: "#fff", borderRadius: "14px 14px 0 0", padding: "24px 20px", textAlign: "center", alignItems: "center", boxShadow: "var(--shadow-lg)" }}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                {logo ? <img src={logo} alt="" style={{ height: 28, maxWidth: 120, objectFit: "contain" }} /> : <LogoMark size={28} color={validHex ? color : "#4d94f7"} />}
+                {logo ? <img src={logo} alt="" style={{ height: 28, maxWidth: 120, objectFit: "contain" }} /> : <LogoMark size={28} color={validHex ? color : "#2577ea"} />}
                 <div className="h3">{profile.workspace_name || "Your workspace"} shared “Dozzier Intro”</div>
                 {v.welcome && <p className="caption muted">{v.welcome}</p>}
                 <input className="input" placeholder="you@company.com" readOnly tabIndex={-1} />
-                <span className="btn btn-block" style={{ background: validHex ? color : "#4d94f7", color: "#fff", transition: "background-color .4s" }}>Continue</span>
+                <span className="btn btn-block" style={{ background: validHex ? color : "#2577ea", color: "#fff", transition: "background-color .4s" }}>Continue</span>
                 {!hide && <span className="caption faint row gap-6"><ShieldCheck size={12} />Secured by Dozzier</span>}
               </div>
             </div>

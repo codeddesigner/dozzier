@@ -51,7 +51,7 @@ export default function Login() {
         <p className="sub">Open your authenticator app and enter the 6-digit code for Dozzier.</p>
         <OtpInput value={code} onChange={setCode} onComplete={verify} disabled={busy} />
         {err && <p className="error-text">{err}</p>}
-        <button className="btn btn-primary btn-block" disabled={busy || code.length < 6} onClick={() => verify()}>{busy ? "Verifying…" : "Verify"}</button>
+        <button className="btn btn-brand btn-block" disabled={busy || code.length < 6} onClick={() => verify()}>{busy ? "Verifying…" : "Verify"}</button>
         <p className="caption muted">Lost your device? <button className="link caption" onClick={() => setNote("Contact your workspace admin or support@dozzier.io to reset two-factor authentication.")}>Get help signing in</button></p>
         {note && <div className="notice info"><Info size={16} />{note}</div>}
       </AuthLayout>
@@ -75,7 +75,7 @@ export default function Login() {
           <Link href="/forgot-password" className="link" style={{ fontSize: 14 }}>Forgot password?</Link>
         </div>
         {err && <p className="error-text">{err}</p>}
-        <button className="btn btn-primary btn-block" disabled={busy}>{busy ? "Logging in…" : "Log in"}</button>
+        <button className="btn btn-brand btn-block" disabled={busy}>{busy ? "Logging in…" : "Log in"}</button>
       </form>
     </AuthLayout>
   );

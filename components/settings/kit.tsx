@@ -57,7 +57,7 @@ export function useSetting<T>(key: string, fallback: T) {
 }
 
 export function SaveButton({ onClick, saving, dirty = true, label = "Save changes" }: { onClick: () => void; saving?: boolean; dirty?: boolean; label?: string }) {
-  return <button className={`btn btn-primary ${dirty ? "" : "is-clean"}`} disabled={saving} onClick={onClick}>{saving ? "Saving…" : label}</button>;
+  return <button className={`btn btn-brand ${dirty ? "" : "is-clean"}`} disabled={saving} onClick={onClick}>{saving ? "Saving…" : label}</button>;
 }
 
 export function ComingSoon({ children }: { children: ReactNode }) {

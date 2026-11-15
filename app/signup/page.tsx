@@ -64,7 +64,7 @@ export default function Signup() {
             {personal && <span className="caption faint">Tip: use your work email so teammates can find your workspace.</span>}
           </label>
           {err && <p className="error-text">{err}</p>}
-          <button className="btn btn-primary btn-block">Continue with email</button>
+          <button className="btn btn-brand btn-block">Continue with email</button>
           <p className="caption faint center">By continuing you agree to Dozzier’s <Link href="/legal/terms" className="link" style={{ fontWeight: 400 }}>Terms of Service</Link> and <Link href="/legal/privacy" className="link" style={{ fontWeight: 400 }}>Privacy Policy</Link>.</p>
         </form>
       ) : (
@@ -75,7 +75,7 @@ export default function Signup() {
           <label className="field"><span className="label">Full name</span><input className="input" required autoFocus value={name} onChange={(e) => setName(e.target.value)} placeholder="Chidera Okafor" autoComplete="name" /></label>
           <label className="field"><span className="label">Password</span><input className="input" type="password" required minLength={8} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="At least 8 characters" autoComplete="new-password" /></label>
           {err && <p className="error-text">{err}</p>}
-          <button className="btn btn-primary btn-block" disabled={busy}>{busy ? "Creating your account…" : "Create account"}</button>
+          <button className="btn btn-brand btn-block" disabled={busy}>{busy ? "Creating your account…" : "Create account"}</button>
         </form>
       )}
     </AuthLayout>

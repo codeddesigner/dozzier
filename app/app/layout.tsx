@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { LayoutGrid, Inbox as InboxIcon, Folder as FolderIcon, Building2, Settings as SettingsIcon, Search, Bell, CircleHelp, ChevronUp, ChevronDown, ChevronRight, LogOut, Zap, Moon, User as UserIcon, Check, Sparkles, Plus, Flag, Star, X, PanelLeft } from "lucide-react";
+import { LayoutGrid, Inbox as InboxIcon, Folder as FolderIcon, Building2, Settings as SettingsIcon, Search, Bell, CircleHelp, ChevronUp, ChevronDown, ChevronRight, LogOut, Zap, Moon, User as UserIcon, Check, Sparkles, Plus, Flag, Star, X, PanelLeft, Play } from "lucide-react";
 import { applyTheme, type Theme } from "@/components/Theme";
 import { supabase } from "@/lib/supabase";
 import { Avatar, ToastHost, toast } from "@/components/ui";
@@ -11,12 +11,14 @@ import { Ctx, Profile } from "@/components/AppContext";
 import { useChecklist } from "@/components/GettingStarted";
 import { HelpPanel } from "@/components/HelpPanel";
 import { CommandPalette, openPalette } from "@/components/CommandPalette";
+import { ProductTour, startTour } from "@/components/ProductTour";
 import { displayName } from "@/lib/format";
 
 const PLAN_LABEL: Record<string, string> = { trial: "Free trial", personal: "Personal", standard: "Standard", datarooms: "Advanced Data Rooms" };
 
 function WorkspaceSwitcher({ profile, email, onHelp, onCollapse, collapsed }: { profile: Profile; email: string; onHelp: () => void; onCollapse: () => void; collapsed: boolean }) {
   const [open, setOpen] = useState(false);
+  const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
   const [theme, setThemeState] = useState<Theme>("light");
   const ref = useRef<HTMLDivElement>(null);
   const router = useRouter();
@@ -42,13 +44,13 @@ function WorkspaceSwitcher({ profile, email, onHelp, onCollapse, collapsed }: { 
   const first = (profile.full_name || displayName(email)).split(" ")[0];
   return (
     <div className="ws-switch-wrap" ref={ref}>
-      <button className="ws-switch" aria-label="Workspace and account menu" aria-expanded={open} onClick={() => setOpen((o) => !o)} data-label={ws}>
+      <button className="ws-switch" aria-label="Workspace and account menu" aria-expanded={open} onClick={(e) => { const r = e.currentTarget.getBoundingClientRect(); setPos({ top: r.bottom + 6, left: r.left }); setOpen((o) => !o); }} data-label={ws}>
         <span className="ws-switch-logo">{initials}</span>
         <span className="ws-switch-text"><span className="ws-switch-name">{ws}</span><span className="ws-switch-sub">{first} · Owner</span></span>
         <span className="ws-switch-chev"><ChevronUp size={14} /><ChevronDown size={14} /></span>
       </button>
       {open && (
-        <div className="menu acct-menu ws-menu">
+        <div className="menu acct-menu ws-menu" style={pos ? { position: "fixed", top: pos.top, left: pos.left } : undefined}>
           <div className="row gap-10" style={{ padding: "10px 10px 12px" }}>
             <Avatar name={profile.full_name} email={email} size={36} color="#ff7a3d" />
             <div className="col" style={{ minWidth: 0 }}><span className="medium ellipsis">{profile.full_name || displayName(email)}</span><span className="caption muted ellipsis">{email}</span></div>
@@ -65,10 +67,10 @@ function WorkspaceSwitcher({ profile, email, onHelp, onCollapse, collapsed }: { 
           <div className="acct-sep" />
           <div className="acct-label">Workspaces</div>
           <button className="acct-ws on" onClick={() => go("/app/settings/general")}><span className="acct-ws-badge">{ws.slice(0, 1).toUpperCase()}</span><span className="grow">{ws}</span><span className="caption faint">{PLAN_LABEL[profile.plan] || profile.plan}</span><Check size={14} className="brand" /></button>
-          <button onClick={() => go("/app/upgrade")}><Zap size={16} />Upgrade plan</button>
           <div className="acct-sep" />
           <button onClick={() => { setOpen(false); onCollapse(); }}><PanelLeft size={16} /><span className="grow">{collapsed ? "Expand sidebar" : "Collapse sidebar"}</span><span className="caption faint">⌘\\</span></button>
           <button onClick={() => { setOpen(false); onHelp(); }}><CircleHelp size={16} />Help &amp; docs</button>
+          <button onClick={() => { setOpen(false); startTour(); }}><Play size={16} />Take the product tour</button>
           <a href="/docs/changelog" target="_blank" rel="noreferrer" onClick={() => setOpen(false)}><Sparkles size={16} />What’s new</a>
           <button onClick={async () => { await supabase.auth.signOut(); router.replace("/login"); }}><LogOut size={16} />Sign out</button>
         </div>
@@ -210,6 +212,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               <Link key={n.href} href={n.href} className={`nav-item ${isActive(n.href) ? "active" : ""}`} data-label={n.label}><n.icon size={20} /><span>{n.label}</span></Link>
             ))}
           </div>
+          <div data-tour="spaces" className="side-spaces">
           {side.spaces.length > 0 && <div className="side-section">Spaces</div>}
           {side.spaces.map((sp, i) => (
             <Link key={sp.id} href={`/app/spaces/${sp.id}`} className={`side-space ${path.startsWith(`/app/spaces/${sp.id}`) ? "on" : ""}`} data-label={sp.name}>
@@ -219,6 +222,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             </Link>
           ))}
           <Link href="/app/settings/members" className="side-invite" data-label="Invite your team"><Plus size={18} /><span>Invite your team</span></Link>
+          </div>
           <div className="spacer" />
           <div className="side-bottom">
             {checklist ? (() => { const d = checklist.filter((i) => i.done).length; return (
@@ -274,6 +278,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           )}
         </div>
         <HelpPanel open={help} onClose={() => setHelp(false)} />
+        <ProductTour userId={state.userId} firstName={(state.profile.full_name || "").split(" ")[0]} createdAt={state.profile.created_at} checklist={checklist} />
         <CommandPalette />
         <ToastHost />
       </div>

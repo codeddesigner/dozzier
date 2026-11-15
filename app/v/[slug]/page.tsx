@@ -288,7 +288,8 @@ function Reader({ pub, visit, doc, onBack }: { pub: Pub; visit: Started; doc: { 
   const [box, setBox] = useState({ w: 1040, h: 585 });
   const [hidden, setHidden] = useState(false);
   const [qOpen, setQOpen] = useState(false);
-  useEffect(() => { if (window.innerWidth > 1100) setQOpen(true); }, []);
+  // Questions panel opens on demand (Figma "Viewer · Reading" shows the full page first).
+  useEffect(() => { if (new URLSearchParams(window.location.search).get("questions") === "1") setQOpen(true); }, []);
   const last = useRef(Date.now());
   const pageRef = useRef(0);
 

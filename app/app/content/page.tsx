@@ -96,7 +96,7 @@ export default function ContentLibrary() {
       <div className="content grow" style={{ maxWidth: 1000 }}>
         <div className="row gap-12 wrap head-row"><h1 className="page-title grow head-main">{title}</h1></div>
         <div className="row gap-8 mt-24 wrap">
-          <button className="btn btn-dark" onClick={() => setUpload(true)}><Upload size={16} />Add content<ChevronDown size={14} /></button>
+          <button className="btn btn-dark" data-tour="add-content" onClick={() => setUpload(true)}><Upload size={16} />Add content<ChevronDown size={14} /></button>
           <button className="btn btn-secondary" onClick={() => docs[0] ? setShare(true) : toast("Upload a document first")}><Share2 size={16} />Share</button>
           <button className="btn btn-secondary" onClick={() => setNewFolder("personal")}><FolderPlus size={16} />Create folder</button>
           <button className="btn btn-secondary" onClick={() => router.push("/app/file-requests?new=1")}><FileInput size={16} />Request files</button>

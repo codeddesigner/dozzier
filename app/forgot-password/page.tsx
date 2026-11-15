@@ -24,7 +24,7 @@ export default function ForgotPassword() {
         <h1 className="title">Reset your password</h1>
         <p className="sub">Enter your email and we’ll send a secure reset link.</p>
         <label className="field"><span className="label">Email</span><input className="input" type="email" required autoFocus value={email} onChange={(e) => { setEmail(e.target.value); setSent(false); }} placeholder="you@company.com" autoComplete="email" /></label>
-        <button className="btn btn-primary btn-block" disabled={busy}>{busy ? "Sending…" : "Send reset link"}</button>
+        <button className="btn btn-brand btn-block" disabled={busy}>{busy ? "Sending…" : "Send reset link"}</button>
         {sent && (
           <div className="notice success" role="status"><CheckCircle2 size={16} /><span className="grow">If an account exists, a reset link is on its way.</span>
             <button type="button" className="icon-btn s" aria-label="Dismiss" onClick={() => setSent(false)}><X size={14} /></button></div>

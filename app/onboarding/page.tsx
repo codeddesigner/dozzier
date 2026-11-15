@@ -264,7 +264,7 @@ export default function Onboarding() {
         <div className="ob-side">{step > 1 && <button className="btn btn-ghost" onClick={() => { setDir("back"); setStep((s) => s - 1); }}>Back</button>}</div>
         <div className={`ob-progress ${step === 4 ? "complete" : ""}`} role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}><span style={{ width: `${pct}%` }} /></div>
         <div className="ob-side" style={{ justifyContent: "flex-end" }}>
-          <button className="btn btn-primary" disabled={busy || !uid} onClick={next}>
+          <button className="btn btn-brand" disabled={busy || !uid} onClick={next}>
             {busy ? "Saving…" : step === 3 ? (invites.some((i) => i.email.trim()) ? "Send invites" : "Skip for now") : step === 4 ? "Finish setup" : "Continue"}
           </button>
         </div>

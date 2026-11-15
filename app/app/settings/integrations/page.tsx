@@ -42,7 +42,7 @@ export default function Integrations() {
             <div className="row gap-12"><AppLogo name={n} size={40} /><div className="col grow"><span className="medium">{n}</span><span className="caption muted">{c}</span></div>
               {req.includes(n) && <span className="badge badge-brand"><Check size={11} />Requested</span>}</div>
             <p className="caption muted" style={{ fontSize: 14, lineHeight: "20px" }}>{d}</p>
-            <div>{req.includes(n) ? <button className="btn btn-outline btn-s" disabled>Requested</button> : <button className="btn btn-primary btn-s" onClick={() => request(n)}>Request access</button>}</div>
+            <div>{req.includes(n) ? <button className="btn btn-outline btn-s" disabled>Requested</button> : <button className="btn btn-brand btn-s" onClick={() => request(n)}>Request access</button>}</div>
           </div>
         ))}
       </div>

@@ -1,8 +1,9 @@
 "use client";
+import { startTour } from "@/components/ProductTour";
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { X, ExternalLink, Search, FileText, ChevronRight, Plus, Sparkles } from "lucide-react";
+import { X, ExternalLink, Search, FileText, ChevronRight, Plus, Sparkles, Play } from "lucide-react";
 import { article, articlesFor, searchDocs } from "@/lib/docs";
 
 export function HelpPanel({ open, onClose }: { open: boolean; onClose: () => void }) {
@@ -46,6 +47,7 @@ export function HelpPanel({ open, onClose }: { open: boolean; onClose: () => voi
             </span>
             <span className="col"><span className="medium">Chat with us</span><span className="caption muted">Typically replies in 2 hours</span></span>
           </Link>
+          <button className="help-tour" onClick={() => { onClose(); startTour(); }}><Play size={16} /><span className="grow">Take the product tour</span><span className="caption muted">2 min</span></button>
           <div className="help-label">Keyboard shortcuts</div>
           {[["Search", `${mod}K`], ["Create link", `${mod}L`], ["Ask Dozzier", `${mod}J`], ["Toggle sidebar", `${mod}\\`]].map(([l, k]) => (
             <div key={l} className="row help-key"><span className="grow">{l}</span><span className="kbd">{k}</span></div>

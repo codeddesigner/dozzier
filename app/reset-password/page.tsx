@@ -39,7 +39,7 @@ export default function ResetPassword() {
         <>
           <h1 className="title">This reset link has expired</h1>
           <p className="sub">Reset links work once and expire after an hour.</p>
-          <Link href="/forgot-password" className="btn btn-primary btn-block">Send a new link</Link>
+          <Link href="/forgot-password" className="btn btn-brand btn-block">Send a new link</Link>
         </>
       ) : (
         <form onSubmit={submit} className="col" style={{ gap: 18 }}>
@@ -48,7 +48,7 @@ export default function ResetPassword() {
           <label className="field"><span className="label">New password</span><input className="input" type="password" required autoFocus value={pw} onChange={(e) => setPw(e.target.value)} placeholder="At least 8 characters" autoComplete="new-password" /></label>
           <label className="field"><span className="label">Confirm password</span><input className="input" type="password" required value={pw2} onChange={(e) => setPw2(e.target.value)} autoComplete="new-password" /></label>
           {err && <p className="error-text">{err}</p>}
-          <button className="btn btn-primary btn-block" disabled={busy || !ready}>{busy ? "Saving…" : "Update password"}</button>
+          <button className="btn btn-brand btn-block" disabled={busy || !ready}>{busy ? "Saving…" : "Update password"}</button>
         </form>
       )}
     </AuthLayout>

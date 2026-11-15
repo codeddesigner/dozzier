@@ -24,7 +24,7 @@ export default function LinkDefaults() {
     <>
       <SettingsHead title="Link defaults" sub="New links start with these settings. Locked settings can’t be changed per link." action={<SaveButton onClick={() => s.save()} saving={s.saving} />} />
       <div className="row gap-8 wrap">{Object.keys(presets).map((t) => <button key={t} className={`pill-opt ${tab === t ? "on" : ""}`} onClick={() => setTab(t)}>{t}</button>)}</div>
-      <section className="set-card" key={tab}>
+      <section className="set-card ld-list" key={tab}>
         {ROWS.map(([k, I, t, d], i) => (
           <div className="set-row cycle-item" key={k} style={{ animationDelay: `${i * 40}ms` }}>
             <span className="set-row-ico"><I size={16} /></span>
