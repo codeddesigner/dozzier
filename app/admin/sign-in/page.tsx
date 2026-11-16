@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Loading, Toggle, toast, useLoad } from "@/components/ui";
 import { adminRpc } from "@/lib/admin";
 import { fetchAuthMethods, type AuthMethods } from "@/lib/authMethods";
+import { SsoConnections } from "@/components/admin/SsoConnections";
 
 const METHODS: { key: keyof AuthMethods; name: string; desc: string }[] = [
   { key: "google", name: "Google", desc: "“Continue with Google” on log in and sign up." },
@@ -50,6 +51,7 @@ export default function AdminSignIn() {
         </div>
       </div>
       <p className="caption muted">Turning a method off hides its button and stops anyone finishing a sign-in with it. People who signed up that way can still log in with their email: they use “Forgot password?” to set a password.</p>
+      <SsoConnections />
     </>
   );
 }

@@ -1,10 +1,10 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { startOAuth } from "@/lib/oauth";
+import { startOAuth, startSSO } from "@/lib/oauth";
 import { useAuthMethods } from "@/lib/authMethods";
-import { Info, ShieldCheck } from "lucide-react";
+import { ArrowLeft, Building2, Info, ShieldCheck } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { AuthLayout, LOGIN_BENTO, OrDivider, SocialButton } from "@/components/AuthLayout";
 import { OtpInput } from "@/components/OtpInput";
@@ -27,6 +27,16 @@ export default function Login() {
   const [code, setCode] = useState("");
   const methods = useAuthMethods();
   const anySocial = !!methods && (methods.google || methods.microsoft || methods.sso);
+  const [sso, setSso] = useState(false);
+  // dozzier.co/login?sso=1 (the sign-on URL given to customers' IT teams) opens straight to SSO.
+  useEffect(() => { try { if (new URLSearchParams(window.location.search).get("sso")) setSso(true); } catch {} }, []);
+
+  async function ssoSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setBusy(true); setErr(null);
+    const problem = await startSSO(email, nextPath());
+    if (problem) { setBusy(false); setErr(problem); }
+  }
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -69,9 +79,26 @@ export default function Login() {
   }
 
   const social = async (p: string) => {
-    if (p === "SSO") return setNote("Single sign-on (SAML) is set up per company on the Enterprise plan. Talk to sales, or log in with your email for now.");
+    if (p === "SSO") { setErr(null); setNote(null); return setSso(true); }
     setNote(null); const err = await startOAuth(p === "Microsoft" ? "azure" : "google", nextPath()); if (err) setNote(err);
   };
+
+  if (sso && methods?.sso !== false) {
+    return (
+      <AuthLayout bentoTitle={LOGIN_BENTO}>
+        <form onSubmit={ssoSubmit} className="col" style={{ gap: 18 }}>
+          <button type="button" className="row gap-6 caption medium muted" style={{ alignSelf: "flex-start" }} onClick={() => { setSso(false); setErr(null); }}><ArrowLeft size={14} />All log in options</button>
+          <span className="auth-icon"><Building2 size={20} /></span>
+          <h1 className="title">Log in with SSO</h1>
+          <p className="sub">Enter your work email and we’ll send you to your company’s login.</p>
+          <label className="field"><span className="label">Work email</span><input className="input" type="email" required autoFocus autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@company.com" /></label>
+          {err && <p className="error-text">{err}</p>}
+          <button className="btn btn-brand btn-block" disabled={busy}>{busy ? "Redirecting…" : "Continue"}</button>
+          <p className="caption muted center">Single sign-on is set up by your company on Dozzier Enterprise. <a className="link caption" href="/talk-to-sales">Talk to sales</a></p>
+        </form>
+      </AuthLayout>
+    );
+  }
 
   return (
     <AuthLayout bentoTitle={LOGIN_BENTO}>
