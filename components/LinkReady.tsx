@@ -66,7 +66,7 @@ export function LinkReady({ link, docName, documentId, onDone }: { link: Link; d
               const list = to.split(/[,;\s]+/).map((x) => x.trim()).filter(Boolean);
               if (!list.length) return;
               setSent("sending");
-              const err = await sendEmail({ kind: "share", to: list, subject, message: body, cta: { label: `Open ${docName || link.name}`, url } });
+              const err = await sendEmail({ kind: "share", to: list, subject, message: body, cta: { label: `Open ${docName || link.name}`, url }, meta: { template: "share", title: docName || link.name } });
               if (err) { toast(err); setSent("idle"); return; }
               setSent("sent"); toast(`Sent to ${list.length === 1 ? list[0] : `${list.length} people`}`);
             }}>

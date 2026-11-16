@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { deliver, layout, textToHtml, EMAIL_RE, SITE } from "@/lib/email/server";
+import { deliver, EMAIL_RE, SITE } from "@/lib/email/server";
+import { userEmail, type UserMeta } from "@/lib/email/messages";
 
 export const dynamic = "force-dynamic";
 
@@ -9,7 +10,16 @@ const KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "sb_publishable_D1l_C12
 const DAILY_LIMIT = 300;
 const KINDS = ["invite", "sign", "file_request", "reminder", "share", "follow_up", "update", "nudge"] as const;
 
-type Body = { kind: (typeof KINDS)[number]; to: string[]; cc?: string[]; bcc?: string[]; subject: string; message: string; heading?: string; cta?: { label: string; url: string } };
+type Body = { kind: (typeof KINDS)[number]; to: string[]; cc?: string[]; bcc?: string[]; subject: string; message: string; heading?: string; cta?: { label: string; url: string }; meta?: UserMeta };
+
+const TEMPLATES = ["team_invite", "room_invite", "sign", "sign_reminder", "file_request", "file_reminder", "share", "update", "message"];
+/** Only short plain strings make it into the header illustration. */
+function cleanMeta(m?: UserMeta): UserMeta | undefined {
+  if (!m || typeof m !== "object") return undefined;
+  const str = (v: unknown, n: number) => (typeof v === "string" ? v.slice(0, n) : undefined);
+  return { template: TEMPLATES.includes(String(m.template)) ? m.template : undefined, title: str(m.title, 120), role: str(m.role, 20), workspace: str(m.workspace, 60), due: str(m.due, 40), subtitle: str(m.subtitle, 60),
+    items: Array.isArray(m.items) ? m.items.slice(0, 3).map((x) => String(x).slice(0, 60)) : undefined };
+}
 
 /** Sends an email on behalf of the signed-in user (From: "Name via Dozzier", Reply-To: the user). */
 export async function POST(req: NextRequest) {
@@ -47,7 +57,7 @@ export async function POST(req: NextRequest) {
     const id = await deliver({
       to, cc, bcc, subject, replyTo: u.user.email, fromName: sender, tag: b.kind,
       text: message + (cta ? `\n\n${cta.label}: ${cta.url}` : ""),
-      html: layout({ preheader: message.slice(0, 120), heading: b.heading?.slice(0, 120), bodyHtml: textToHtml(message), cta, footer: `${sender}${p?.workspace_name ? ` · ${p.workspace_name}` : ""} sent you this through Dozzier. Reply to reach them directly.` }),
+      html: userEmail({ kind: b.kind, meta: cleanMeta(b.meta), heading: b.heading?.slice(0, 120), subject, message, cta, sender, workspace: p?.workspace_name }),
     });
     await sb.from("email_log").insert({ kind: b.kind, recipients: n, subject, provider_id: id || null });
     return NextResponse.json({ ok: true, id });

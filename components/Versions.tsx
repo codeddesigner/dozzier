@@ -119,7 +119,7 @@ export function Versions({ doc, links, visits, onRestored }: { doc: Doc; links: 
               <button className="btn btn-primary btn-s" disabled={notifying !== "idle"} onClick={async () => {
                 setNotifying("sending");
                 for (let i = 0; i < past.length; i += 45) {
-                  const err = await sendEmail({ kind: "update", to: [email], bcc: past.slice(i, i + 45), subject: `Updated: ${doc.name}`, message: note });
+                  const err = await sendEmail({ kind: "update", to: [email], bcc: past.slice(i, i + 45), subject: `Updated: ${doc.name}`, message: note, meta: { template: "update", title: doc.name } });
                   if (err) { toast(err); setNotifying("idle"); return; }
                 }
                 setNotifying("sent"); toast(`Sent to ${past.length} past visitor${past.length === 1 ? "" : "s"}`); setNotify(false);

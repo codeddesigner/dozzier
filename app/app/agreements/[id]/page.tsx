@@ -17,7 +17,8 @@ function signEmail(s: Signer, title: string, sender: string, reminder = false): 
   return { kind: reminder ? "reminder" : "sign", to: [s.email], subject: reminder ? `Reminder: please sign “${title}”` : `${sender} sent you “${title}” to sign`,
     heading: reminder ? `“${title}” is waiting for your signature` : `Please sign “${title}”`,
     message: `Hi ${s.name.split(" ")[0]},\n\n${reminder ? `A quick reminder that “${title}” is still waiting for your signature.` : `${sender} has asked you to review and sign “${title}”.`} It takes about a minute and you don’t need an account.`,
-    cta: { label: "Review and sign", url: `${typeof window !== "undefined" ? window.location.origin : "https://dozzier.co"}/s/${s.token}` } };
+    cta: { label: "Review and sign", url: `${typeof window !== "undefined" ? window.location.origin : "https://dozzier.co"}/s/${s.token}` },
+    meta: { template: reminder ? "sign_reminder" : "sign", title } };
 }
 const signUrl = (t: string) => `${window.location.origin}/s/${t}`;
 

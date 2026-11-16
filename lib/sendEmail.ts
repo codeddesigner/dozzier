@@ -2,7 +2,8 @@
 import { supabase } from "@/lib/supabase";
 
 export type EmailKind = "invite" | "sign" | "file_request" | "reminder" | "share" | "follow_up" | "update" | "nudge";
-export type EmailInput = { kind: EmailKind; to: string[]; cc?: string[]; bcc?: string[]; subject: string; message: string; heading?: string; cta?: { label: string; url: string } };
+export type EmailMeta = { template?: "team_invite" | "room_invite" | "sign" | "sign_reminder" | "file_request" | "file_reminder" | "share" | "update" | "message"; title?: string; role?: string; workspace?: string; items?: string[]; due?: string; subtitle?: string };
+export type EmailInput = { kind: EmailKind; to: string[]; cc?: string[]; bcc?: string[]; subject: string; message: string; heading?: string; cta?: { label: string; url: string }; meta?: EmailMeta };
 
 /** Sends through /api/email (Delivrie). Returns null on success or an error message. */
 export async function sendEmail(e: EmailInput): Promise<string | null> {

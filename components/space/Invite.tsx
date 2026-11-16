@@ -42,6 +42,7 @@ export function InviteModal({ space, onClose }: { space: Space; onClose: () => v
     kind: "invite" as const, to: [e], subject: `${sender} invited you to ${space.name}`, heading: `You’re invited to ${space.name}`,
     message: `Hi ${displayName(e).split(" ")[0]},\n\n${note ? note + "\n\n" : ""}${sender} has given you access to “${space.name}”${space.subtitle ? ` — ${space.subtitle}` : ""}. The link below is personal to you.`,
     cta: { label: "Open the data room", url: `${linkUrlOf(slug)}?email=${encodeURIComponent(e)}` },
+    meta: { template: "room_invite" as const, title: space.name, subtitle: space.subtitle || undefined },
   });
   async function emailAll(list: string[], slug: string) {
     setSent((s) => ({ ...s, ...Object.fromEntries(list.map((e) => [e, "sending"])) }));

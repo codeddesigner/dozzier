@@ -59,7 +59,7 @@ export default function Personalise() {
   async function emailRows(list: R[]) {
     if (!list.length) return;
     setMail((m) => ({ ...m, ...Object.fromEntries(list.map((r) => [r.email, "sending" as const])) }));
-    const res = await sendEach(list, (r) => { const v = varsFor(r); return { kind: "share" as const, to: [r.email], subject: fillTemplate(tpl.subject, v), message: fillTemplate(tpl.body, v), cta: { label: `Open ${doc?.name || "document"}`, url: v.link } }; },
+    const res = await sendEach(list, (r) => { const v = varsFor(r); return { kind: "share" as const, to: [r.email], subject: fillTemplate(tpl.subject, v), message: fillTemplate(tpl.body, v), cta: { label: `Open ${doc?.name || "document"}`, url: v.link }, meta: { template: "share" as const, title: doc?.name || undefined } }; },
       (r, err) => setMail((m) => ({ ...m, [r.email]: err ? "failed" : "sent" })));
     toast(res.failed ? `${res.ok} sent, ${res.failed} failed${res.error ? ` — ${res.error}` : ""}` : `Emailed ${res.ok} recipient${res.ok === 1 ? "" : "s"}`);
   }

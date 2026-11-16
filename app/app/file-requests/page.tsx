@@ -19,7 +19,8 @@ function requestEmail(r: { title: string; description: string | null; due_date: 
   const due = r.due_date ? ` by ${new Date(r.due_date + "T12:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "long" })}` : "";
   return { kind: reminder ? "reminder" : "file_request", to: [e], subject: reminder ? `Reminder: ${r.title}` : `${sender} requested files: ${r.title}`, heading: reminder ? `A quick reminder about “${r.title}”` : `${sender} requested files from you`,
     message: `Hi ${displayName(e).split(" ")[0]},\n\n${reminder ? `Just a reminder to upload ${r.title}${due}.` : `Could you upload ${r.title}${due}?`}${r.description ? `\n\n${r.description}` : ""}\n\nNo account needed — the link below is private to you.`,
-    cta: { label: "Upload files", url: reqUrl(r.slug, e) } };
+    cta: { label: "Upload files", url: reqUrl(r.slug, e) },
+    meta: { template: reminder ? "file_reminder" : "file_request", title: r.title, due: r.due_date ? new Date(r.due_date + "T12:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "long" }) : undefined } };
 }
 const dueLabel = (d: string | null) => { if (!d) return null; const n = Math.ceil((new Date(d + "T23:59:59").getTime() - Date.now()) / 86400000); return { text: `Due ${new Date(d + "T12:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "short" })}`, late: n < 0, soon: n >= 0 && n <= 2 }; };
 

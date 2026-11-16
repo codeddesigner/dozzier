@@ -8,5 +8,6 @@ export function sendInviteEmails(list: string[], role: string, inviter: string, 
     kind: "invite" as const, to: [to], subject: `${inviter} invited you to ${workspace} on Dozzier`, heading: `Join ${workspace} on Dozzier`,
     message: `${inviter} invited you to join ${workspace} on Dozzier as ${role === "Admin" ? "an" : "a"} ${role}.\n\nCreate your account with this email address (${to}) and you’ll go straight into the shared workspace. Already on Dozzier? Sign in and accept the invite at the top of the app.`,
     cta: { label: "Accept invite", url: `${signup}?email=${encodeURIComponent(to)}` },
+    meta: { template: "team_invite" as const, role, workspace },
   }));
 }

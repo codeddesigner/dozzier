@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { deliver, layout, textToHtml, SITE } from "@/lib/email/server";
+import { deliver, SITE } from "@/lib/email/server";
+import { alertEmail } from "@/lib/email/messages";
 
 export const dynamic = "force-dynamic";
 
@@ -41,30 +42,10 @@ export async function POST(req: NextRequest) {
   const wantsChat = n.matrix?.[key] ? n.matrix[key].includes("slack") : CHAT_DEFAULT[p.event];
   const quiet = inQuiet(n, p.settings?.workspace?.timezone);
 
-  const who = p.who || "Someone";
-  const from = p.company ? `${who} (${p.company})` : who;
   const url = `${SITE}${p.href || "/app"}`;
-  let subject = "", heading = "", text = "", cta = "Open in Dozzier";
-  switch (p.event) {
-    case "open":
-      subject = `${who} ${p.returning ? "is back on" : "opened"} ${p.doc || "your link"}`; heading = subject;
-      text = `${from} ${p.returning ? "came back to" : "just opened"} ${p.doc || "your link"}${p.location ? ` from ${p.location}` : ""}.\n\nYou’ll see every page they read, and for how long, on their profile.`; cta = "See their activity"; break;
-    case "question":
-      subject = `${who} asked a question on ${p.doc || "your document"}`; heading = `New question${p.page ? ` on page ${p.page}` : ""}`;
-      text = `${from} asked:\n\n“${(p.body || "").slice(0, 600)}”\n\nReply from Dozzier and they’ll see your answer right next to the page.`; cta = "Reply"; break;
-    case "download":
-      subject = `${who} downloaded ${p.doc || "your document"}`; heading = subject; text = `${from} downloaded a copy of ${p.doc || "your document"}.`; break;
-    case "signed":
-      subject = p.completed ? `“${p.title}” is fully signed` : `${who} signed “${p.title}”`; heading = subject;
-      text = p.completed ? `Everyone has signed “${p.title}”. The certificate of completion and the signed PDF are ready.` : `${who} signed “${p.title}”. You’ll get another email when everyone has signed.`; cta = p.completed ? "Download signed PDF" : "View status"; break;
-    case "upload":
-      subject = `${who} uploaded ${p.count && p.count > 1 ? `${p.count} files` : p.file || "a file"}`; heading = `New upload to “${p.title}”`;
-      text = `${who} uploaded ${p.file || "a file"} to your request “${p.title}”.${p.body ? `\n\nTheir note: “${p.body.slice(0, 400)}”` : ""}`; cta = "View files"; break;
-    case "request":
-      subject = `${who} requested “${(p.title || "").slice(0, 80)}”`; heading = "New request in your data room";
-      text = `${from} asked for “${p.title}” in ${p.doc || "your Space"}.${p.body ? `\n\n${p.body.slice(0, 500)}` : ""}`; cta = "Open request tracker"; break;
-    default: return NextResponse.json({ skipped: "unknown" });
-  }
+  if (!["open", "question", "download", "signed", "upload", "request"].includes(p.event)) return NextResponse.json({ skipped: "unknown" });
+  const m = alertEmail({ ...p, url });
+  const subject = m.subject, text = m.line, cta = m.cta;
   // Zapier gets every event as structured data; Slack and Teams get a short message unless quiet hours are on.
   const hookJobs: Promise<void>[] = [postHook(p.hooks?.zapier, { event: p.event, who: p.who, email: p.who && /^\S+@\S+\.\S+$/.test(p.who) ? p.who.toLowerCase() : null, company: p.company, document: p.doc, title: p.title, file: p.file, page: p.page, text: p.body, location: p.location, returning: p.returning ?? null, completed: p.completed ?? null, url, at: new Date().toISOString() })];
   if (wantsChat && !quiet) {
@@ -76,8 +57,7 @@ export async function POST(req: NextRequest) {
   if (!wantsEmail) return NextResponse.json({ ok: true, skipped: "email settings" });
   if (quiet) return NextResponse.json({ ok: true, skipped: "quiet hours" });
   try {
-    await deliver({ to: [p.to], subject, tag: `alert_${p.event}`, text: `${text}\n\n${cta}: ${url}`,
-      html: layout({ preheader: text.slice(0, 120), heading, bodyHtml: textToHtml(text), cta: { label: cta, url }, footer: "You’re getting this because email alerts are on for this event. Change them in Settings → Notifications." }) });
+    await deliver({ to: [p.to], subject, tag: `alert_${p.event}`, text: m.text, html: m.html });
     return NextResponse.json({ ok: true });
   } catch (e) {
     return NextResponse.json({ error: e instanceof Error ? e.message : "send failed" }, { status: 502 });
