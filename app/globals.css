@@ -1037,7 +1037,9 @@ html[data-theme="dark"] .toast { color: #111827; }
 html[data-theme="dark"] .rail-app.active, html[data-theme="dark"] .rail-btn.on { background: var(--dz-bg-muted); }
 html[data-theme="dark"] .skeleton span { background: linear-gradient(90deg, #1f2937 0%, #2b3443 40%, #1f2937 80%); background-size: 200% 100%; }
 html[data-theme="dark"] .app-logo:not(.mono) { background: #fff; }
-.theme-anim, .theme-anim * { transition: background-color .35s ease, border-color .35s ease, color .25s ease !important; }
+/* Theme switch: a single crossfade of the whole page (see components/Theme.tsx). */
+.theme-switching::view-transition-old(root), .theme-switching::view-transition-new(root) { animation-duration: .3s; animation-timing-function: cubic-bezier(.2, 0, 0, 1); }
+.theme-switching * { transition: none !important; }
 
 @media (max-width: 1100px) { .set-split { flex-direction: column; } .set-split > div { width: 100% !important; } .usage-grid { grid-template-columns: 1fr 1fr; } }
 @media (max-width: 760px) { .set-nav { display: none; } .set-main { padding: 20px 16px 64px; } .set-grid, .theme-pick { grid-template-columns: 1fr; } }
