@@ -5,8 +5,9 @@ const CHUNK = 6 * 1024 * 1024; // Supabase requires exactly 6 MB TUS chunks.
 const RESUMABLE_FROM = 6 * 1024 * 1024;
 const ANON = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "sb_publishable_D1l_C12Kv_Y-yhzzALG6oA_rL3T1WQ1";
 
-/** Direct storage host (recommended by Supabase for large uploads): xyz.supabase.co → xyz.storage.supabase.co */
-const storageHost = () => SUPABASE_URL.replace(/^https:\/\/([a-z0-9]+)\.supabase\.co$/, "https://$1.storage.supabase.co");
+/** Direct storage host (recommended by Supabase for large uploads). Works whether the app uses auth.dozzier.co or xyz.supabase.co. */
+const REF = process.env.NEXT_PUBLIC_SUPABASE_REF || "hxgcoekovalkmdwcabll";
+const storageHost = () => /\.supabase\.co$/.test(SUPABASE_URL) ? SUPABASE_URL.replace(/^https:\/\/([a-z0-9]+)\.supabase\.co$/, "https://$1.storage.supabase.co") : `https://${REF}.storage.supabase.co`;
 const b64 = (s: string) => btoa(unescape(encodeURIComponent(s)));
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
