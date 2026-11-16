@@ -2199,3 +2199,52 @@ html[data-theme="dark"] .app { background: #1b2433; } html[data-theme="dark"] .a
 .auth-switch { margin: -4px 0 0; text-align: center; font-size: 14px; line-height: 20px; color: var(--dz-text-secondary); }
 .auth-switch a { color: var(--dz-text-brand); font-weight: 500; }
 .auth-switch a:hover { text-decoration: underline; }
+
+/* ===================================================================
+   Flat UI pass: no decorative shadows, no button motion, no hover lifts.
+   Shadows stay only on floating layers (modals, menus, popovers, toasts),
+   and focus rings stay for accessibility.
+   =================================================================== */
+:root { --shadow-xs: none; --shadow-md: none; --shadow-lg: none; --shadow-pop: 0 0 0 1px rgba(17,24,39,.08), 0 16px 40px -20px rgba(17,24,39,.22); }
+
+/* Buttons: colour change only. */
+.btn, .btn-outline, .btn-xs-shadow, .btn-lime, .social-btn, .setup-btn, .icon-btn, .docs-search-btn, .tour-resume { box-shadow: none !important; }
+.btn, .social-btn, .icon-btn { transition: background-color .15s ease, border-color .15s ease, color .15s ease, opacity .15s ease !important; }
+.btn:hover:not(:disabled), .btn:active:not(:disabled), .social-btn:hover, .icon-btn:active { transform: none !important; box-shadow: none !important; }
+.btn-primary::after, .btn-dark::after, .btn-brand::after { content: none !important; animation: none !important; }
+.btn .arrow, .btn:hover .arrow, .announce-bar .arrow, .announce-bar:hover .arrow { transform: none !important; transition: none !important; }
+.price-card .ribbon::after { content: none !important; animation: none !important; }
+
+/* Nav: a hairline instead of a drop shadow when scrolled. */
+.lp-nav, .scrolled .lp-nav, .docs-head, .scrolled .docs-head { box-shadow: none !important; }
+.scrolled .lp-nav, .scrolled .docs-head { border-bottom: 1px solid var(--dz-border-subtle); }
+.announce-bar { animation: none !important; background: #f0f6fe !important; }
+
+/* Cards, tiles and rows: borders, not shadows; no lifting on hover. */
+.kpi-card, .kpi, .card, .feature-card, .mini-card, .step-card, .price-card, .sec-card, .bento-card, .bento-hero, .bento-trust,
+.int-tile, .int-card, .sel-card, .docs-hero-search, .docs-cat, .docs-video, .help-row, .sv-fcard, .pipe-card, .side-promo, .st-tpl,
+.st-card, .fr-card, .es-page, .ws-switch, .rail-app.active, .rail-btn.on, .segmented button.active, .auth-card, .gate, .ask-input,
+.peek-alert, .peek-kpi-v, .mk-app, .mk-form, .mk-card, .mk-modal, .mk-chart, .mk-alert, .mk-intel-card, .mk-tl-ico, .mk-room-card, .mk-folders,
+.mk-nda, .mk-req, .browser, .float-card, .float-card.f1, .ai-card, .cs-tpl, .hdr-search { box-shadow: none !important; }
+.kpi:hover, .card:hover, a.card:hover, .card.clickable:hover, button.card:hover, .feature-card:hover, .mini-card:hover, .step-card:hover, .price-card:hover,
+.sec-card:hover, .bento-card:hover, .bento-hero:hover, .bento-trust:hover, .int-tile:hover, .int-card:hover, .sel-card:hover, .docs-hero-search:hover,
+.docs-cat:hover, .docs-video:hover, .help-row:hover, .sv-fcard:hover, .pipe-card:hover, .side-promo:hover, .st-tpl:hover, .mk-app:hover, .docs-search-btn:hover {
+  transform: none !important; box-shadow: none !important; }
+.price-card li:hover svg { transform: none !important; }
+.segmented button.active { outline: 1px solid var(--dz-border-default); outline-offset: -1px; }
+.rail-app.active, .rail-btn.on { border-color: var(--dz-border-default); }
+
+/* Mock-ups on the website: hairline borders instead of floating shadows. */
+.browser { border: 1px solid var(--dz-border-default); border-bottom: 0; }
+.float-card, .mk-modal, .mk-chart, .mk-alert, .mk-intel-card, .mk-room-card, .mk-folders, .mk-nda, .mk-req, .peek-alert, .es-page, .fr-card, .st-card { border: 1px solid var(--dz-border-default) !important; }
+.mk-tl-ico { border: 1px solid var(--dz-border-subtle); }
+
+/* Floating layers keep one quiet elevation. */
+.modal, .menu, .coachmark, .ds-dialog, .cp, .sv-modal, .tour-card, .fig-panel, .toast { box-shadow: var(--shadow-pop) !important; }
+.help-panel, .q-panel, .viewer-light .q-panel { box-shadow: none !important; border-left: 1px solid var(--dz-border-default); }
+/* No wiggles, nudges or pops on hover. */
+.swatch:hover, .int-tile:hover, .sec-card:hover, .mini-card:hover svg, .step-card:hover .icon-tile svg, .sec-card:hover > svg, .step-card:hover .step-num,
+.nav-item:hover svg, .rail-app:hover, .rail-btn:hover, .rail-avatar:hover, .table tbody tr.clickable:hover td:first-child svg, .docs-cat:hover .docs-cat-ico,
+.docs-pop-row:hover svg:last-child, .docs-video:hover .docs-play, .doc-side-link:hover, .doc-next:hover, .help-chat:hover, .set-nav-item:hover,
+.theme-opt:hover .theme-swatch, .q-book:hover, .heat-cell:hover, .cs-tpl:hover, .cover-swatch:hover, .es-tool:hover, .pipe-card:hover { transform: none !important; }
+.int-tile:hover { box-shadow: none !important; }
