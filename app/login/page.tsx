@@ -67,7 +67,7 @@ export default function Login() {
 
   const social = async (p: string) => {
     if (p === "SSO") return setNote("Single sign-on (SAML) is set up per company on the Enterprise plan. Talk to sales, or log in with your email for now.");
-    setNote(null); const err = await startOAuth("google", nextPath()); if (err) setNote(err);
+    setNote(null); const err = await startOAuth(p === "Microsoft" ? "azure" : "google", nextPath()); if (err) setNote(err);
   };
 
   return (
@@ -75,6 +75,7 @@ export default function Login() {
       <form onSubmit={submit} className="col" style={{ gap: 18 }}>
         <h1 className="title">Log in to Dozzier</h1>
         <SocialButton provider="google" label="Continue with Google" onClick={() => social("Google sign-in")} />
+        <SocialButton provider="microsoft" label="Continue with Microsoft" onClick={() => social("Microsoft")} />
         <SocialButton provider="sso" label="Continue with SSO" onClick={() => social("SSO")} />
         {note && <div className="notice info"><Info size={16} />{note}</div>}
         <OrDivider />
