@@ -8,15 +8,20 @@ export const PRICES: Record<"personal" | "standard" | "datarooms", { name: strin
   standard: { name: "Standard", monthly: 2500, annual: 24000, perSeat: true },
   datarooms: { name: "Data Rooms", monthly: 14000, annual: 134400, perSeat: false },
 };
-export const enabled = () => !!process.env.PAYSTACK_SECRET_KEY;
+/** The secret key, tolerating stray spaces, newlines or quotes pasted into the env var. */
+const secret = () => (process.env.PAYSTACK_SECRET_KEY || "").trim().replace(/^["']|["']$/g, "").trim();
+export const enabled = () => !!secret();
 
 export async function paystack<T = Record<string, unknown>>(path: string, init?: { method?: string; body?: unknown }) {
+  const key = secret();
+  if (key.startsWith("pk_")) throw new Error("Billing is misconfigured: PAYSTACK_SECRET_KEY holds the public key (pk_…). Use the secret key (sk_…).");
   const r = await fetch(`https://api.paystack.co${path}`, {
     method: init?.method || "GET",
-    headers: { Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`, "Content-Type": "application/json" },
+    headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
     body: init?.body ? JSON.stringify(init.body) : undefined, cache: "no-store",
   });
   const j = (await r.json().catch(() => ({}))) as { status?: boolean; message?: string; data?: T };
+  if (r.status === 401 || /invalid key/i.test(j.message || "")) throw new Error("Billing is misconfigured: Paystack rejected the secret key. Please contact support.");
   if (!r.ok || j.status === false) throw new Error(j.message || `Paystack error ${r.status}`);
   return j.data as T;
 }

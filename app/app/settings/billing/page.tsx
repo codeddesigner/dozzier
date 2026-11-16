@@ -11,7 +11,7 @@ import { PLAN_LIMITS } from "@/lib/limits";
 
 const PLAN = PLAN_LIMITS;
 
-const STATUS: Record<string, string> = { active: "Subscription active", canceling: "Cancels at the end of this period", canceled: "Subscription ended", past_due: "Last payment failed — update your card" };
+const STATUS: Record<string, string> = { active: "Subscription active", canceling: "Cancels at the end of this period", canceled: "Subscription ended", past_due: "Last payment failed — update your card", comped: "Plan provided by Dozzier — no card needed" };
 
 export default function Billing() {
   const { profile, refreshProfile } = useApp();
@@ -50,7 +50,7 @@ export default function Billing() {
         <div className="plan-card">
           <span className="overline" style={{ color: "rgba(255,255,255,.75)" }}>Current plan</span>
           <span className="h2" style={{ color: "#fff" }}>{plan.name}</span>
-          <span style={{ color: "rgba(255,255,255,.85)", fontSize: 14 }}>{profile.plan === "trial" ? `Ends ${trialEnds.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}` : plan.price}</span>
+          <span style={{ color: "rgba(255,255,255,.85)", fontSize: 14 }}>{profile.plan === "trial" ? `Ends ${trialEnds.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}` : profile.subscription_status === "comped" ? (profile.comp_ends_at ? `Free until ${new Date(profile.comp_ends_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}` : "Free, provided by Dozzier") : plan.price}</span>
           <div className="row gap-8" style={{ marginTop: 8 }}><Link href="/app/upgrade" className="btn btn-s" style={{ background: "#fff", color: "#111827" }}>{profile.plan === "trial" ? "Choose a plan" : "Change plan"}</Link></div>
         </div>
         <Card title="Payment & subscription" style={{ flex: 1, minWidth: 240 }}>

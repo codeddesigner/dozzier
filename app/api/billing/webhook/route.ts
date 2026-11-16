@@ -8,7 +8,7 @@ type Ev = { event: string; data: { customer?: { customer_code?: string }; metada
 /** Paystack → Dozzier. Verifies the signature, then updates the workspace's plan. */
 export async function POST(req: NextRequest) {
   const raw = await req.text();
-  const secret = process.env.PAYSTACK_SECRET_KEY;
+  const secret = (process.env.PAYSTACK_SECRET_KEY || "").trim().replace(/^["']|["']$/g, "").trim();
   if (!secret) return NextResponse.json({ error: "not configured" }, { status: 503 });
   const sig = req.headers.get("x-paystack-signature") || "";
   const want = crypto.createHmac("sha512", secret).update(raw).digest("hex");

@@ -2192,3 +2192,6 @@ html[data-theme="dark"] .app { background: #1b2433; } html[data-theme="dark"] .a
   .mk-code { font-size: 11.5px; padding: 18px; }
   .mk-sec-bento .sec-panel { padding-top: 24px; }
 }
+
+.adm-pick { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border: 1px solid var(--dz-border-subtle); border-radius: 10px; background: var(--dz-bg-surface); width: 100%; }
+.adm-pick:hover { border-color: var(--dz-border-default); background: var(--dz-bg-subtle); }

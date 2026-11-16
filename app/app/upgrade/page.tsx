@@ -32,7 +32,7 @@ export default function Upgrade() {
         <div className="segmented mt-8"><button className={!annual ? "active" : ""} onClick={() => setAnnual(false)}>Monthly</button><button className={annual ? "active" : ""} onClick={() => setAnnual(true)}>Annually · save 20%</button></div>
       </div>
       <div className="mt-32">
-        <PricingCards trial={profile.plan === "trial"} cta={(id) => profile.plan === id || (profile.plan === "trial" && id === "datarooms")
+        <PricingCards annual={annual} trial={profile.plan === "trial"} cta={(id) => profile.plan === id || (profile.plan === "trial" && id === "datarooms")
           ? <button className="btn btn-block btn-brand" aria-disabled="true">Current plan</button>
           : <button className={`btn btn-block ${id === "standard" ? "btn-dark" : "btn-brand"}`} disabled={busy !== null} onClick={() => pick(id)}>{busy === id ? "Opening checkout…" : id === "datarooms" ? "Start free trial" : "Select plan"}</button>} />
       </div>

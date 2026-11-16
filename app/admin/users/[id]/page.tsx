@@ -2,14 +2,15 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, Ban, CalendarPlus, Trash2, RotateCcw, ExternalLink } from "lucide-react";
+import { ArrowLeft, Ban, CalendarPlus, Trash2, RotateCcw, ExternalLink, Gift } from "lucide-react";
 import { Avatar, Loading, Modal, toast, useLoad } from "@/components/ui";
 import { adminRpc, bytes, day, PLAN_LABEL } from "@/lib/admin";
+import { AssignSubscription } from "@/components/admin/AssignSubscription";
 import { timeAgo } from "@/lib/format";
 
 type Detail = {
   user: { id: string; email: string; created_at: string; last_sign_in_at: string | null; confirmed: boolean } | null;
-  profile: { full_name: string | null; workspace_name: string | null; plan: string; subscription_status: string | null; billing_customer: string | null; billing_subscription: string | null; billing_seats: number | null;
+  profile: { full_name: string | null; workspace_name: string | null; plan: string; subscription_status: string | null; billing_customer: string | null; billing_subscription: string | null; billing_seats: number | null; comp_ends_at: string | null; comp_note: string | null;
     suspended_at: string | null; suspended_reason: string | null; trial_ends_at: string | null; created_at: string; job_role: string | null; team_size: string | null } | null;
   workspace_owner: { id: string; email: string } | null;
   members: { user_id: string; email: string; role: string; joined_at: string }[];
@@ -24,7 +25,7 @@ export default function AdminUser() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const { data, loading, reload } = useLoad(() => adminRpc<Detail>("admin_user", { p_id: id }), [id]);
-  const [modal, setModal] = useState<null | "plan" | "trial" | "suspend" | "delete">(null);
+  const [modal, setModal] = useState<null | "plan" | "trial" | "suspend" | "delete" | "assign">(null);
   const [plan, setPlan] = useState("standard");
   const [note, setNote] = useState("");
   const [days, setDays] = useState(14);
@@ -55,6 +56,7 @@ export default function AdminUser() {
         {p?.suspended_at
           ? <button className="btn btn-secondary" disabled={busy} onClick={() => act("admin_suspend", { p_id: id, p_suspend: false }, "Account restored")}><RotateCcw size={15} />Restore</button>
           : <button className="btn btn-secondary" onClick={() => setModal("suspend")}><Ban size={15} />Suspend</button>}
+        <button className="btn btn-primary" onClick={() => setModal("assign")}><Gift size={15} />Assign subscription</button>
         <button className="btn btn-secondary" onClick={() => { setPlan(p?.plan === "trial" ? "standard" : p?.plan || "standard"); setModal("plan"); }}>Change plan</button>
         <button className="btn btn-secondary" onClick={() => setModal("trial")}><CalendarPlus size={15} />Extend trial</button>
         <button className="btn btn-danger" onClick={() => setModal("delete")}><Trash2 size={15} />Delete</button>
@@ -79,7 +81,9 @@ export default function AdminUser() {
           <dl className="adm-dl">
             <dt>Plan</dt><dd>{PLAN_LABEL[p?.plan || "trial"] || p?.plan}</dd>
             {p?.plan === "trial" && <><dt>Trial ends</dt><dd>{day(trialEnd)}</dd></>}
-            <dt>Subscription</dt><dd>{p?.subscription_status || "None"}{p?.billing_seats ? ` · ${p.billing_seats} seats` : ""}</dd>
+            <dt>Subscription</dt><dd>{p?.subscription_status === "comped" ? "Assigned by admin" : p?.subscription_status || "None"}{p?.billing_seats ? ` · ${p.billing_seats} seats` : ""}</dd>
+            {p?.subscription_status === "comped" && <><dt>Assigned until</dt><dd className="row gap-8">{p.comp_ends_at ? day(p.comp_ends_at) : "No end date"}<button className="btn btn-ghost btn-s" disabled={busy} onClick={() => { if (confirm("End this assigned plan now? The workspace will be asked to choose a paid plan.")) act("admin_end_subscription", { p_id: id }, "Assigned plan ended"); }}>End now</button></dd>
+              {p.comp_note && <><dt>Note</dt><dd>{p.comp_note}</dd></>}</>}
             <dt>Paystack customer</dt><dd>{p?.billing_customer ? <a className="link row gap-4" target="_blank" rel="noreferrer" href={`https://dashboard.paystack.com/#/customers/${p.billing_customer}`}>{p.billing_customer}<ExternalLink size={12} /></a> : "—"}</dd>
             <dt>Subscription code</dt><dd>{p?.billing_subscription || "—"}</dd>
           </dl>
@@ -127,6 +131,7 @@ export default function AdminUser() {
           </div>
         </Modal>
       )}
+      {modal === "assign" && <AssignSubscription account={{ id, email: user.email, isMember: !!data.workspace_owner }} onClose={() => setModal(null)} onDone={() => { setModal(null); reload(); }} />}
       {modal === "trial" && (
         <Modal title="Extend trial" onClose={() => setModal(null)} width={420} footer={<><span className="grow" /><button className="btn btn-ghost" onClick={() => setModal(null)}>Cancel</button><button className="btn btn-primary" disabled={busy} onClick={() => act("admin_extend_trial", { p_id: id, p_days: days }, `Trial extended by ${days} days`)}>Extend</button></>}>
           <div className="col gap-12">
