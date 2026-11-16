@@ -24,7 +24,7 @@ import { HeroLiveAlert, IntentScore, MockKpis, MockRows, LiveFeed, LinkSettingsL
 function Hero() {
   return (
     <section className="hero" id="product">
-      <Link href="/signup" className="announce h-in"><span className="badge badge-brand">New</span><span className="d-only">Dozzier MCP — your deal data in Claude and Cursor</span><span className="m-only">Dozzier MCP for Claude &amp; Cursor</span> <span className="arrow">→</span></Link>
+      <Link href="/docs/mcp" className="announce h-in"><span className="badge badge-brand">New</span><span className="d-only">Dozzier MCP — your deal data in Claude and Cursor</span><span className="m-only">Dozzier MCP for Claude &amp; Cursor</span> <span className="arrow">→</span></Link>
       <h1 className="display-xl hero-title"><WordReveal text="The secure platform to share, track, and move business forward." delay={80} /></h1>
       <p className="body-l muted h-in d-only" style={{ maxWidth: 732, animationDelay: ".45s" }}>
         Dozzier turns every deck, proposal and data room into a secure link with page-by-page analytics, live alerts and timely follow-ups — so you know who’s interested and exactly what to do next.
