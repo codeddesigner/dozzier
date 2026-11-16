@@ -163,7 +163,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     const w = (wsId as string) || session.user.id;
     // Teammates see the workspace owner's name, plan and branding.
     if (w !== session.user.id) {
-      const { data: o } = await supabase.from("profiles").select("workspace_name,plan,brand_color,brand_logo_path,hide_branding,custom_domain,crm_connected,created_at").eq("id", w).maybeSingle();
+      const { data: o } = await supabase.from("profiles").select("workspace_name,plan,brand_color,brand_logo_path,hide_branding,custom_domain,crm_connected,created_at,subscription_status,billing_subscription").eq("id", w).maybeSingle();
       if (o) profile = { ...profile, ...o, created_at: profile.created_at };
     }
     setInvites((inv as typeof invites) || []);

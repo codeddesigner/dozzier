@@ -1,16 +1,31 @@
 "use client";
+import { useEffect, useState } from "react";
+import { openBillingPortal } from "@/lib/billing";
 import Link from "next/link";
 import { CreditCard, Receipt } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useApp } from "@/components/AppContext";
-import { Loading, useLoad } from "@/components/ui";
+import { Loading, toast, useLoad } from "@/components/ui";
 import { Card, SettingsHead } from "@/components/settings/kit";
 import { PLAN_LIMITS } from "@/lib/limits";
 
 const PLAN = PLAN_LIMITS;
 
+const STATUS: Record<string, string> = { active: "Subscription active", canceling: "Cancels at the end of this period", canceled: "Subscription ended", past_due: "Last payment failed — update your card" };
+
 export default function Billing() {
-  const { profile } = useApp();
+  const { profile, refreshProfile } = useApp();
+  const [opening, setOpening] = useState(false);
+  async function manage() { setOpening(true); const r = await openBillingPortal(); setOpening(false); if (r.url) window.open(r.url, "_blank"); else toast(r.error || "Couldn’t open billing"); }
+  // Back from Paystack checkout: the webhook updates the plan within a few seconds.
+  useEffect(() => {
+    if (!new URLSearchParams(window.location.search).get("paid")) return;
+    toast("Payment received — updating your plan…");
+    window.history.replaceState(null, "", "/app/settings/billing");
+    const t = [2000, 5000, 10000].map((ms) => setTimeout(() => refreshProfile(), ms));
+    return () => t.forEach(clearTimeout);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const plan = PLAN[profile.plan] || PLAN.trial;
   const trialEnds = new Date(new Date(profile.created_at).getTime() + 14 * 86400000);
   const { data, loading } = useLoad(async () => {
@@ -38,9 +53,11 @@ export default function Billing() {
           <span style={{ color: "rgba(255,255,255,.85)", fontSize: 14 }}>{profile.plan === "trial" ? `Ends ${trialEnds.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}` : plan.price}</span>
           <div className="row gap-8" style={{ marginTop: 8 }}><Link href="/app/upgrade" className="btn btn-s" style={{ background: "#fff", color: "#111827" }}>{profile.plan === "trial" ? "Choose a plan" : "Change plan"}</Link></div>
         </div>
-        <Card title="Payment method" style={{ flex: 1, minWidth: 240 }}>
-          <div className="row gap-10"><CreditCard size={20} className="faint" /><span className="grow muted" style={{ fontSize: 14 }}>No card on file</span></div>
-          <p className="caption faint">Card payments open when paid plans launch. Your trial needs no card.</p>
+        <Card title="Payment & subscription" style={{ flex: 1, minWidth: 240 }}>
+          <div className="row gap-10"><CreditCard size={20} className="faint" /><span className="grow muted" style={{ fontSize: 14 }}>{STATUS[profile.subscription_status || ""] || (profile.plan === "trial" ? "Free trial — no card needed" : "No subscription yet")}</span></div>
+          {profile.billing_subscription
+            ? <><p className="caption faint">Update your card, download receipts or cancel on Paystack’s secure page.</p><div><button className="btn btn-secondary btn-s" disabled={opening} onClick={manage}>{opening ? "Opening…" : "Manage subscription"}</button></div></>
+            : <p className="caption faint">Payments are processed securely by Paystack. Pick a plan to subscribe.</p>}
         </Card>
       </div>
       <Card title="Usage this period">
@@ -56,7 +73,7 @@ export default function Billing() {
         )}
       </Card>
       <Card title="Invoices">
-        <div className="row gap-10" style={{ padding: "8px 0" }}><Receipt size={18} className="faint" /><span className="muted" style={{ fontSize: 14 }}>No invoices yet{profile.plan === "trial" ? " — you’re on the free trial" : ""}.</span></div>
+        <div className="row gap-10" style={{ padding: "8px 0" }}><Receipt size={18} className="faint" /><span className="muted" style={{ fontSize: 14 }}>{profile.billing_subscription ? "Paystack emails a receipt for every payment. Past invoices are on the Manage subscription page." : `No invoices yet${profile.plan === "trial" ? " — you’re on the free trial" : ""}.`}</span></div>
       </Card>
     </>
   );
