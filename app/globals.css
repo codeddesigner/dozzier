@@ -2218,7 +2218,7 @@ html[data-theme="dark"] .app { background: #1b2433; } html[data-theme="dark"] .a
 /* Nav: a hairline instead of a drop shadow when scrolled. */
 .lp-nav, .scrolled .lp-nav, .docs-head, .scrolled .docs-head { box-shadow: none !important; }
 .scrolled .lp-nav, .scrolled .docs-head { border-bottom: 1px solid var(--dz-border-subtle); }
-.announce-bar { animation: none !important; background: #f0f6fe !important; }
+.announce-bar { animation: none !important; }
 
 /* Cards, tiles and rows: borders, not shadows; no lifting on hover. */
 .kpi-card, .kpi, .card, .feature-card, .mini-card, .step-card, .price-card, .sec-card, .bento-card, .bento-hero, .bento-trust,
