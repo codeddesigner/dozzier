@@ -9,6 +9,7 @@ import { DocRenderer, Source, sourceFor } from "@/components/DocRenderer";
 import { NDA_TEMPLATE } from "@/components/nda";
 import { OtpInput } from "@/components/OtpInput";
 import { indexItems } from "@/lib/format";
+import { isAppHost } from "@/lib/domains";
 
 type Pub = { link_id: string; name: string; require_email: boolean; verify_email?: boolean; has_passcode: boolean; allow_download: boolean; watermark: boolean; require_nda: boolean;
   screenshot_protection: boolean; document_name: string | null; file_type: string | null; page_count: number | null; is_sample: boolean | null; sender: string;
@@ -45,7 +46,13 @@ export default function Viewer() {
 
   // Load link metadata; skip the gate if nothing is required.
   useEffect(() => {
-    supabase.rpc("get_public_link", { p_slug: slug }).then(({ data }) => {
+    (async () => {
+      // On a customer's own domain, only that workspace's links open.
+      if (!isAppHost(window.location.host)) {
+        const { data: ok } = await supabase.rpc("link_on_host", { p_slug: slug, p_host: window.location.host });
+        if (!ok) { setPub(null); return; }
+      }
+      const { data } = await supabase.rpc("get_public_link", { p_slug: slug });
       const p = (data as Pub) || null;
       setPub(p);
       try {
@@ -54,7 +61,7 @@ export default function Viewer() {
         if (pre) setEmail(pre); else if (saved) setEmail(saved);
       } catch {}
       if (p && !p.require_email && !p.verify_email && !p.has_passcode && !p.require_nda) start(p, "", "");
-    });
+    })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slug]);
 

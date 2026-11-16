@@ -1,4 +1,5 @@
 "use client";
+import { linkUrlFor } from "@/lib/linkBase";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Check, Copy, Mail, Code2, QrCode, Users, Download, MessageSquare, Send } from "lucide-react";
@@ -8,7 +9,7 @@ import { useApp } from "@/components/AppContext";
 import type { Link } from "@/lib/supabase";
 
 export function linkUrlOf(slug: string) {
-  return `${typeof window !== "undefined" ? window.location.origin : "https://dozzier.co"}/v/${slug}`;
+  return linkUrlFor(slug);
 }
 
 /** Fills {{placeholders}} in an email template. */

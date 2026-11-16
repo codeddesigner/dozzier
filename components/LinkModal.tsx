@@ -1,4 +1,5 @@
 "use client";
+import { linkUrlFor } from "@/lib/linkBase";
 import { useMemo, useState } from "react";
 import { Mail, Download, Lock, Calendar, FileCheck2, FileSignature, Users, Scan, Bell, Link2, Copy, ShieldCheck } from "lucide-react";
 import { Modal, Tabs, Toggle, copy, toast } from "./ui";
@@ -9,7 +10,7 @@ import { standardPreset } from "@/lib/linkDefaults";
 import { LinkReady } from "./LinkReady";
 
 export function linkUrl(slug: string) {
-  return `${typeof window !== "undefined" ? window.location.origin : "https://dozzier.co"}/v/${slug}`;
+  return linkUrlFor(slug);
 }
 
 type Draft = Omit<Link, "id" | "created_at" | "document_id" | "space_id">;

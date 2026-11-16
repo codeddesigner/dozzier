@@ -1,4 +1,5 @@
 "use client";
+import { setLinkDomain } from "@/lib/linkBase";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -166,6 +167,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       if (o) profile = { ...profile, ...o, created_at: profile.created_at };
     }
     setInvites((inv as typeof invites) || []);
+    const { data: dom } = await supabase.from("custom_domains").select("domain,is_primary").eq("status", "active").order("is_primary", { ascending: false }).limit(1);
+    setLinkDomain(dom?.[0]?.domain || null);
     setState({ userId: session.user.id, wsId: w, role: (role as string) || "Owner", email: session.user.email || "", profile });
   }, [router]);
 
