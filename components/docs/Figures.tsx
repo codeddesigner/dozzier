@@ -19,7 +19,7 @@ export function LinkSettingsFigure() {
         <div className="row"><span className="semibold">Create link</span><span className="spacer" /><X size={14} /></div>
         <div className="fig-label">Link name</div>
         <div className="fig-input">Randombase — Series A</div>
-        <div className="fig-url"><Link2 size={11} /><span className="grow">dozzier.io/v/randombase-series-a</span><Copy size={11} /></div>
+        <div className="fig-url"><Link2 size={11} /><span className="grow">dozzier.co/v/randombase-series-a</span><Copy size={11} /></div>
         <div className="fig-tabs">{["Access", "Security", "Branding", "Notifications"].map((t, i) => <span key={t} className={i === 0 ? "on" : ""}>{t}</span>)}</div>
         {rows.map(([I, t, d, on], i) => (
           <div className="fig-row" key={t} style={{ ["--i" as string]: i }}>

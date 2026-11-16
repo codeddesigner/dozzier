@@ -4,12 +4,6 @@ import { SITE } from "./site";
 import { renderEmail, button } from "./templates";
 export { SITE };
 
-const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-/** Plain text → HTML paragraphs with clickable links. */
-export function textToHtml(text: string) {
-  return esc(text).split(/\n{2,}/).map((p) => `<p style="margin:0 0 14px;line-height:1.6">${p.replace(/\n/g, "<br>").replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" style="color:#2563eb;text-decoration:underline">$1</a>')}</p>`).join("");
-}
-
 /** Legacy helper: wraps HTML in the Figma email design with a generic header. Prefer lib/email/messages.ts. */
 export function layout(o: { preheader?: string; heading?: string; bodyHtml: string; cta?: { label: string; url: string }; footer?: string }) {
   return renderEmail({ preheader: o.preheader, banner: { bg: "#eaf3fe", pill: "Dozzier", title: o.heading || "An update from Dozzier", sub: o.preheader?.slice(0, 120) || "" },

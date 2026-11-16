@@ -60,6 +60,3 @@ export function SaveButton({ onClick, saving, dirty = true, label = "Save change
   return <button className={`btn btn-brand ${dirty ? "" : "is-clean"}`} disabled={saving} onClick={onClick}>{saving ? "Saving…" : label}</button>;
 }
 
-export function ComingSoon({ children }: { children: ReactNode }) {
-  return <div className="notice info" style={{ fontSize: 13 }}>{children}</div>;
-}

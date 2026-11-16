@@ -42,7 +42,6 @@ export default function Onboarding() {
   const [linkOn, setLinkOn] = useState(true);
   // brand
   const [color, setColor] = useState(COLORS[0]);
-  const [domain, setDomain] = useState("");
   const [hide, setHide] = useState(false);
   const [logoPath, setLogoPath] = useState<string | null>(null);
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
@@ -61,7 +60,6 @@ export default function Onboarding() {
         if (p.job_role) setRole(p.job_role);
         if (p.use_cases?.length) setUses(p.use_cases);
         if (p.brand_color) setColor(p.brand_color);
-        if (p.custom_domain) setDomain(p.custom_domain);
         setHide(!!p.hide_branding);
         if (p.brand_logo_path) { setLogoPath(p.brand_logo_path); setLogoName(p.brand_logo_path.split("/").pop()?.replace(/^\d+-/, "") || "logo"); }
       }
@@ -101,7 +99,7 @@ export default function Onboarding() {
         }
         await save({ invite_link_enabled: linkOn });
       } else if (step === 4) {
-        await save({ brand_color: color, custom_domain: domain.trim() || null, hide_branding: hide, brand_logo_path: logoPath, onboarded_at: new Date().toISOString() });
+        await save({ brand_color: color, hide_branding: hide, brand_logo_path: logoPath, onboarded_at: new Date().toISOString() });
         router.replace("/app");
         return;
       }
@@ -154,7 +152,7 @@ export default function Onboarding() {
             <p className="body-l muted" style={{ marginTop: -8 }}>This is where your team’s content, links and data rooms live.</p>
             <label className="field"><span className="label">Workspace name</span>
               <input className="input" style={{ height: 44, fontSize: 15 }} autoFocus value={ws} onChange={(e) => setWs(e.target.value)} placeholder="Randombase" />
-              <span className="caption faint">Your workspace URL: {slug(ws || "yourcompany")}.dozzier.io</span>
+              <span className="caption faint">You can claim {slug(ws || "yourcompany")}.dozzier.co for your links later in Settings → Domains.</span>
             </label>
             <div className="col gap-12"><span className="label">How big is your team?</span>
               <div className="row gap-8 wrap">{SIZES.map((s) => <button key={s} type="button" className={`pill-opt ${size === s ? "on" : ""}`} onClick={() => setSize(s)}>{s}</button>)}</div>
@@ -233,10 +231,9 @@ export default function Onboarding() {
                 <div className="col gap-12"><span className="label">Accent colour</span>
                   <div className="row gap-8">{COLORS.map((c) => <button key={c} type="button" aria-label={`Accent ${c}`} className={`swatch ${color === c ? "on" : ""}`} style={{ background: c }} onClick={() => setColor(c)} />)}</div>
                 </div>
-                <label className="field"><span className="label">Custom domain</span>
-                  <input className="input" style={{ height: 44, fontSize: 15 }} value={domain} onChange={(e) => setDomain(e.target.value)} placeholder={`docs.${domainPart}`} />
-                  <span className="caption faint">Add a CNAME to links.dozzier.io — we handle SSL.</span>
-                </label>
+                <div className="col" style={{ gap: 2 }}><span className="label">Your link address</span>
+                  <span className="caption faint">Share from {slug(ws || "yourcompany")}.dozzier.co or your own domain (like docs.{domainPart}). Set it up any time in Settings → Domains.</span>
+                </div>
                 <div className="row gap-12">
                   <div className="col grow"><span className="medium">Remove “Secured by Dozzier”</span><span className="caption faint">Available on Standard and above</span></div>
                   <Toggle on={hide} onChange={setHide} />
@@ -244,7 +241,7 @@ export default function Onboarding() {
               </div>
               <div className="grow" style={{ minWidth: 320 }}>
                 <div className="preview-browser">
-                  <div className="bar"><span className="dot" style={{ background: "#ff5f57" }} /><span className="dot" style={{ background: "#febc2e" }} /><span className="dot" style={{ background: "#28c840" }} /><span className="url">{domain.trim() || `docs.${domainPart}`}/series-a</span></div>
+                  <div className="bar"><span className="dot" style={{ background: "#ff5f57" }} /><span className="dot" style={{ background: "#febc2e" }} /><span className="dot" style={{ background: "#28c840" }} /><span className="url">{slug(ws || "yourcompany")}.dozzier.co/series-a</span></div>
                   <div style={{ padding: "40px 32px 0", display: "flex", justifyContent: "center", minHeight: 400 }}>
                     <div className="col gap-12 preview-gate" style={{ width: 360, background: "#fff", borderRadius: "16px 16px 0 0", padding: "32px 24px 24px", boxShadow: "var(--shadow-lg)", textAlign: "center", alignItems: "center" }}>
                       {/* eslint-disable-next-line @next/next/no-img-element */}

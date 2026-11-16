@@ -12,7 +12,7 @@ export default function Help() {
       </div>
       <h2 className="h1 mt-32" style={{ marginBottom: 8 }}>FAQ</h2>
       <Faq />
-      <p className="muted mt-24">Still stuck? Email <a className="brand" href="mailto:support@dozzier.io">support@dozzier.io</a>.</p>
+      <p className="muted mt-24">Still stuck? Email <a className="brand" href="mailto:support@dozzier.co">support@dozzier.co</a>.</p>
     </div>
   );
 }

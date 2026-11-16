@@ -41,9 +41,9 @@ export default function General() {
         </div>
         <div className="set-grid">
           <label className="field"><span className="label">Workspace name</span><input className="input" value={name} onChange={(e) => { setName(e.target.value); s.setDirty(true); }} /></label>
-          <label className="field"><span className="label">Workspace URL</span>
-            <span className="input row" style={{ gap: 0 }}><input style={{ border: 0, outline: 0, flex: 1, minWidth: 0, background: "none" }} value={v.slug} onChange={(e) => s.update({ ...v, slug: slugify(e.target.value) })} /><span className="faint">.dozzier.io</span></span>
-            <span className="caption faint">Changing this updates old app links automatically.</span></label>
+          <div className="field"><span className="label">Link address</span>
+            <Link href="/app/settings/domains" className="input row" style={{ gap: 0, textDecoration: "none" }}><span className="grow muted">yourname.dozzier.co or your own domain</span><span className="brand medium">Set up →</span></Link>
+            <span className="caption faint">Where your shared links live. Managed in Settings → Domains.</span></div>
           <label className="field"><span className="label">Default time zone</span><select className="input" value={v.timezone} onChange={(e) => s.update({ ...v, timezone: e.target.value })}>{["(GMT-05:00) New York", "(GMT+00:00) London", "(GMT+01:00) Lagos", "(GMT+01:00) Paris", "(GMT+04:00) Dubai", "(GMT+08:00) Singapore"].map((t) => <option key={t}>{t}</option>)}</select></label>
           <label className="field"><span className="label">Default language</span><select className="input" value={v.language} onChange={(e) => s.update({ ...v, language: e.target.value })}><option>English (UK)</option><option>English (US)</option></select></label>
         </div>

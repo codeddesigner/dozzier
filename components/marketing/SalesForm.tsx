@@ -24,7 +24,7 @@ export function SalesForm() {
       meta: { source: "talk-to-sales", company: f.company, team_size: f.size, use_case: f.use, url: document.referrer || null },
     });
     setBusy(false);
-    if (error) return setErr("Something went wrong. Please try again, or email sales@dozzier.io.");
+    if (error) return setErr("Something went wrong. Please try again, or email sales@dozzier.co.");
     setSent(true);
   }
 

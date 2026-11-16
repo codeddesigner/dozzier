@@ -114,7 +114,7 @@ export default function ContactSupport() {
         <div className="contact-side" data-reveal>
           <span className="h3">Other ways to reach us</span>
           <span className="row gap-8"><MessageSquare size={16} />Live chat in the app (Mon–Fri)</span>
-          <a href="mailto:support@dozzier.io" className="row gap-8"><Mail size={16} />support@dozzier.io</a>
+          <a href="mailto:support@dozzier.co" className="row gap-8"><Mail size={16} />support@dozzier.co</a>
           <span className="row gap-8"><Users size={16} />Community forum</span>
         </div>
       </div>

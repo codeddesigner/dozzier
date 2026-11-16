@@ -48,7 +48,7 @@ export function SiteFooter() {
   const cols: [string, [string, string][]][] = [
     ["Product", [["Analytics", "/product"], ["Data rooms", "/data-rooms"], ["MCP server", "/docs/mcp"], ["eSign", "/esign"], ["Integrations", "/integrations"], ["Pricing", "/pricing"]]],
     ["Resources", [["Docs", "/docs"], ["Zapier & MCP", "/docs/api"], ["Changelog", "/docs/changelog"], ["Status", "/docs/contact#status"], ["Help center", "/docs"]]],
-    ["Company", [["About", "/product"], ["Careers", "mailto:careers@dozzier.io"], ["Blog", "/docs/changelog"], ["Contact", "/talk-to-sales"]]],
+    ["Company", [["About", "/product"], ["Careers", "mailto:careers@dozzier.co"], ["Blog", "/docs/changelog"], ["Contact", "/talk-to-sales"]]],
     ["Legal", [["Privacy", "/legal/privacy"], ["Terms", "/legal/terms"], ["Security", "/security"], ["DPA", "/legal/dpa"]]],
   ];
   return (
@@ -59,7 +59,7 @@ export function SiteFooter() {
           {cols.map(([h, ls]) => <div key={h}><div className="semibold">{h}</div>{ls.map(([l, href]) => <Link key={l} href={href}>{l}</Link>)}</div>)}
         </div>
         <div className="row footer-bottom" style={{ borderTop: "1px solid var(--dz-border-subtle)", marginTop: 48, paddingTop: 24 }}>
-          <span className="caption faint grow">© 2026 Dozzier, Inc. · dozzier.io</span>
+          <span className="caption faint grow">© 2026 Dozzier, Inc. · dozzier.co</span>
           <div className="row gap-16 muted footer-icons"><AtSign size={18} /><Mail size={18} /><Globe size={18} /></div>
         </div>
       </div>

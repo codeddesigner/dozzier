@@ -1,4 +1,4 @@
-// Dozzier help-center content (docs.dozzier.io in the Figma "Flow 7").
+// Dozzier help-center content (docs.dozzier.co in the Figma "Flow 7").
 
 export type Block =
   | { h: string }
@@ -29,7 +29,7 @@ export const ARTICLES: Article[] = [
     body: [
       { p: "Your workspace is where your team’s content, links and data rooms live. You create it the first time you sign up." },
       { h: "1. Sign up with your work email" },
-      { p: "Go to dozzier.io and click Try for free. Use your work email so teammates on the same domain can find and join your workspace." },
+      { p: "Go to dozzier.co and click Try for free. Use your work email so teammates on the same domain can find and join your workspace." },
       { h: "2. Name your workspace" },
       { p: "Pick a name visitors will recognise — usually your company name. It appears on every link you share as “Randombase shared …”." },
       { h: "3. Tell us your use case" },

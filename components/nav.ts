@@ -28,8 +28,6 @@ export const NAV_GROUPS = [
 ];
 
 export const NAV_ALL = NAV_GROUPS.flatMap((g) => g.items);
-export const NAV_MAIN = NAV_ALL;
-export const NAV_BOTTOM: typeof NAV_ALL = [];
 
 /** App switcher tiles in the Nav Rail. */
 export const APPS = [

@@ -7,22 +7,22 @@ const PAGES: Record<string, { title: string; intro: string; sections: [string, s
     ["What we collect", "Account details you give us (name, email, workspace), the files you upload, and visit data on your links: the visitor’s email if you require one, approximate location from their IP, browser, and time spent on each page."],
     ["How we use it", "To run the product — storing and showing your documents, recording visits so you can see analytics, and sending the alerts you turn on. We don’t sell personal data or use your documents to train models."],
     ["Who can see it", "Only members of your workspace. Visitors only see the content you share with them."],
-    ["Your choices", "You can export or delete your data at any time from Settings, or by emailing privacy@dozzier.io."],
+    ["Your choices", "You can export or delete your data at any time from Settings, or by emailing privacy@dozzier.co."],
   ] },
   terms: { title: "Terms", intro: "The basics of using Dozzier.", sections: [
     ["Your content", "You own what you upload. You give us permission to store, process and display it only to provide the service to you and the people you share with."],
     ["Acceptable use", "Don’t use Dozzier to share content you don’t have the right to share, or to send malware or spam."],
     ["Plans and billing", "Paid plans renew automatically until cancelled. Every plan starts with a 14-day free trial."],
-    ["Contact", "Questions about these terms: legal@dozzier.io."],
+    ["Contact", "Questions about these terms: legal@dozzier.co."],
   ] },
   security: { title: "Security", intro: "How we keep documents safe.", sections: [
     ["Encryption", "Files are encrypted at rest and all traffic uses TLS."],
     ["Access control", "Row-level security ensures workspaces can only read their own data. Shared links are checked on every request, and you can switch any link off instantly."],
     ["Account protection", "Two-factor authentication with an authenticator app is available to every user."],
-    ["Report an issue", "Found a vulnerability? Email security@dozzier.io."],
+    ["Report an issue", "Found a vulnerability? Email security@dozzier.co."],
   ] },
   dpa: { title: "Data Processing Agreement", intro: "For customers who need a DPA under GDPR or similar laws.", sections: [
-    ["Request a DPA", "Email legal@dozzier.io with your company name and we’ll send our standard DPA for signature."],
+    ["Request a DPA", "Email legal@dozzier.co with your company name and we’ll send our standard DPA for signature."],
   ] },
 };
 

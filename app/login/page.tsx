@@ -72,7 +72,7 @@ export default function Login() {
         <OtpInput value={code} onChange={setCode} onComplete={verify} disabled={busy} />
         {err && <p className="error-text">{err}</p>}
         <button className="btn btn-brand btn-block" disabled={busy || code.length < 6} onClick={() => verify()}>{busy ? "Verifying…" : "Verify"}</button>
-        <p className="caption muted">Lost your device? <button className="link caption" onClick={() => setNote("Contact your workspace admin or support@dozzier.io to reset two-factor authentication.")}>Get help signing in</button></p>
+        <p className="caption muted">Lost your device? <button className="link caption" onClick={() => setNote("Contact your workspace admin or support@dozzier.co to reset two-factor authentication.")}>Get help signing in</button></p>
         {note && <div className="notice info"><Info size={16} />{note}</div>}
       </AuthLayout>
     );

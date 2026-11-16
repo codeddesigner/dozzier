@@ -65,7 +65,7 @@ export function ProductShot() {
   return (
     <div className="product-shot d-only" data-tilt-scroll>
         <div className="browser">
-          <div className="browser-bar"><span className="dot" style={{ background: "#ff5f57" }} /><span className="dot" style={{ background: "#febc2e" }} /><span className="dot" style={{ background: "#28c840" }} /><div className="browser-url">app.dozzier.io/dashboard</div></div>
+          <div className="browser-bar"><span className="dot" style={{ background: "#ff5f57" }} /><span className="dot" style={{ background: "#febc2e" }} /><span className="dot" style={{ background: "#28c840" }} /><div className="browser-url">dozzier.co/app</div></div>
           <DashboardMock />
         </div>
         <div className="float-card f1" style={{ left: -48, top: 250, padding: "14px 16px", minWidth: 351, whiteSpace: "nowrap" }}>
