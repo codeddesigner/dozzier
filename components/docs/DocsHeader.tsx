@@ -11,7 +11,7 @@ export function DocsHeader() {
   return (
     <>
       <header className="docs-head">
-        <Link href="/docs" className="row gap-12" aria-label="Dozzier docs home"><Logo height={28} /><span className="docs-pill">Docs</span></Link>
+        <Link href="/docs" className="row gap-10" aria-label="Dozzier docs home"><Logo height={24} /><span className="docs-pill">Docs</span></Link>
         <nav className="docs-nav">
           <Link href="/docs" className={tab === "guides" ? "on" : ""}>Guides</Link>
           <Link href="/docs/api" className={tab === "api" ? "on" : ""}>Zapier &amp; MCP</Link>
