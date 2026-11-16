@@ -27,7 +27,7 @@ export default function Billing() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const plan = PLAN[profile.plan] || PLAN.trial;
-  const trialEnds = new Date(new Date(profile.created_at).getTime() + 14 * 86400000);
+  const trialEnds = profile.trial_ends_at ? new Date(profile.trial_ends_at) : new Date(new Date(profile.created_at).getTime() + 14 * 86400000);
   const { data, loading } = useLoad(async () => {
     const [inv, mem, sp, ag, docs] = await Promise.all([
       supabase.from("invites").select("id", { count: "exact", head: true }).is("accepted_at", null),

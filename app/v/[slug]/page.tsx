@@ -8,6 +8,7 @@ import { Avatar } from "@/components/ui";
 import { DocRenderer, Source, sourceFor } from "@/components/DocRenderer";
 import { NDA_TEMPLATE } from "@/components/nda";
 import { OtpInput } from "@/components/OtpInput";
+import { ReportLink } from "@/components/ReportLink";
 import { indexItems } from "@/lib/format";
 import { isAppHost } from "@/lib/domains";
 
@@ -394,7 +395,7 @@ function Reader({ pub, visit, doc, onBack }: { pub: Pub; visit: Started; doc: { 
           <span className="hide-sm" style={{ width: 1, height: 22, background: "#374151", margin: "0 8px" }} />
           {visit.email && <Avatar email={visit.email} size={30} />}
           <button className={`vb-icon ${qOpen ? "on" : ""}`} aria-label="Questions" aria-pressed={qOpen} onClick={() => setQOpen((o) => !o)}><MessageSquare size={18} /></button>
-          <a className="vb-icon hide-sm" aria-label="Report" href={`mailto:abuse@dozzier.io?subject=Report%20link%20${encodeURIComponent(location.pathname)}`}><Flag size={18} /></a>
+          <ReportLink email={visit.email} />
           <a className="vb-icon hide-sm" aria-label="Help" href="/" target="_blank" rel="noreferrer"><CircleHelp size={18} /></a>
         </div>
       </Bar>

@@ -7,6 +7,12 @@ import { supabase } from "@/lib/supabase";
 import { AuthLayout, LOGIN_BENTO, OrDivider, SocialButton } from "@/components/AuthLayout";
 import { OtpInput } from "@/components/OtpInput";
 
+/** Where to go after signing in: ?next=/admin etc. (same-site paths only). */
+function nextPath() {
+  try { const n = new URLSearchParams(window.location.search).get("next"); if (n && n.startsWith("/") && !n.startsWith("//")) return n; } catch {}
+  return "/app";
+}
+
 export default function Login() {
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -31,7 +37,7 @@ export default function Login() {
       const totp = f?.totp?.[0];
       if (totp) { setBusy(false); return setMfa({ factorId: totp.id }); }
     }
-    router.replace("/app");
+    router.replace(nextPath());
   }
 
   async function verify(token = code) {
@@ -40,7 +46,7 @@ export default function Login() {
     const { error } = await supabase.auth.mfa.challengeAndVerify({ factorId: mfa.factorId, code: token });
     setBusy(false);
     if (error) { setCode(""); return setErr("That code didn’t work. Try the latest one from your app."); }
-    router.replace("/app");
+    router.replace(nextPath());
   }
 
   if (mfa) {

@@ -1,7 +1,7 @@
 "use client";
 import { createContext, useContext } from "react";
 
-export type Profile = { billing_subscription?: string | null; subscription_status?: string | null; billing_seats?: number | null;
+export type Profile = { suspended_at?: string | null; suspended_reason?: string | null; trial_ends_at?: string | null; billing_subscription?: string | null; subscription_status?: string | null; billing_seats?: number | null;
   id: string; full_name: string | null; workspace_name: string | null; plan: string; created_at: string;
   team_size?: string | null; job_role?: string | null; use_cases?: string[]; brand_color?: string | null; brand_logo_path?: string | null;
   custom_domain?: string | null; hide_branding?: boolean; invite_link_enabled?: boolean; notify_visits?: boolean; crm_connected?: boolean;

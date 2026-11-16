@@ -3,7 +3,7 @@ import { setLinkDomain } from "@/lib/linkBase";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { LayoutGrid, Inbox as InboxIcon, Folder as FolderIcon, Building2, Settings as SettingsIcon, Search, Bell, CircleHelp, ChevronUp, ChevronDown, ChevronRight, LogOut, Zap, Moon, User as UserIcon, Check, Sparkles, Plus, Flag, Star, X, PanelLeft, Play } from "lucide-react";
+import { LayoutGrid, Inbox as InboxIcon, Folder as FolderIcon, Building2, Settings as SettingsIcon, Search, Bell, CircleHelp, ChevronUp, ChevronDown, ChevronRight, LogOut, Zap, Moon, User as UserIcon, Check, Sparkles, Plus, Flag, Star, X, PanelLeft, Play, ShieldCheck } from "lucide-react";
 import { applyTheme, type Theme } from "@/components/Theme";
 import { supabase } from "@/lib/supabase";
 import { Avatar, ToastHost, toast } from "@/components/ui";
@@ -24,6 +24,8 @@ function WorkspaceSwitcher({ profile, email, onHelp, onCollapse, collapsed }: { 
   const ref = useRef<HTMLDivElement>(null);
   const router = useRouter();
   useEffect(() => { try { setThemeState((localStorage.getItem("dz-theme") as Theme) || "light"); } catch {} }, []);
+  const [staff, setStaff] = useState(false);
+  useEffect(() => { supabase.rpc("is_platform_admin").then(({ data }) => setStaff(!!data)); }, []);
   useEffect(() => {
     if (!open) return;
     const h = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };
@@ -73,6 +75,7 @@ function WorkspaceSwitcher({ profile, email, onHelp, onCollapse, collapsed }: { 
           <button onClick={() => { setOpen(false); onHelp(); }}><CircleHelp size={16} />Help &amp; docs</button>
           <button onClick={() => { setOpen(false); startTour(); }}><Play size={16} />Take the product tour</button>
           <a href="/docs/changelog" target="_blank" rel="noreferrer" onClick={() => setOpen(false)}><Sparkles size={16} />What’s new</a>
+          {staff && <button onClick={() => go("/admin")}><ShieldCheck size={16} />Dozzier admin</button>}
           <button onClick={async () => { await supabase.auth.signOut(); router.replace("/login"); }}><LogOut size={16} />Sign out</button>
         </div>
       )}
@@ -163,7 +166,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     const w = (wsId as string) || session.user.id;
     // Teammates see the workspace owner's name, plan and branding.
     if (w !== session.user.id) {
-      const { data: o } = await supabase.from("profiles").select("workspace_name,plan,brand_color,brand_logo_path,hide_branding,custom_domain,crm_connected,created_at,subscription_status,billing_subscription").eq("id", w).maybeSingle();
+      const { data: o } = await supabase.from("profiles").select("workspace_name,plan,brand_color,brand_logo_path,hide_branding,custom_domain,crm_connected,created_at,subscription_status,billing_subscription,suspended_at,suspended_reason,trial_ends_at").eq("id", w).maybeSingle();
       if (o) profile = { ...profile, ...o, created_at: profile.created_at };
     }
     setInvites((inv as typeof invites) || []);
@@ -207,6 +210,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   }, [router]);
 
   if (!state) return <div className="loading" style={{ paddingTop: 200 }}><span className="spinner" /></div>;
+  if (state.profile.suspended_at) return (
+    <main className="col" style={{ minHeight: "100vh", alignItems: "center", justifyContent: "center", gap: 10, textAlign: "center", padding: 24 }}>
+      <h1 className="h2">This workspace is suspended</h1>
+      <p className="muted" style={{ maxWidth: 440 }}>{state.profile.suspended_reason ? `Reason: ${state.profile.suspended_reason}. ` : ""}Links shared from it are switched off. If you think this is a mistake, email support@dozzier.co.</p>
+      <button className="btn btn-secondary mt-8" onClick={async () => { await supabase.auth.signOut(); router.replace("/login"); }}>Sign out</button>
+    </main>
+  );
   const isActive = (href: string) => (href === "/app" ? path === "/app" : path.startsWith(href));
   const ws = state.profile.workspace_name || "My workspace";
   const toggle = () => { const c = !collapsed; setCollapsed(c); try { localStorage.setItem("dz-sidebar", c ? "1" : "0"); } catch {} };
@@ -245,7 +255,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             <button className="side-link" data-label="Refer and earn" onClick={() => { const u = `https://dozzier.co/signup?ref=${state.userId.slice(0, 8)}`; navigator.clipboard?.writeText(u).catch(() => {}); toast("Referral link copied — you both get a free month when they upgrade"); }}><Star size={18} /><span>Refer and earn</span></button>
             <button className="side-link" data-label="Help and support" onClick={() => setHelp(true)}><CircleHelp size={18} /><span className="grow">Help and support</span><span className="side-live"><i />Live</span></button>
           </div>
-          {state.profile.plan === "trial" && (() => { const left = Math.max(0, 14 - Math.floor((Date.now() - new Date(state.profile.created_at || Date.now()).getTime()) / 86400000)); return (
+          {state.profile.plan === "trial" && (() => { const end = state.profile.trial_ends_at ? new Date(state.profile.trial_ends_at).getTime() : new Date(state.profile.created_at || Date.now()).getTime() + 14 * 86400000; const left = Math.max(0, Math.ceil((end - Date.now()) / 86400000)); return (
             <Link href="/app/upgrade" className="side-promo" data-label="Upgrade">
               <span className="side-promo-text"><span className="caption muted">{left > 0 ? `All premium features unlocked for ${left} day${left === 1 ? "" : "s"}` : "Your free trial has ended"}</span><span className="semibold">Upgrade now</span></span>
               <span className="side-promo-icon"><Sparkles size={20} /></span>
