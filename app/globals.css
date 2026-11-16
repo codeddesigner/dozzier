@@ -2324,3 +2324,4 @@ html[data-theme="dark"] .app { background: #1b2433; } html[data-theme="dark"] .a
 .api-main .doc-p { margin: 0 0 14px; }
 .api-param { font-size: 14px; line-height: 20px; }
 .docs-video-thumb { background: var(--dz-bg-brand, #2577ea) !important; animation: none !important; }
+html[data-theme="dark"]:has(.app) .copilot-card, html[data-theme="dark"]:has(.app) .ai-card { background: rgba(77,148,247,.10); border-color: rgba(77,148,247,.35); animation: none; }
