@@ -26,7 +26,7 @@ export default function EmailSignature() {
   const remove = () => { const rest = v.templates.filter((x) => x.id !== t.id); s.update({ ...v, templates: rest }); setSel(rest[0]?.id); };
   return (
     <>
-      <SettingsHead title="Email & signature" sub="Templates used when you share from Dozzier or let Copilot draft a follow-up." action={<SaveButton onClick={() => s.save()} saving={s.saving} />} />
+      <SettingsHead title="Email & signature" sub="Templates used when you share from Dozzier or draft a follow-up." action={<SaveButton onClick={() => s.save()} saving={s.saving} />} />
       <div className="set-split">
         <Card title="Templates" style={{ width: 260, flexShrink: 0 }}>
           {v.templates.map((x) => (

@@ -49,11 +49,11 @@ export function HelpPanel({ open, onClose }: { open: boolean; onClose: () => voi
           </Link>
           <button className="help-tour" onClick={() => { onClose(); startTour(); }}><Play size={16} /><span className="grow">Take the product tour</span><span className="caption muted">2 min</span></button>
           <div className="help-label">Keyboard shortcuts</div>
-          {[["Search", `${mod}K`], ["Create link", `${mod}L`], ["Ask Dozzier", `${mod}J`], ["Toggle sidebar", `${mod}\\`]].map(([l, k]) => (
+          {[["Search", `${mod}K`], ["Create link", `${mod}L`], ["Toggle sidebar", `${mod}\\`]].map(([l, k]) => (
             <div key={l} className="row help-key"><span className="grow">{l}</span><span className="kbd">{k}</span></div>
           ))}
         </div>
-        <Link href="/docs/changelog" target="_blank" className="help-foot"><Sparkles size={16} className="brand" /><span className="grow medium">New: Ask Dozzier is here</span><span className="link caption">See what’s new</span></Link>
+        <Link href="/docs/changelog" target="_blank" className="help-foot"><Sparkles size={16} className="brand" /><span className="grow medium">New: connect Dozzier to Claude with MCP</span><span className="link caption">See what’s new</span></Link>
       </aside>
     </>
   );

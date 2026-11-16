@@ -22,7 +22,6 @@ export const NAV_GROUPS = [
   {
     label: "Manage",
     items: [
-      { href: "/app/ask", label: "Ask Dozzier", icon: Sparkles },
       { href: "/app/settings", label: "Settings", icon: Settings },
     ],
   },

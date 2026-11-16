@@ -2,7 +2,7 @@
 import { sendInviteEmails } from "@/lib/invites";
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { Check, ChevronRight, Sparkles } from "lucide-react";
+import { Check, ChevronRight, Sparkles, Lightbulb } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useApp } from "@/components/AppContext";
 import { toast } from "@/components/ui";
@@ -107,8 +107,8 @@ export function GettingStarted({ onUpload }: { onUpload: () => void }) {
       </section>
       <div className="col gap-16" style={{ width: 336, maxWidth: "100%" }}>
         <div className="copilot-card">
-          <span className="row gap-6 caption medium brand"><Sparkles size={14} />Dozzier Copilot</span>
-          <span className="h3">Tip: send a link to yourself first</span>
+          <span className="row gap-6 caption medium brand"><Lightbulb size={14} />Tip</span>
+          <span className="h3">Send a link to yourself first</span>
           <span className="muted">Upload any deck or PDF, create a link and open it in another browser to see live, page-by-page analytics in action.</span>
           <div className="row gap-8 mt-8"><Link href="/app/content?upload=1" className="btn btn-dark btn-s">Upload a document</Link>
             <button className="btn btn-ghost btn-s" onClick={() => patch({ checklist_dismissed: true }, "Checklist hidden — find it under Setup guide")}>Hide checklist</button></div>

@@ -20,7 +20,7 @@ export function MobileMenu() {
   const groups: { label: string; href?: string; items?: [string, string][] }[] = [
     { label: "Product", items: [["Analytics", "#product-analytics"], ["Live alerts", "#product-analytics"], ["Link controls", "#product-analytics"], ["eSign & file requests", "#product-analytics"]] },
     { label: "Data rooms", href: "#data-rooms" },
-    { label: "AI", href: "#ai" },
+    { label: "Security", href: "#security" },
     { label: "Integrations", href: "#integrations" },
     { label: "Pricing", href: "#pricing" },
     { label: "Docs", href: "/docs" },

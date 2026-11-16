@@ -6,10 +6,10 @@ import { THEME_BOOT } from "@/lib/theme";
 export const metadata: Metadata = {
   metadataBase: new URL("https://dozzier.co"),
   title: "Dozzier | Secure Document Sharing & Data Rooms with Analytics",
-  description: "Share decks, proposals and data rooms as secure links. See who reads every page, get live alerts and send AI follow-ups.",
+  description: "Share decks, proposals and data rooms as secure links. See who reads every page, get live alerts and follow up at the right moment.",
   icons: { icon: [{ url: "/favicon.svg", type: "image/svg+xml" }, { url: "/favicon.ico", sizes: "48x48" }], apple: "/apple-touch-icon.png" },
-  openGraph: { title: "Dozzier | Secure Document Sharing & Data Rooms with Analytics", description: "Share decks, proposals and data rooms as secure links. See who reads every page, get live alerts and send AI follow-ups.", siteName: "Dozzier", url: "https://dozzier.co", type: "website" },
-  twitter: { card: "summary", title: "Dozzier | Secure Document Sharing & Data Rooms with Analytics", description: "Share decks, proposals and data rooms as secure links. See who reads every page, get live alerts and send AI follow-ups." },
+  openGraph: { title: "Dozzier | Secure Document Sharing & Data Rooms with Analytics", description: "Share decks, proposals and data rooms as secure links. See who reads every page, get live alerts and follow up at the right moment.", siteName: "Dozzier", url: "https://dozzier.co", type: "website" },
+  twitter: { card: "summary", title: "Dozzier | Secure Document Sharing & Data Rooms with Analytics", description: "Share decks, proposals and data rooms as secure links. See who reads every page, get live alerts and follow up at the right moment." },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

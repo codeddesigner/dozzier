@@ -21,7 +21,7 @@ const APPS: [string, string, string][] = [
   ["Slack", "Messaging", "Live “viewing now” alerts, questions and signatures in any channel."],
   ["Teams", "Messaging", "Visit alerts, questions and signatures in a Microsoft Teams channel."],
   ["Zapier", "Developer", "Send every Dozzier event to 6,000+ apps."],
-  ["HubSpot", "CRM", "Sync visits, intent scores and Copilot summaries to contacts and deals."],
+  ["HubSpot", "CRM", "Sync visits and intent scores to contacts and deals."],
   ["Salesforce", "CRM", "Log engagement as activities; create leads from new visitors."],
   ["Pipedrive", "CRM", "Attach document engagement to deals and people."],
   ["Gmail", "Email", "Share tracked links straight from your inbox."],

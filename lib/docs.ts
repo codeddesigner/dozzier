@@ -191,6 +191,19 @@ export const ARTICLES: Article[] = [
     summary: "Protect your account with an authenticator app.",
     body: [{ steps: ["Open Settings → Two-factor authentication.", "Scan the QR code with Google Authenticator, 1Password or Authy.", "Enter the 6-digit code to turn it on."] }, { note: "Next time you log in you’ll be asked for a code from your app." }],
     related: ["plans-and-seats"], keywords: "2fa two factor security mfa authenticator" },
+  { slug: "mcp", cat: "integrations", title: "Connect Claude, ChatGPT or Cursor (MCP)", plan: "Standard and Data Rooms", updated: "Nov 16, 2026", read: 3,
+    summary: "Let AI assistants read your documents, links and visitor analytics, and create tracked links for you.",
+    body: [
+      { p: "Dozzier has an MCP server — the standard way AI assistants connect to other apps. Once it’s connected you can ask things like “Who read the Series A deck this week?” or “Create a link to the pricing sheet for Acme”." },
+      { h: "Create a key" },
+      { steps: ["Open Settings → API & MCP and click Create key.", "Name it after the tool you’re connecting, e.g. Claude.", "Leave “Allow creating links” off for read-only access, or turn it on so the assistant can create links.", "Copy the key — it’s only shown once."] },
+      { h: "Connect your assistant" },
+      { list: ["Claude: Settings → Connectors → Add custom connector, and paste the URL shown in Dozzier (it includes your key).", "Claude Code: run the claude mcp add command shown in Dozzier.", "Cursor: add the JSON snippet to ~/.cursor/mcp.json.", "ChatGPT: turn on developer mode, create a connector and paste the URL with “No authentication”.", "Anything else: server URL https://dozzier.co/api/mcp, with the key as an “Authorization: Bearer …” header."] },
+      { h: "What it can do" },
+      { list: ["Summarise the workspace and the most-viewed documents", "List and search documents, including the text inside them", "Show analytics for a document: time per page, completion and top visitors", "List links and recent visits", "Show everything one visitor has done", "List data rooms", "Create a tracked link (write keys only)"] },
+      { note: "A key sees everything in its workspace, so treat it like a password. Revoke it in Settings → API & MCP at any time. Keys stop working if the person who created them leaves the workspace." },
+    ],
+    related: ["slack-alerts"], keywords: "mcp claude chatgpt cursor ai assistant api key model context protocol" },
 ];
 
 export const POPULAR = ["require-an-email", "folder-permissions", "page-by-page-time", "custom-domain", "send-an-nda-first"];
@@ -216,7 +229,7 @@ export type Param = { name: string; type: string; required?: boolean; desc: stri
 export type Endpoint = { id: string; group: string; method: "GET" | "POST" | "PATCH" | "DEL"; path: string; title: string; desc: string; params: Param[]; body?: Record<string, unknown>; response: Record<string, unknown>; status: string };
 
 export const API_INTRO = [
-  { id: "authentication", title: "Authentication", body: "Authenticate with a secret key in the Authorization header: Bearer dz_live_… Create keys in Settings → API & webhooks. Keep keys server-side; they carry your workspace’s permissions." },
+  { id: "authentication", title: "Authentication", body: "Authenticate with a secret key in the Authorization header: Bearer dz_live_… Create keys in Settings → API & MCP. Keep keys server-side; they carry your workspace’s permissions." },
   { id: "rate-limits", title: "Rate limits", body: "Each key can make 100 requests per 10 seconds. Over the limit you get 429 Too Many Requests with a Retry-After header." },
   { id: "errors", title: "Errors", body: "Errors return a JSON body { error: { code, message } } with 4xx for request problems and 5xx for ours. Codes: invalid_request, not_found, unauthorized, rate_limited." },
 ];
@@ -252,7 +265,7 @@ export const ENDPOINTS: Endpoint[] = [
 ];
 
 export const CHANGELOG = [
-  { date: "Nov 12, 2026", tag: "New", title: "Ask Dozzier — AI answers across your deals", body: "Ask natural-language questions about content and visitors. Answers cite pages and sessions, with one-click follow-ups.", icon: "sparkles", guide: "visitor-activity" },
+  { date: "Nov 16, 2026", tag: "New", title: "Dozzier MCP server", body: "Connect Claude, ChatGPT, Cursor or any MCP client to your workspace. Ask who read what, pull analytics and create tracked links. Set it up in Settings → API & MCP.", icon: "sparkles", guide: "mcp" },
   { date: "Nov 3, 2026", tag: "New", title: "Version compare", body: "See exactly which pages changed between versions and notify past visitors in one click.", icon: "history", guide: "upload-content" },
   { date: "Oct 21, 2026", tag: "Improved", title: "Faster data rooms", body: "Spaces with 1,000+ files now open 3× faster, and folder permissions apply instantly.", guide: "folder-permissions" },
   { date: "Oct 9, 2026", tag: "New", title: "Two-factor authentication", body: "Protect your account with an authenticator app. Turn it on from Settings.", guide: "two-factor" },

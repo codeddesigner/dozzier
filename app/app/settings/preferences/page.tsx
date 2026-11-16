@@ -35,7 +35,7 @@ export default function Preferences() {
       <Card title="Behaviour">
         <Row title="Default landing page" sub="Open this page when I sign in"><Select value={v.landing} onChange={(x) => set("landing", x)} options={["Dashboard", "Content", "Spaces", "Contacts"]} /></Row>
         <Row title="Compact tables" sub="Show more rows with tighter spacing"><Toggle on={v.compact} onChange={(x) => { set("compact", x); document.documentElement.classList.toggle("compact", x); }} /></Row>
-        <Row title="Keyboard shortcuts" sub="⌘K search, ⌘L create link, ⌘J Ask Dozzier, ⌘\ sidebar"><Toggle on={v.shortcuts} onChange={(x) => set("shortcuts", x)} /></Row>
+        <Row title="Keyboard shortcuts" sub="⌘K search, ⌘L create link, ⌘\ sidebar"><Toggle on={v.shortcuts} onChange={(x) => set("shortcuts", x)} /></Row>
       </Card>
     </>
   );

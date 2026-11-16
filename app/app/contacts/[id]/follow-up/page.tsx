@@ -84,7 +84,7 @@ export default function FollowUpPage() {
       </section>
 
       <section className="fu-right">
-        <div className="row"><span className="row gap-8 fu-title grow"><Sparkles size={18} className="brand" />Copilot · Follow-up draft</span>
+        <div className="row"><span className="row gap-8 fu-title grow"><Mail size={18} className="brand" />Follow-up draft</span>
           <Menu items={[{ label: "Open contact", onClick: () => router.push(`/app/contacts/${c.id}`) }, { label: "Copy draft", onClick: () => { copy(`Subject: ${subject}\n\n${body}`); toast("Draft copied"); } }]} /></div>
         <div className="row gap-6 wrap">{[...ins.tags, "Tone: warm, concise"].map((t) => <span key={t} className="fu-tag">{t}</span>)}</div>
         <div className="fu-letter">
@@ -100,7 +100,7 @@ export default function FollowUpPage() {
         </div>
         <span className="grow" />
         <div className="row gap-8 fu-actions">
-          <button className="btn btn-ghost" onClick={() => setVariant((v) => v + 1)}><RefreshCw size={16} />Regenerate</button>
+          <button className="btn btn-ghost" onClick={() => setVariant((v) => v + 1)}><RefreshCw size={16} />Another version</button>
           <span className="grow" />
           <button className="btn btn-secondary" onClick={() => { copy(`Subject: ${subject}\n\n${body}`); toast("Draft copied"); }}>Copy</button>
           <div className="split-btn">

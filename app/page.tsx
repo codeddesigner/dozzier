@@ -20,11 +20,11 @@ const DEMO = "mailto:sales@dozzier.io?subject=Dozzier%20demo";
 function Nav() {
   return (
     <header className="lp-nav">
-      <a href="#ai" className="announce-bar"><span className="announce-check d-only"><Check size={14} strokeWidth={2.5} /></span><span className="d-only">New: Ask Dozzier answers questions across every deal</span><span className="m-only">New: Ask Dozzier for every deal</span>&nbsp;&nbsp;<span className="arrow">→</span></a>
+      <a href="#mcp" className="announce-bar"><span className="announce-check d-only"><Check size={14} strokeWidth={2.5} /></span><span className="d-only">New: Bring your Dozzier data into Claude, ChatGPT and Cursor with MCP</span><span className="m-only">New: Dozzier works with Claude via MCP</span>&nbsp;&nbsp;<span className="arrow">→</span></a>
       <div className="lp-nav-inner">
         <Link href="/" aria-label="Dozzier home"><Logo height={30} /></Link>
         <nav className="lp-links">
-          <a href="#product">Product</a><a href="#data-rooms">Data rooms</a><a href="#ai">AI</a>
+          <a href="#product">Product</a><a href="#data-rooms">Data rooms</a><a href="#security">Security</a>
           <a href="#integrations">Integrations</a><a href="#pricing">Pricing</a><Link href="/docs">Docs</Link>
         </nav>
         <div className="spacer" />
@@ -85,12 +85,12 @@ function DashboardMock() {
 function Hero() {
   return (
     <section className="hero" id="product">
-      <Link href="/signup" className="announce h-in"><span className="badge badge-brand">New</span><span className="d-only">Ask Dozzier — AI answers across every deal</span><span className="m-only">Ask Dozzier — AI for every deal</span> <span className="arrow">→</span></Link>
+      <Link href="/signup" className="announce h-in"><span className="badge badge-brand">New</span><span className="d-only">Dozzier MCP — your deal data in Claude and Cursor</span><span className="m-only">Dozzier MCP for Claude &amp; Cursor</span> <span className="arrow">→</span></Link>
       <h1 className="display-xl hero-title"><WordReveal text="The secure platform to share, track, and move business forward." delay={80} /></h1>
       <p className="body-l muted h-in d-only" style={{ maxWidth: 732, animationDelay: ".45s" }}>
-        Dozzier turns every deck, proposal and data room into a secure link with page-by-page analytics, live alerts and AI follow-ups — so you know who’s interested and exactly what to do next.
+        Dozzier turns every deck, proposal and data room into a secure link with page-by-page analytics, live alerts and timely follow-ups — so you know who’s interested and exactly what to do next.
       </p>
-      <p className="body-m muted h-in m-only hero-sub-m" style={{ animationDelay: ".45s" }}>Turn every deck, proposal and data room into a secure link with page-by-page analytics, live alerts and AI follow-ups.</p>
+      <p className="body-m muted h-in m-only hero-sub-m" style={{ animationDelay: ".45s" }}>Turn every deck, proposal and data room into a secure link with page-by-page analytics, live alerts and timely follow-ups.</p>
       <div className="row gap-12 wrap h-in hero-ctas" style={{ justifyContent: "center", animationDelay: ".6s" }}>
         <Link href="/signup" className="btn btn-lime btn-l">Try for free</Link>
         <a href="#how-it-works" className="btn btn-ghost btn-l"><Play size={18} />See how it works (1:00)</a>
@@ -100,7 +100,7 @@ function Hero() {
         <span>Explore:</span>
         <a href="#product-analytics"><TrendingUp size={18} />Analytics</a>
         <a href="#data-rooms"><HousePlus size={18} />Data rooms</a>
-        <a href="#ai"><Sparkles size={18} />AI agent</a>
+        <a href="#security"><Lock size={18} />Security</a>
       </div>
       <div className="hero-peek m-only">
         <div className="peek-alert"><span className="avatar" style={{ width: 20, height: 20, fontSize: 8, background: "#3b8bff" }}>Pa</span><div className="col grow" style={{ minWidth: 0 }}><span className="semibold">Paul is viewing your deck</span><span className="caption" style={{ color: "var(--dz-text-secondary)" }}>Pitch deck · page 7 of 18 · 4m 12s</span></div><span className="badge badge-success"><span className="dot" />Live</span></div>
@@ -132,7 +132,7 @@ function Hero() {
 function AiCardBody({ title, body, brand }: { title: string; body: string; brand?: boolean }) {
   return (
     <>
-      <div className="row gap-8 brand caption medium"><span className="flame"><Sparkles size={18} /></span>Dozzier Copilot</div>
+      <div className="row gap-8 brand caption medium"><span className="flame"><Zap size={18} /></span>Suggested next step</div>
       <div className="h3">{title}</div>
       <p className="muted"><TypeText text={body} /></p>
       <div className="row gap-8"><Link href="/signup" className={`btn ${brand ? "btn-brand" : "btn-primary"} btn-s`}>Draft follow-up</Link><Link href="/signup" className="btn btn-ghost btn-s">View timeline</Link></div>
@@ -158,7 +158,7 @@ function HowItWorks() {
   const steps = [
     [Upload, "Upload anything", "Drop in PDFs, decks, videos or whole folders. Dozzier scans for sensitive data and suggests the right link settings."],
     [Link2, "Share a smart link", "Require email, add a passcode or NDA, set expiry and watermark — per recipient, or in bulk from your CRM."],
-    [Sparkles, "Act on real intent", "See every page view in real time, get an intent score per account, and send AI-drafted follow-ups that land."],
+    [Sparkles, "Act on real intent", "See every page view in real time, get an intent score per account, and follow up while they’re still reading."],
   ] as const;
   return (
     <section className="lp-section" id="how-it-works">
@@ -221,10 +221,14 @@ function Features() {
               </div>
             </div>
           </div>
-          <div className="feature-card spotlight" id="ai">
-            <span className="overline">AI</span><div className="h1">Ask Dozzier anything</div>
-            <p className="body-m muted">“Which investors read the financials twice?” Cited answers and one-click follow-ups.</p>
-            <div className="ai-card mt-16"><AiCardBody title="3 investors re-read your model" body="Acme, Northwind and Kestrel spent 4+ min on pages 12–14. Draft a follow-up with the updated cap table?" /></div>
+          <div className="feature-card spotlight" id="mcp">
+            <span className="overline">MCP</span><div className="h1">Your deal data in Claude and Cursor</div>
+            <p className="body-m muted">Connect Dozzier’s MCP server and ask your AI tools who read what, or have them create tracked links for you.</p>
+            <div className="mcp-card mt-16">
+              <div className="mcp-q">Which investors read the financials this week?</div>
+              <div className="mcp-tool"><code>dozzier · get_document_analytics</code><span className="badge badge-success">done</span></div>
+              <div className="mcp-a">Acme, Northwind and Kestrel each spent 4+ min on pages 12–14 of the Series A deck.</div>
+            </div>
           </div>
         </div>
         <div className="grid-4" style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 24 }} data-stagger="90">
@@ -303,7 +307,7 @@ function Pricing() {
 
 function Footer() {
   const cols: [string, [string, string][]][] = [
-    ["Product", [["Analytics", "#product"], ["Data rooms", "#data-rooms"], ["Ask Dozzier", "#ai"], ["eSign", "#product"], ["Integrations", "#integrations"], ["Pricing", "#pricing"]]],
+    ["Product", [["Analytics", "#product"], ["Data rooms", "#data-rooms"], ["MCP server", "#mcp"], ["eSign", "#product"], ["Integrations", "#integrations"], ["Pricing", "#pricing"]]],
     ["Resources", [["Docs", "/docs"], ["API reference", "/docs/api"], ["Changelog", "/docs/changelog"], ["Status", "/docs/contact#status"], ["Help center", "/docs"]]],
     ["Company", [["About", "#product"], ["Careers", "mailto:careers@dozzier.io"], ["Blog", "/docs/changelog"], ["Contact", "/docs/contact"]]],
     ["Legal", [["Privacy", "/legal/privacy"], ["Terms", "/legal/terms"], ["Security", "/legal/security"], ["DPA", "/legal/dpa"]]],

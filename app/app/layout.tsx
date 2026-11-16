@@ -193,14 +193,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     return () => { supabase.removeChannel(ch); };
   }, [state]);
 
-  // Global shortcuts: ⌘L create link, ⌘J Ask Dozzier, ⌘\ toggle sidebar, ? help
+  // Global shortcuts: ⌘L create link, ⌘\ toggle sidebar, ? help
   useEffect(() => {
     const k = (e: KeyboardEvent) => {
       const typing = /input|textarea|select/i.test((e.target as HTMLElement)?.tagName || "") || (e.target as HTMLElement)?.isContentEditable;
       if (e.metaKey || e.ctrlKey) {
         const key = e.key.toLowerCase();
         if (key === "l") { e.preventDefault(); router.push("/app/content?new=link"); }
-        else if (key === "j") { e.preventDefault(); router.push("/app/ask"); }
         else if (key === ",") { e.preventDefault(); router.push("/app/settings/preferences"); }
         else if (key === "\\") { e.preventDefault(); setCollapsed((c) => { try { localStorage.setItem("dz-sidebar", c ? "0" : "1"); } catch {} return !c; }); }
       } else if (e.key === "?" && !typing) { setHelp((h) => !h); }

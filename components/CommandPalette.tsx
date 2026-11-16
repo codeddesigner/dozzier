@@ -32,7 +32,6 @@ export function CommandPalette() {
     const t = q.trim();
     return [
       { id: "a-link", group: "Actions", icon: Link2, title: t ? `Create link for ${t}` : "Create link", href: `/app/content?new=link${t ? `&name=${encodeURIComponent(t)}` : ""}`, kbd: "⌘L" },
-      { id: "a-ask", group: "Actions", icon: Sparkles, title: t ? `Ask Copilot: summarise ${t} activity` : "Ask Dozzier", href: `/app/ask${t ? `?q=${encodeURIComponent(`Summarise ${t} activity`)}` : ""}`, kbd: "⌘J" },
       { id: "a-upload", group: "Actions", icon: Upload, title: "Upload content", href: "/app/content?upload=1" },
       { id: "a-space", group: "Actions", icon: House, title: "Create a Space", href: "/app/spaces?new=1" },
       { id: "a-fr", group: "Actions", icon: FileInput, title: "New file request", href: "/app/file-requests?new=1" },

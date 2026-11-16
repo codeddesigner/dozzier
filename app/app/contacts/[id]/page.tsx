@@ -2,7 +2,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { ChevronRight, Flame, Mail, Trash2, Link2, Sparkles } from "lucide-react";
+import { ChevronRight, Flame, Mail, Trash2, Link2, Sparkles, Zap } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { Avatar, DocThumb, Loading, Menu, Tabs, toast } from "@/components/ui";
 import { CountUp } from "@/components/Motion";
@@ -72,7 +72,7 @@ export default function ContactPage() {
         </section>
         <div className="col gap-16">
           <section className="copilot-card">
-            <span className="row gap-6 caption medium brand"><Sparkles size={14} />Dozzier Copilot</span>
+            <span className="row gap-6 caption medium brand"><Zap size={14} />Suggested next step</span>
             <span className="h3">{ins.headline}</span>
             <span className="muted" style={{ fontSize: 14 }}>{ins.read}</span>
             <div className="row gap-8 mt-8"><Link href={`/app/contacts/${c.id}/follow-up`} className="btn btn-dark btn-s">Draft follow-up</Link><button className="btn btn-ghost btn-s" onClick={() => setTab("activity")}>View timeline</button></div>

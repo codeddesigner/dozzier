@@ -3,7 +3,7 @@ import { useState } from "react";
 import { ChevronDown } from "lucide-react";
 
 const FAQS = [
-  ["How is Dozzier different from DocSend?", "You get the same secure links and analytics, plus live alerts, page-pinned Q&A, AI follow-ups, version compare and a deal pipeline — at a lower price."],
+  ["How is Dozzier different from DocSend?", "You get the same secure links and analytics, plus live alerts, page-pinned Q&A, follow-up drafts, version compare and a deal pipeline — at a lower price."],
   ["Can I move my existing links over?", "Yes. Upload the same files and create links in bulk — your old links keep working until you switch them off, and you can import contacts from your CRM."],
   ["Do viewers need an account?", "No. Viewers open your link in any browser. Depending on your link settings they may be asked for their email, a passcode or to accept an NDA first."],
   ["Is there a free plan?", "Every plan starts with a free 14-day trial, no credit card required. After that, Personal starts at $5 per user per month."],

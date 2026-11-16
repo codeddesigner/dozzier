@@ -16,7 +16,6 @@ const STEPS: Step[] = [
   { route: "/app", target: ".dash-table", place: "left", title: "See exactly who’s reading", body: "Every visit, page by page — time spent, downloads and forwards. Click a person for their full timeline and intent score." },
   { target: '.sidebar a[href="/app/inbox"]', place: "right", title: "Know the moment they open it", body: "Activity shows who’s viewing right now, questions on pages and forwards. Turn on push to get alerts on your phone." },
   { target: '[data-tour="spaces"]', place: "right", title: "Run deals in a data room", body: "Group files into a Space, set permissions per group, track diligence requests and answer questions — all in one link." },
-  { target: '.sidebar a[href="/app/ask"]', place: "right", title: "Ask Dozzier anything", body: "“Which investors read the financials twice?” Get cited answers and draft follow-ups in one click. Shortcut: ⌘J." },
   { target: ".ws-switch", place: "right", title: "Make it yours", body: "Open your workspace menu for profile, preferences, dark mode, team members and billing. You can restart this tour from Help anytime." },
 ];
 const GOALS: { id: Goal; title: string; sub: string; I: typeof Share2; label: string }[] = [

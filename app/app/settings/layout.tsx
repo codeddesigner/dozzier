@@ -19,7 +19,7 @@ const SETTINGS_NAV = [
     { href: "/app/settings/branding", label: "Branding", icon: Palette },
     { href: "/app/settings/domains", label: "Custom domains", icon: Globe },
     { href: "/app/settings/integrations", label: "Integrations", icon: Plug },
-    { href: "/app/settings/api", label: "API & webhooks", icon: Code2 },
+    { href: "/app/settings/api", label: "API & MCP", icon: Code2 },
     { href: "/app/settings/billing", label: "Billing & plan", icon: CreditCard },
     { href: "/app/settings/sso", label: "Security & SSO", icon: ShieldCheck },
   ] },
