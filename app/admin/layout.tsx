@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { LayoutDashboard, Users, CreditCard, Globe, LifeBuoy, Flag, ScrollText, ArrowLeft, ShieldCheck, KeyRound } from "lucide-react";
+import { LayoutDashboard, Users, CreditCard, Globe, LifeBuoy, Flag, ScrollText, ArrowLeft, ShieldCheck, KeyRound, Megaphone } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { Logo } from "@/components/Logo";
 import { ToastHost } from "@/components/ui";
@@ -14,6 +14,7 @@ const NAV = [
   { href: "/admin/domains", label: "Domains", I: Globe },
   { href: "/admin/sign-in", label: "Sign-in methods", I: KeyRound },
   { href: "/admin/support", label: "Support", I: LifeBuoy },
+  { href: "/admin/updates", label: "Product updates", I: Megaphone },
   { href: "/admin/reports", label: "Reports", I: Flag },
   { href: "/admin/audit", label: "Admin log", I: ScrollText },
 ];

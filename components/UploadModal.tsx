@@ -11,12 +11,15 @@ import { extractText } from "@/lib/extractText";
 import { uploadFile } from "@/lib/upload";
 import { officeFormat, countOfficePages } from "@/components/OfficeView";
 import { useApp } from "./AppContext";
+import { downloadUrls, PROVIDER_HINT, type Provider } from "@/lib/cloudImport";
 
-const SOURCES: [string, string][] = [["Google Drive", "/logos/google-drive.png"], ["Dropbox", "/logos/dropbox.png"], ["Box", "Bx"], ["OneDrive", "Od"], ["SharePoint", "Sp"]];
+const SOURCES: [Provider, string][] = [["Google Drive", "/logos/google-drive.png"], ["Dropbox", "/logos/dropbox.png"], ["Box", "Bx"], ["OneDrive", "Od"], ["SharePoint", "Sp"]];
 
 export function UploadModal({ folderId, onClose, onDone }: { folderId?: string | null; onClose: () => void; onDone: (docIds: string[]) => void }) {
   const { userId, wsId, profile } = useApp();
-  const [tab, setTab] = useState<"file" | "url" | "zip">("file");
+  const [tab, setTab] = useState<"file" | "url" | "zip" | "cloud">("file");
+  const [cloud, setCloud] = useState<Provider>("Google Drive");
+  const [share, setShare] = useState("");
   const zipInput = useRef<HTMLInputElement>(null);
   async function pickZip(f?: File | null) {
     if (!f) return;
@@ -32,8 +35,9 @@ export function UploadModal({ folderId, onClose, onDone }: { folderId?: string |
   const [url, setUrl] = useState("");
   const input = useRef<HTMLInputElement>(null);
 
-  async function uploadFiles() {
-    if (!files.length) return input.current?.click();
+  async function uploadFiles(list: File[] = files) {
+    if (!list.length) return input.current?.click();
+    const files = list;
     setBusy(true); setErr(null);
     const ids: string[] = [];
     try {
@@ -66,6 +70,30 @@ export function UploadModal({ folderId, onClose, onDone }: { folderId?: string |
     setBusy(false); setProgress("");
   }
 
+  /** Downloads a shared cloud file through /api/import, then uploads it like a file from this device. */
+  async function importCloud() {
+    if (!downloadUrls(share)) return setErr(`Paste a ${cloud} share link, like ${PROVIDER_HINT[cloud].example}`);
+    setBusy(true); setErr(null); setProgress(`Getting the file from ${cloud}…`);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const r = await fetch("/api/import", { method: "POST", headers: { "content-type": "application/json", authorization: `Bearer ${session?.access_token || ""}` }, body: JSON.stringify({ url: share.trim() }) });
+      if (!r.ok || !r.body) { const j = await r.json().catch(() => ({})); throw new Error(j.error || "Couldn’t import that file"); }
+      const total = Number(r.headers.get("content-length") || 0);
+      const reader = r.body.getReader();
+      const parts: BlobPart[] = []; let got = 0;
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        parts.push(value); got += value.length;
+        setProgress(`Getting the file from ${cloud}… ${total ? `${Math.round((got / total) * 100)}%` : fmtBytes(got)}`);
+      }
+      const name = decodeURIComponent(r.headers.get("x-file-name") || `${cloud} file`);
+      const file = new File(parts, name, { type: r.headers.get("content-type") || "application/octet-stream" });
+      setBusy(false);
+      await uploadFiles([file]);
+    } catch (e) { setErr(e instanceof Error ? e.message : "Import failed"); setBusy(false); setProgress(""); }
+  }
+
   async function addUrl() {
     if (!/^https?:\/\//.test(url)) return setErr("Enter a full URL starting with https://");
     setBusy(true);
@@ -80,7 +108,7 @@ export function UploadModal({ folderId, onClose, onDone }: { folderId?: string |
   return (
     <Modal title="Upload" onClose={onClose} width={640}
       footer={<><span className="caption faint grow">{progress}</span><button className="btn btn-ghost" onClick={onClose}>Cancel</button>
-        <button className="btn btn-dark" disabled={busy} onClick={tab === "url" ? addUrl : tab === "zip" && !files.length ? () => zipInput.current?.click() : uploadFiles}>{busy ? "Uploading…" : tab === "url" ? "Add" : "Upload"}</button></>}>
+        <button className="btn btn-dark" disabled={busy} onClick={tab === "url" ? addUrl : tab === "cloud" ? importCloud : tab === "zip" && !files.length ? () => zipInput.current?.click() : () => uploadFiles()}>{busy ? (tab === "cloud" ? "Importing…" : "Uploading…") : tab === "url" ? "Add" : tab === "cloud" ? "Import" : "Upload"}</button></>}>
       <div className="up-tabs"><Tabs tabs={[{ id: "file", label: "Upload file" }, { id: "url", label: "Add URL" }, { id: "zip", label: "Extract ZIP" }]} value={tab} onChange={(t) => { setTab(t); setErr(null); if (t !== "file") setFiles([]); }} /></div>
       {tab === "file" ? (
         <div className="col gap-16 mt-16">
@@ -88,7 +116,7 @@ export function UploadModal({ folderId, onClose, onDone }: { folderId?: string |
           <div className="up-sources">
             <button className="up-src on" onClick={() => input.current?.click()}><Upload size={20} /><span>My device</span></button>
             {SOURCES.map(([n, a]) => (
-              <button key={n} className="up-src" onClick={() => toast(`${n} import needs the ${n} integration — upload from your device for now`)}>
+              <button key={n} className="up-src" onClick={() => { setCloud(n); setShare(""); setErr(null); setTab("cloud"); }}>
                 {a.startsWith("/") ? <img src={a} alt="" width={n === "Dropbox" ? 20 : 22} height={20} style={{ objectFit: "contain" }} /> : <span className="up-mono">{a}</span>}<span>{n}</span>
               </button>
             ))}
@@ -103,6 +131,13 @@ export function UploadModal({ folderId, onClose, onDone }: { folderId?: string |
             <div className="caption faint">PDF, PowerPoint, Word, Excel, images and video up to 2 GB each</div>
           </div>
           <input ref={input} type="file" multiple hidden onChange={(e) => setFiles(Array.from(e.target.files || []))} />
+        </div>
+      ) : tab === "cloud" ? (
+        <div className="col gap-12 mt-16">
+          <button type="button" className="caption medium muted" style={{ alignSelf: "flex-start" }} onClick={() => { setTab("file"); setErr(null); }}>← All sources</button>
+          <label className="field"><span className="label">{cloud} share link</span>
+            <input className="input" autoFocus value={share} onChange={(e) => setShare(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && !busy) importCloud(); }} placeholder={PROVIDER_HINT[cloud].example} /></label>
+          <span className="caption faint">{PROVIDER_HINT[cloud].how}</span>
         </div>
       ) : tab === "zip" ? (
         <div className="col gap-12 mt-16">

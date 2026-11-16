@@ -183,12 +183,13 @@ export function digestEmail(o: { name?: string | null; visits: number; prev: num
   };
 }
 
-export function productUpdateEmail(o: { title: string; sub: string; q: string; a: string; bodyText: string; cta: { label: string; url: string } }): Built {
+export function productUpdateEmail(o: { title: string; sub: string; bodyText: string; cta?: { label: string; url: string } | null; q?: string; a?: string }): Built {
   return {
-    subject: `New: ${o.title}`,
-    html: renderEmail({ preheader: o.sub, banner: { bg: "#0f192c", dark: true, pill: "What’s new", title: o.title, sub: o.sub, visual: visual.product({ q: o.q, a: o.a }) },
-      body: text(o.bodyText) + button(o.cta.label, o.cta.url) + signoff(), footer: accountFooter("You’re receiving product updates because you have a Dozzier account.") }),
-    text: `${o.title}\n\n${o.bodyText}\n\n${o.cta.label}: ${o.cta.url}`,
+    subject: `New in Dozzier: ${o.title}`,
+    html: renderEmail({ preheader: o.sub || o.bodyText.slice(0, 120), banner: { bg: "#0f192c", dark: true, pill: "What’s new", title: o.title, sub: o.sub, visual: o.q && o.a ? visual.product({ q: o.q, a: o.a }) : undefined },
+      body: text(o.bodyText) + (o.cta ? button(o.cta.label, o.cta.url) : "") + signoff(),
+      footer: accountFooter("You’re receiving product updates because you have a Dozzier account. Turn them off in Settings → Notifications.") }),
+    text: `${o.title}\n\n${o.bodyText}${o.cta ? `\n\n${o.cta.label}: ${o.cta.url}` : ""}\n\nTurn off product updates in Settings → Notifications.`,
   };
 }
 

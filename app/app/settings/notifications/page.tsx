@@ -12,12 +12,13 @@ const EVENTS: [string, string, string][] = [
   ["upload", "File request upload", "Someone uploaded to your request"],
   ["expiring", "Link expiring soon", "3 days before expiry"],
   ["weekly", "Weekly engagement digest", "Every Monday, 8:00"],
+  ["product", "Product updates", "New features, a few times a month at most"],
 ];
 const CHANNELS = ["inapp", "email", "slack", "push"] as const;
 type Ch = (typeof CHANNELS)[number];
 type N = { matrix: Record<string, Ch[]>; quiet: boolean; quiet_from: string; quiet_to: string };
 const DEFAULT: N = {
-  matrix: { open: ["inapp", "email", "slack", "push"], viewing: ["inapp", "slack", "push"], question: ["inapp", "email", "slack", "push"], forward: ["inapp", "email", "push"], download: ["inapp", "email"], signed: ["inapp", "email", "slack"], upload: ["inapp", "email"], expiring: ["inapp", "email"], weekly: ["email"] },
+  matrix: { open: ["inapp", "email", "slack", "push"], viewing: ["inapp", "slack", "push"], question: ["inapp", "email", "slack", "push"], forward: ["inapp", "email", "push"], download: ["inapp", "email"], signed: ["inapp", "email", "slack"], upload: ["inapp", "email"], expiring: ["inapp", "email"], weekly: ["email"], product: ["email"] },
   quiet: false, quiet_from: "20:00", quiet_to: "08:00",
 };
 const HOURS = Array.from({ length: 24 }, (_, i) => `${String(i).padStart(2, "0")}:00`);
