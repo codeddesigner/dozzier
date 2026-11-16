@@ -9,78 +9,16 @@ import { Faq } from "@/components/Faq";
 import { PageBars } from "@/components/charts";
 import { NAV_GROUPS } from "@/components/nav";
 import { LogoMark } from "@/components/Logo";
-import { MobileMenu, LandingPricing } from "@/components/LandingMobile";
+import { LandingPricing } from "@/components/LandingMobile";
+import { SiteNav, SiteCta, SiteFooter, DEMO } from "@/components/marketing/Chrome";
+import { ProductShot, SecurityBento, AiCardBody } from "@/components/marketing/Mocks";
 import { Avatar } from "@/components/ui";
 import { AppLogo, INTEGRATIONS } from "@/components/AppLogo";
 import { WordReveal, TypeText, CountUp } from "@/components/Motion";
 import { HeroLiveAlert, IntentScore, MockKpis, MockRows, LiveFeed, LinkSettingsLive } from "@/components/LandingMotion";
 
-const DEMO = "mailto:sales@dozzier.io?subject=Dozzier%20demo";
 
-function Nav() {
-  return (
-    <header className="lp-nav">
-      <a href="#mcp" className="announce-bar"><span className="announce-check d-only"><Check size={14} strokeWidth={2.5} /></span><span className="d-only">New: Bring your Dozzier data into Claude, ChatGPT and Cursor with MCP</span><span className="m-only">New: Dozzier works with Claude via MCP</span>&nbsp;&nbsp;<span className="arrow">→</span></a>
-      <div className="lp-nav-inner">
-        <Link href="/" aria-label="Dozzier home"><Logo height={30} /></Link>
-        <nav className="lp-links">
-          <a href="#product">Product</a><a href="#data-rooms">Data rooms</a><a href="#security">Security</a>
-          <a href="#integrations">Integrations</a><a href="#pricing">Pricing</a><Link href="/docs">Docs</Link>
-        </nav>
-        <div className="spacer" />
-        <Link href="/login" className="btn btn-ghost d-only">Log in</Link>
-        <a href={DEMO} className="btn btn-secondary btn-xs-shadow d-only">Talk to Sales</a>
-        <Link href="/signup" className="btn btn-dark lp-try">Try for free</Link>
-        <MobileMenu />
-      </div>
-    </header>
-  );
-}
 
-function DashboardMock() {
-  return (
-    <div style={{ height: 620, overflow: "hidden" }}>
-      <div style={{ zoom: 0.7556, width: 1440, pointerEvents: "none" }}>
-        <div className="app" style={{ height: 900 }}>
-          <aside className="sidebar">
-            <div className="ws-switch-wrap"><span className="ws-switch"><span className="ws-switch-logo">TC</span><span className="ws-switch-text"><span className="ws-switch-name">Thiscompany</span><span className="ws-switch-sub">Stella · Owner</span></span><span className="ws-switch-chev"><ChevronDown size={14} style={{ transform: "rotate(180deg)" }} /><ChevronDown size={14} /></span></span></div>
-            <div className="side-nav">
-              <span className="nav-item"><Search size={20} /><span>Search</span></span>
-              <span className="nav-item"><Bell size={20} /><span className="grow">Activity</span><span className="nav-count">3</span></span>
-              {NAV_GROUPS.flatMap((g) => g.items).map((n) => <span key={n.href} className={`nav-item ${n.href === "/app" ? "active" : ""}`} style={n.href === "/app" ? { background: "var(--dz-bg-emphasis)" } : undefined}><n.icon size={20} /><span>{n.label}</span></span>)}
-            </div>
-            <div className="side-section">Spaces</div>
-            <span className="side-space on"><span className="side-space-dot"><i style={{ background: "#ff7a3d" }} /></span><span className="side-space-text"><span className="side-space-name">Acme — Series A</span><span className="side-space-sub">11 visitors · 2 new</span></span><span className="side-space-badge">2</span></span>
-            <span className="side-space"><span className="side-space-dot"><i style={{ background: "#14c7b0" }} /></span><span className="side-space-text"><span className="side-space-name">Board pack · Q3</span><span className="side-space-sub">5 visitors</span></span></span>
-            <span className="side-invite">+ Invite your team</span>
-          </aside>
-          <div className="main-col">
-          <div className="ws-banner" style={{ display: "flex" }}><span>Connect your CRM to sync every visit and intent score to your deals automatically.</span><span className="ws-banner-link">Connect HubSpot</span></div>
-          <div className="shell">
-          <div className="main">
-          <div className="content" style={{ flex: 1, padding: "32px 48px" }}>
-            <div className="muted body-m">Good evening, Chidera</div>
-            <div className="page-title">See what’s new</div>
-            <div className="row gap-8 mt-24"><span className="chip"><Calendar size={16} />Last 30 days<ChevronDown size={14} /></span><span className="chip"><Users size={16} />Team visits<ChevronDown size={14} /></span></div>
-            <MockKpis />
-            <div className="tabs mt-24">{["Visitor activity", "Popular content", "Top groups & links", "Top Spaces", "Visit chart"].map((t, i) => <span key={t} className={`tab ${i === 0 ? "active" : ""}`}>{t}</span>)}</div>
-            <div className="row gap-6 mt-24">
-              {["Spaces", "Link owners", "Domains"].map((c) => <span key={c} className="chip" style={{ height: 30, fontSize: 13, padding: "0 12px" }}>{c}<ChevronDown size={12} /></span>)}
-              <span className="spacer" /><span className="search" style={{ width: 200, height: 32 }}><Search size={14} /><span className="caption">Search</span></span>
-            </div>
-            <table className="table mt-16">
-              <thead><tr><th style={{ width: 24 }} /><th>Name</th><th>Space or link visited</th><th>Visits</th><th>Downloads</th><th>Time spent</th><th>Last visit</th></tr></thead>
-              <MockRows />
-            </table>
-          </div>
-          </div>
-          </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 function Hero() {
   return (
@@ -98,9 +36,9 @@ function Hero() {
       <p className="caption faint m-only hero-trial">14-day free trial · Set up in 2 minutes</p>
       <div className="hero-explore h-in d-only" style={{ animationDelay: ".72s" }}>
         <span>Explore:</span>
-        <a href="#product-analytics"><TrendingUp size={18} />Analytics</a>
-        <a href="#data-rooms"><HousePlus size={18} />Data rooms</a>
-        <a href="#security"><Lock size={18} />Security</a>
+        <Link href="/product"><TrendingUp size={18} />Analytics</Link>
+        <Link href="/data-rooms"><HousePlus size={18} />Data rooms</Link>
+        <Link href="/security"><Lock size={18} />Security</Link>
       </div>
       <div className="hero-peek m-only">
         <div className="peek-alert"><span className="avatar" style={{ width: 20, height: 20, fontSize: 8, background: "#3b8bff" }}>Pa</span><div className="col grow" style={{ minWidth: 0 }}><span className="semibold">Paul is viewing your deck</span><span className="caption" style={{ color: "var(--dz-text-secondary)" }}>Pitch deck · page 7 of 18 · 4m 12s</span></div><span className="badge badge-success"><span className="dot" />Live</span></div>
@@ -109,36 +47,11 @@ function Hero() {
         ))}</div>
         <div className="ai-card peek-ai"><AiCardBody title="Paul is ready for a follow-up" body="Spent 6 min on pricing and forwarded to 2 partners." brand /></div>
       </div>
-      <div className="product-shot d-only" data-tilt-scroll>
-        <div className="browser">
-          <div className="browser-bar"><span className="dot" style={{ background: "#ff5f57" }} /><span className="dot" style={{ background: "#febc2e" }} /><span className="dot" style={{ background: "#28c840" }} /><div className="browser-url">app.dozzier.io/dashboard</div></div>
-          <DashboardMock />
-        </div>
-        <div className="float-card f1" style={{ left: -48, top: 250, padding: "14px 16px", minWidth: 351, whiteSpace: "nowrap" }}>
-          <HeroLiveAlert />
-        </div>
-        <div className="float-card f2 col gap-8" style={{ left: 1010, top: 170, padding: "14px 16px", whiteSpace: "nowrap" }}>
-          <span className="overline" style={{ color: "var(--dz-text-tertiary)" }}>Intent score</span>
-          <div className="row gap-12"><span className="semibold">Acme Ventures</span><IntentScore /></div>
-        </div>
-        <div className="float-card f3 ai-card" style={{ left: 800, top: 420, width: 340 }}>
-          <AiCardBody title="Acme is ready for a follow-up" body="Spent 6 min on pricing and forwarded to 2 partners. Suggest sending the data room." />
-        </div>
-      </div>
+      <ProductShot />
     </section>
   );
 }
 
-function AiCardBody({ title, body, brand }: { title: string; body: string; brand?: boolean }) {
-  return (
-    <>
-      <div className="row gap-8 brand caption medium"><span className="flame"><Zap size={18} /></span>Suggested next step</div>
-      <div className="h3">{title}</div>
-      <p className="muted"><TypeText text={body} /></p>
-      <div className="row gap-8"><Link href="/signup" className={`btn ${brand ? "btn-brand" : "btn-primary"} btn-s`}>Draft follow-up</Link><Link href="/signup" className="btn btn-ghost btn-s">View timeline</Link></div>
-    </>
-  );
-}
 
 function Logos() {
   const items: [string, React.CSSProperties][] = [
@@ -252,7 +165,7 @@ function Integrations() {
           {["Two-way CRM sync with HubSpot, Salesforce and Pipedrive", "Live alerts in Slack, Teams and email", "Import from Google Drive, Dropbox, Box, OneDrive and SharePoint", "6,000+ apps through Zapier, plus a REST API and webhooks"].map((t) => (
             <div key={t} className="row gap-12 body-m int-point"><CheckCircle2 size={20} color="#4D94F7" />{t}</div>
           ))}
-          <div><Link href="/signup" className="btn btn-secondary">See all integrations</Link></div>
+          <div><Link href="/integrations" className="btn btn-secondary">See all integrations</Link></div>
         </div>
         <div className="int-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 100px))", gap: 16 }} data-stagger="45" data-stagger-variant="pop">
           {INTEGRATIONS.map((n) => (
@@ -264,34 +177,6 @@ function Integrations() {
   );
 }
 
-function Security() {
-  const Chips = ({ items }: { items: string[] }) => <div className="sec-chips">{items.map((t) => <span key={t}><Check size={14} />{t}</span>)}</div>;
-  const Card = ({ I, t, b, children, style }: { I: typeof Lock; t: string; b: string; children?: React.ReactNode; style?: React.CSSProperties }) => (
-    <div className="sec-card spotlight" style={style}><span className="icon-tile"><I size={22} /></span><div className="h1">{t}</div><p className="body-m muted">{b}</p>{children}</div>
-  );
-  return (
-    <section className="sec-wrap" id="security">
-      <div className="sec-panel">
-        <div className="lp-head" style={{ marginBottom: 0 }} data-stagger="90"><span className="overline">Security</span><h2 className="display-l">Enterprise-grade by default</h2><p className="body-l muted">Your documents stay yours — locked down, logged, and revocable at any moment.</p></div>
-        <div className="sec-bento" data-stagger="110">
-          <div className="sec-row">
-            <Card I={Lock} t="Encrypted end to end" b="Every file is encrypted at rest and in transit, with screenshot protection and dynamic watermarks on sensitive links." style={{ flex: 1, height: 360 }}>
-              <span className="grow" /><Chips items={["AES-256 at rest", "TLS 1.3 in transit", "Screenshot protection", "Dynamic watermarks", "Revoke access anytime"]} />
-            </Card>
-            <Card I={ShieldCheck} t="Full audit trail" b="Every view, download and permission change — exportable anytime." style={{ width: 380, height: 360 }}>
-              <div className="sec-log">{[["Paul · Viewed Series A Deck", "2m"], ["Cynthia · Downloaded Term sheet", "1h"], ["Stella · Revoked link · Globex", "3h"]].map(([a, b]) => <div key={a}><i /><span className="grow">{a}</span><span className="faint">{b}</span></div>)}</div>
-            </Card>
-          </div>
-          <div className="sec-row">
-            <Card I={KeyRound} t="SSO, SAML & SCIM" b="Granular roles, IP allow-lists and automatic provisioning." style={{ flex: 1, height: 300 }}><span className="grow" /><Chips items={["Okta", "Google", "Microsoft Entra"]} /></Card>
-            <Card I={Globe} t="Data residency" b="Region-locked storage — choose where your documents live." style={{ flex: 1, height: 300 }}><span className="grow" /><Chips items={["EU", "US"]} /></Card>
-            <Card I={FileCheck2} t="Access controls" b="Email verification, passcodes, NDAs, expiry and allow/block lists on every link." style={{ flex: 1, height: 300 }} />
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
 
 function Pricing() {
   return (
@@ -305,53 +190,24 @@ function Pricing() {
   );
 }
 
-function Footer() {
-  const cols: [string, [string, string][]][] = [
-    ["Product", [["Analytics", "#product"], ["Data rooms", "#data-rooms"], ["MCP server", "#mcp"], ["eSign", "#product"], ["Integrations", "#integrations"], ["Pricing", "#pricing"]]],
-    ["Resources", [["Docs", "/docs"], ["API reference", "/docs/api"], ["Changelog", "/docs/changelog"], ["Status", "/docs/contact#status"], ["Help center", "/docs"]]],
-    ["Company", [["About", "#product"], ["Careers", "mailto:careers@dozzier.io"], ["Blog", "/docs/changelog"], ["Contact", "/docs/contact"]]],
-    ["Legal", [["Privacy", "/legal/privacy"], ["Terms", "/legal/terms"], ["Security", "/legal/security"], ["DPA", "/legal/dpa"]]],
-  ];
-  return (
-    <footer className="footer">
-      <div className="lp-container">
-        <div className="footer-cols" data-stagger="70">
-          <div><FooterLogo height={36} /><p className="muted" style={{ marginTop: 16, maxWidth: 300 }}>Secure document sharing with analytics that tell you what to do next.</p></div>
-          {cols.map(([h, ls]) => <div key={h}><div className="semibold">{h}</div>{ls.map(([l, href]) => <a key={l} href={href}>{l}</a>)}</div>)}
-        </div>
-        <div className="row footer-bottom" style={{ borderTop: "1px solid var(--dz-border-subtle)", marginTop: 48, paddingTop: 24 }}>
-          <span className="caption faint grow">© 2026 Dozzier, Inc. · dozzier.io</span>
-          <div className="row gap-16 muted footer-icons"><AtSign size={18} /><Mail size={18} /><Globe size={18} /></div>
-        </div>
-      </div>
-    </footer>
-  );
-}
 
 export default function Landing() {
   return (
     <main>
-      <Nav />
+      <SiteNav />
       <Hero />
       <Logos />
       <HowItWorks />
       <Features />
       <Integrations />
-      <Security />
+      <SecurityBento />
       <Pricing />
       <section className="lp-section" id="faq">
         <div className="lp-head" style={{ marginBottom: 32 }} data-stagger="90"><span className="overline">FAQ</span><h2 className="display-l">Questions, answered</h2></div>
         <div data-reveal><Faq /></div>
       </section>
-      <section className="cta-wrap">
-        <div className="lp-container cta-box" data-reveal="scale">
-          <span className="cta-icon"><LogoMark size={28} color="#fff" /></span>
-          <h2 className="display-l">Stop guessing. Start knowing.</h2>
-          <p className="body-l" style={{ opacity: 0.85, marginTop: 0 }}>Send your first tracked link in under two minutes.</p>
-          <div className="row gap-12 cta-btns"><Link href="/signup" className="btn btn-secondary btn-xs-shadow">Start free trial</Link><a href={DEMO} className="btn btn-dark">Book a demo</a></div>
-        </div>
-      </section>
-      <Footer />
+      <SiteCta />
+      <SiteFooter />
     </main>
   );
 }

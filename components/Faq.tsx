@@ -10,11 +10,11 @@ const FAQS = [
   ["Can I use my own domain and branding?", "Standard and Data Rooms plans include custom branding, and you can serve links from your own domain such as docs.yourcompany.com."],
 ];
 
-export function Faq() {
+export function Faq({ items = FAQS }: { items?: string[][] }) {
   const [open, setOpen] = useState(0);
   return (
     <div style={{ maxWidth: 800, margin: "0 auto" }}>
-      {FAQS.map(([q, a], i) => (
+      {items.map(([q, a], i) => (
         <div className="faq-item" key={q}>
           <button className="faq-q" aria-expanded={open === i} onClick={() => setOpen(open === i ? -1 : i)}>
             <span className="grow">{q}</span>

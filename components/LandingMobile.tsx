@@ -18,13 +18,13 @@ export function MobileMenu() {
   }, [open]);
   const close = () => setOpen(false);
   const groups: { label: string; href?: string; items?: [string, string][] }[] = [
-    { label: "Product", items: [["Analytics", "#product-analytics"], ["Live alerts", "#product-analytics"], ["Link controls", "#product-analytics"], ["eSign & file requests", "#product-analytics"]] },
-    { label: "Data rooms", href: "#data-rooms" },
-    { label: "Security", href: "#security" },
-    { label: "Integrations", href: "#integrations" },
-    { label: "Pricing", href: "#pricing" },
+    { label: "Product", items: [["Overview", "/product"], ["Analytics", "/product#analytics"], ["Live alerts", "/product#alerts"], ["Secure links", "/product#links"], ["eSign & file requests", "/esign"], ["MCP for AI tools", "/docs/mcp"]] },
+    { label: "Data rooms", href: "/data-rooms" },
+    { label: "Security", href: "/security" },
+    { label: "Integrations", href: "/integrations" },
+    { label: "Pricing", href: "/pricing" },
     { label: "Docs", href: "/docs" },
-    { label: "Customers", items: [["Who uses Dozzier", "#customers"], ["Security", "#security"], ["FAQ", "#faq"]] },
+    { label: "Company", items: [["Talk to sales", "/talk-to-sales"], ["Changelog", "/docs/changelog"], ["Contact support", "/docs/contact"]] },
   ];
   return (
     <>
@@ -36,10 +36,10 @@ export function MobileMenu() {
             {groups.map((g) => g.items ? (
               <div key={g.label} className={`lm-group ${sub === g.label ? "open" : ""}`}>
                 <button className="lm-item" aria-expanded={sub === g.label} onClick={() => setSub(sub === g.label ? null : g.label)}>{g.label}<ChevronDown size={18} /></button>
-                {sub === g.label && <div className="lm-sub">{g.items.map(([t, h]) => <a key={t} href={h} onClick={close}>{t}</a>)}</div>}
+                {sub === g.label && <div className="lm-sub">{g.items.map(([t, h]) => <Link key={t} href={h} onClick={close}>{t}</Link>)}</div>}
               </div>
             ) : (
-              <a key={g.label} className="lm-item" href={g.href} onClick={close}>{g.label}<ChevronRight size={18} /></a>
+              <Link key={g.label} className="lm-item" href={g.href!} onClick={close}>{g.label}<ChevronRight size={18} /></Link>
             ))}
           </nav>
           <span className="grow" />
@@ -80,7 +80,7 @@ export function LandingPricing() {
       <div className={mode === "compare" ? "d-only" : ""}>
         <PricingCards cta={(id) => <Link href={`/signup?plan=${id}`} className="btn btn-block btn-primary">{id === "datarooms" ? "Start free trial" : "Select plan"}</Link>} />
       </div>
-      <p className="caption faint center m-only lp-bill">{mode === "monthly" ? "Prices in USD, billed monthly." : mode === "annual" ? "Prices in USD, billed annually at 20% off." : ""}</p>
+      <p className="caption faint center m-only lp-bill">{mode === "monthly" ? "Prices in USD, billed monthly." : mode === "annual" ? "Monthly prices in USD. Pay yearly and save 20%." : ""}</p>
     </>
   );
 }
