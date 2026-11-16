@@ -5,11 +5,13 @@ import Link from "next/link";
 import { Menu, X, ChevronDown, ChevronRight, Check, Minus } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { PricingCards } from "@/components/Pricing";
+import { StartCta, PlanCta, useSignedIn } from "@/components/marketing/AuthCta";
 
 /** Figma "Mobile / 02 · Menu": hamburger that opens a full-screen sheet. */
 export function MobileMenu() {
   const [open, setOpen] = useState(false);
   const [sub, setSub] = useState<string | null>(null);
+  const signedIn = useSignedIn();
   useEffect(() => {
     document.documentElement.style.overflow = open ? "hidden" : "";
     const k = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
@@ -44,8 +46,8 @@ export function MobileMenu() {
           </nav>
           <span className="grow" />
           <div className="lm-foot">
-            <Link href="/signup" className="btn btn-dark btn-l btn-block" onClick={close}>Try for free</Link>
-            <Link href="/login" className="btn btn-secondary btn-l btn-block" onClick={close}>Sign in</Link>
+            <StartCta className="btn btn-dark btn-l btn-block" onClick={close} />
+            {!signedIn && <Link href="/login" className="btn btn-secondary btn-l btn-block" onClick={close}>Sign in</Link>}
           </div>
         </div>, document.body
       )}
@@ -78,7 +80,7 @@ export function LandingPricing() {
         </div>
       ) : null}
       <div className={mode === "compare" ? "d-only" : ""}>
-        <PricingCards cta={(id) => <Link href={`/signup?plan=${id}`} className="btn btn-block btn-primary">{id === "datarooms" ? "Start free trial" : "Select plan"}</Link>} />
+        <PricingCards cta={(id) => <PlanCta id={id} className="btn btn-block btn-primary" label={id === "datarooms" ? "Start free trial" : "Select plan"} />} />
       </div>
       <p className="caption faint center m-only lp-bill">{mode === "monthly" ? "Prices in USD, billed monthly." : mode === "annual" ? "Monthly prices in USD. Pay yearly and save 20%." : ""}</p>
     </>

@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { PlanCta } from "@/components/marketing/AuthCta";
 import Link from "next/link";
 import { Check, Minus } from "lucide-react";
 import { PricingCards } from "@/components/Pricing";
@@ -64,7 +65,7 @@ export function PricingPage() {
         </div>
         <div className="mk-price-wrap" data-reveal>
           <PricingCards annual={annual}
-            cta={(id) => <Link href={`/signup?plan=${id}`} className={`btn btn-block ${id === "standard" ? "btn-primary" : "btn-dark"}`}>{id === "datarooms" ? "Start free trial" : "Select plan"}</Link>}
+            cta={(id) => <PlanCta id={id} className={`btn btn-block ${id === "standard" ? "btn-primary" : "btn-dark"}`} label={id === "datarooms" ? "Start free trial" : "Select plan"} />}
             enterprise={<Link href={DEMO} className="btn btn-block btn-dark">Talk to sales</Link>} />
         </div>
       </section>

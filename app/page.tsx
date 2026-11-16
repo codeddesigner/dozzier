@@ -10,6 +10,7 @@ import { PageBars } from "@/components/charts";
 import { NAV_GROUPS } from "@/components/nav";
 import { LogoMark } from "@/components/Logo";
 import { LandingPricing } from "@/components/LandingMobile";
+import { StartCta } from "@/components/marketing/AuthCta";
 import { SiteNav, SiteCta, SiteFooter, DEMO } from "@/components/marketing/Chrome";
 import { ProductShot, SecurityBento, AiCardBody } from "@/components/marketing/Mocks";
 import { Avatar } from "@/components/ui";
@@ -30,7 +31,7 @@ function Hero() {
       </p>
       <p className="body-m muted h-in m-only hero-sub-m" style={{ animationDelay: ".45s" }}>Turn every deck, proposal and data room into a secure link with page-by-page analytics, live alerts and timely follow-ups.</p>
       <div className="row gap-12 wrap h-in hero-ctas" style={{ justifyContent: "center", animationDelay: ".6s" }}>
-        <Link href="/signup" className="btn btn-lime btn-l">Try for free</Link>
+        <StartCta className="btn btn-lime btn-l" />
         <a href="#how-it-works" className="btn btn-ghost btn-l"><Play size={18} />See how it works (1:00)</a>
       </div>
       <p className="caption faint m-only hero-trial">14-day free trial · Set up in 2 minutes</p>

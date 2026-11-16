@@ -28,6 +28,8 @@ export default function Signup() {
   const [note, setNote] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const methods = useAuthMethods();
+  // Already signed in: no need to create another account.
+  useEffect(() => { supabase.auth.getSession().then(({ data }) => { if (data.session) router.replace("/app"); }); }, [router]);
   // Invite emails link here with ?email= so the invitee signs up with the invited address.
   useEffect(() => { try { const e = new URLSearchParams(window.location.search).get("email"); if (e) setEmail(e); } catch {} }, []);
   const domain = email.split("@")[1]?.toLowerCase() || "";

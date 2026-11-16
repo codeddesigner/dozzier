@@ -31,6 +31,20 @@ export default function Login() {
   // dozzier.co/login?sso=1 (the sign-on URL given to customers' IT teams) opens straight to SSO.
   useEffect(() => { try { if (new URLSearchParams(window.location.search).get("sso")) setSso(true); } catch {} }, []);
 
+  // Already signed in: go straight on (or finish two-factor if it's still pending).
+  useEffect(() => {
+    (async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+      const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+      if (aal && aal.nextLevel === "aal2" && aal.currentLevel !== "aal2") {
+        const { data: f } = await supabase.auth.mfa.listFactors();
+        if (f?.totp?.[0]) return setMfa({ factorId: f.totp[0].id });
+      }
+      router.replace(nextPath());
+    })();
+  }, [router]);
+
   async function ssoSubmit(e: React.FormEvent) {
     e.preventDefault();
     setBusy(true); setErr(null);

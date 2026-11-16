@@ -3,6 +3,7 @@ import { Check, CheckCircle2, AtSign, Mail, Globe } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { Logo, FooterLogo, LogoMark } from "@/components/Logo";
 import { MobileMenu } from "@/components/LandingMobile";
+import { NavAuth, StartCta } from "@/components/marketing/AuthCta";
 
 export const DEMO = "/talk-to-sales";
 
@@ -22,9 +23,7 @@ export function SiteNav({ active }: { active?: string }) {
           {SITE_LINKS.map(([l, h]) => <Link key={h} href={h} className={active === h ? "on" : undefined} aria-current={active === h ? "page" : undefined}>{l}</Link>)}
         </nav>
         <div className="spacer" />
-        <Link href="/login" className="btn btn-ghost d-only">Log in</Link>
-        <Link href={DEMO} className="btn btn-secondary btn-xs-shadow d-only">Talk to Sales</Link>
-        <Link href="/signup" className="btn btn-dark lp-try">Try for free</Link>
+        <NavAuth demo={DEMO} />
         <MobileMenu />
       </div>
     </header>
@@ -38,7 +37,7 @@ export function SiteCta() {
         <span className="cta-icon"><LogoMark size={28} color="#fff" /></span>
         <h2 className="display-l">Stop guessing. Start knowing.</h2>
         <p className="body-l" style={{ opacity: 0.85, marginTop: 0 }}>Send your first tracked link in under two minutes.</p>
-        <div className="row gap-12 cta-btns"><Link href="/signup" className="btn btn-secondary btn-xs-shadow">Start free trial</Link><Link href={DEMO} className="btn btn-dark">Book a demo</Link></div>
+        <div className="row gap-12 cta-btns"><StartCta className="btn btn-secondary btn-xs-shadow" label="Start free trial" /><Link href={DEMO} className="btn btn-dark">Book a demo</Link></div>
       </div>
     </section>
   );
@@ -74,7 +73,7 @@ export function PageHero({ pill, title, sub, ctas = true, children }: { pill: st
       <span className="mk-pill h-in">{pill}</span>
       <h1 className="mk-h1 h-in" style={{ animationDelay: ".08s" }}>{title}</h1>
       <p className="mk-sub h-in" style={{ animationDelay: ".16s" }}>{sub}</p>
-      {ctas && <div className="row gap-12 wrap h-in mk-ctas" style={{ animationDelay: ".24s" }}><Link href="/signup" className="btn btn-lime btn-l">Try for free</Link><Link href={DEMO} className="btn btn-secondary btn-l">Talk to sales</Link></div>}
+      {ctas && <div className="row gap-12 wrap h-in mk-ctas" style={{ animationDelay: ".24s" }}><StartCta className="btn btn-lime btn-l" /><Link href={DEMO} className="btn btn-secondary btn-l">Talk to sales</Link></div>}
       {children}
     </section>
   );
