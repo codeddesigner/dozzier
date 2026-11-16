@@ -79,7 +79,7 @@ export function AuthLayout({ children, topRight, bentoTitle }: { children: React
     <div className="auth2">
       <div className="auth2-form">
         <div className="row">
-          <Link href="/" aria-label="Dozzier home"><Logo height={30} /></Link>
+          <Link href="/" aria-label="Dozzier home"><Logo height={24} /></Link>
           <span className="spacer" />
           {topRight && <div className="auth2-top">{topRight}</div>}
         </div>

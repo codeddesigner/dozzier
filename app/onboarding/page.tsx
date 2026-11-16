@@ -133,7 +133,7 @@ export default function Onboarding() {
   return (
     <div className="ob">
       <header className="ob-head">
-        <div className="ob-side"><Logo height={30} /></div>
+        <div className="ob-side"><Logo height={24} /></div>
         <nav className="ob-steps" aria-label="Setup progress">
           {STEPS.map((s, i) => (
             <span key={s} className="row" style={{ gap: 12 }}>

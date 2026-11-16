@@ -21,7 +21,7 @@ export function LogoMark({ size = 28, color = "#4D94F7" }: { size?: number; colo
 }
 
 /** Horizontal lockup, 163.43 × 30 in Figma. */
-export function Logo({ height = 30, dark = false }: { height?: number; dark?: boolean }) {
+export function Logo({ height = 24, dark = false }: { height?: number; dark?: boolean }) {
   return (
     <svg height={height} width={(height * 163.43) / 30} viewBox="0 0 163.43 30" role="img" aria-label="Dozzier" style={{ display: "block", flexShrink: 0 }}>
       {WORD.map((d, i) => <path key={i} d={d} fill={dark ? "#fff" : "#0F192C"} />)}
