@@ -2321,3 +2321,4 @@ html[data-theme="dark"] .app { background: #1b2433; } html[data-theme="dark"] .a
 .api-main .doc-title { margin-top: 0; }
 .api-main .doc-p { margin: 0 0 14px; }
 .api-param { font-size: 14px; line-height: 20px; }
+.docs-video-thumb { background: var(--dz-bg-brand, #2577ea) !important; animation: none !important; }

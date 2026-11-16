@@ -10,7 +10,7 @@ export default function DocsHome() {
     <main>
       <section className="docs-hero">
         <h1 className="docs-h1"><WordReveal text="How can we help?" /></h1>
-        <p className="body-l muted h-in" style={{ animationDelay: ".25s" }}>Guides, answers and API docs for sharing securely with Dozzier.</p>
+        <p className="body-l muted h-in" style={{ animationDelay: ".25s" }}>Guides, answers and automation docs for sharing securely with Dozzier.</p>
         <HeroSearch />
         <div className="row gap-8 wrap h-in" style={{ justifyContent: "center", animationDelay: ".45s" }}>
           <span className="muted" style={{ fontSize: 14 }}>Popular:</span>
