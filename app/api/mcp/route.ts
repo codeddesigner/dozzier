@@ -9,7 +9,7 @@ import { createClient } from "@supabase/supabase-js";
 export const dynamic = "force-dynamic";
 const SB_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://hxgcoekovalkmdwcabll.supabase.co";
 const SB_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "sb_publishable_D1l_C12Kv_Y-yhzzALG6oA_rL3T1WQ1";
-const VERSIONS = ["2025-06-18", "2025-03-26", "2024-11-05"];
+const VERSIONS = ["2025-11-25", "2025-06-18", "2025-03-26", "2024-11-05"];
 
 type Json = Record<string, unknown>;
 const str = (description: string) => ({ type: "string", description });
@@ -32,6 +32,23 @@ const TOOLS: { name: string; title: string; description: string; inputSchema: Js
     inputSchema: { type: "object", properties: { email: str("The visitor’s email address") }, required: ["email"] }, annotations: { readOnlyHint: true } },
   { name: "list_data_rooms", title: "List data rooms", description: "Data rooms (Spaces) with document and visitor counts and their latest link.",
     inputSchema: { type: "object", properties: { limit: int("Max results (1–100, default 20)") } }, annotations: { readOnlyHint: true } },
+  { name: "list_companies", title: "List companies", description: "Companies (accounts) ranked by recent engagement: people who visited, visits, total time, last visit and which documents they read. Use this for questions like “which investors read the deck this week?”.",
+    inputSchema: { type: "object", properties: { query: str("Text to match in the company name or domain"), days: int("Look-back window in days (default 30)"), limit: int("Max results (1–100, default 20)") } }, annotations: { readOnlyHint: true } },
+  { name: "get_company", title: "Company activity", description: "Everything one company has done: the people who visited, time spent per document, and their recent visits. Also returns deal stage and value.",
+    inputSchema: { type: "object", properties: { company: str("Company name or domain, e.g. “Acme” or acme.com"), company_id: str("Company id from list_companies"), days: int("Look-back window in days (default 30)") } }, annotations: { readOnlyHint: true } },
+  { name: "get_data_room", title: "Data room activity", description: "One data room (Space): its link, each document with viewers, time and downloads, and every visitor with how much they read.",
+    inputSchema: { type: "object", properties: { data_room_id: str("Data room id from list_data_rooms"), name: str("Or the data room’s name"), limit: int("Max visitors (1–100, default 20)") } }, annotations: { readOnlyHint: true } },
+  { name: "list_signature_requests", title: "List eSign requests", description: "Documents sent for signature, newest first, with status and who has viewed or signed.",
+    inputSchema: { type: "object", properties: { status: str("Only this status, e.g. sent, completed, voided"), query: str("Text to match in the document name"), limit: int("Max results (1–100, default 20)") } }, annotations: { readOnlyHint: true } },
+  { name: "list_file_requests", title: "List file requests", description: "File requests with their status, due date, number of uploads and the latest files received.",
+    inputSchema: { type: "object", properties: { query: str("Text to match in the request title"), limit: int("Max results (1–100, default 20)") } }, annotations: { readOnlyHint: true } },
+  { name: "update_link", title: "Update tracked link", description: "Changes a link: turn it off or on, set or clear an expiry, add or remove a passcode, and change download, email and watermark settings. Only the fields you pass change. Requires a key with write access.",
+    inputSchema: { type: "object", properties: {
+      link_id: str("Link id from list_links"), enabled: bool("false turns the link off immediately; true turns it back on"), name: str("New link name"),
+      expires_in_days: int("Turn the link off after this many days from now; 0 removes the expiry"), passcode: str("Require this passcode; empty string removes it"),
+      allow_download: bool("Allow downloading the file"), require_email: bool("Ask for an email before viewing"), verify_email: bool("Email the visitor a 6-digit code first"),
+      watermark: bool("Watermark pages with the visitor’s email") }, required: ["link_id"] },
+    annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true } },
   { name: "create_link", title: "Create tracked link", description: "Creates a new tracked link for a document and returns its URL. Requires a key with write access.",
     inputSchema: { type: "object", properties: {
       document_id: str("Document id from list_documents"), name: str("Link name, usually the recipient or company"),
@@ -58,11 +75,15 @@ async function handle(msg: Json, key: string) {
       protocolVersion: VERSIONS.includes(want) ? want : VERSIONS[0],
       capabilities: { tools: { listChanged: false } },
       serverInfo: { name: "dozzier", title: "Dozzier", version: "1.0.0" },
-      instructions: "Dozzier is a secure document-sharing and data-room product. Use list_documents or search_documents to find documents, get_document_analytics and list_recent_visits for engagement, get_contact for one person's activity, and create_link to share a document. Times are in seconds; dates are ISO 8601 UTC.",
+      instructions: "Dozzier is a secure document-sharing and data-room product. Use list_documents or search_documents to find documents, get_document_analytics and list_recent_visits for engagement, list_companies and get_company for account-level questions, get_contact for one person's activity, get_data_room for a data room, list_signature_requests and list_file_requests for eSign and file requests, create_link to share a document and update_link to change or turn off a link. Ids come from the list tools. Times are in seconds; dates are ISO 8601 UTC.",
     });
   }
   if (method === "ping") return rpcOk(id, {});
   if (method === "tools/list") return rpcOk(id, { tools: TOOLS });
+  // Some clients probe these even when not advertised; answer with empty lists rather than errors.
+  if (method === "resources/list") return rpcOk(id, { resources: [] });
+  if (method === "resources/templates/list") return rpcOk(id, { resourceTemplates: [] });
+  if (method === "prompts/list") return rpcOk(id, { prompts: [] });
   if (method === "tools/call") {
     const name = String(params.name || "");
     if (!TOOLS.some((t) => t.name === name)) return rpcErr(id, -32602, `Unknown tool: ${name}`);

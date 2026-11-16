@@ -14,7 +14,11 @@ const TOOLS: [string, string][] = [
   ["get_workspace_summary", "Totals and most-viewed documents"], ["list_documents", "Documents with link and visit counts"],
   ["search_documents", "Search names and file contents"], ["get_document_analytics", "Time per page, completion, top visitors"],
   ["list_links", "Links, settings and visits"], ["list_recent_visits", "Who opened what, and for how long"],
-  ["get_contact", "One person’s full activity"], ["list_data_rooms", "Data rooms with visitors"], ["create_link", "Create a tracked link (write keys only)"],
+  ["get_contact", "One person’s full activity"], ["list_companies", "Companies ranked by engagement"],
+  ["get_company", "One company’s people and reading"], ["list_data_rooms", "Data rooms with visitors"],
+  ["get_data_room", "A data room’s documents and visitors"], ["list_signature_requests", "eSign status and signers"],
+  ["list_file_requests", "File requests and uploads"], ["create_link", "Create a tracked link (write keys only)"],
+  ["update_link", "Turn off, expire or change a link (write keys only)"],
 ];
 
 /** Setup snippets for each client, with the key filled in when we have it. */
