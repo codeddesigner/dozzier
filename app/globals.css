@@ -2325,3 +2325,4 @@ html[data-theme="dark"] .app { background: #1b2433; } html[data-theme="dark"] .a
 .api-param { font-size: 14px; line-height: 20px; }
 .docs-video-thumb { background: var(--dz-bg-brand, #2577ea) !important; animation: none !important; }
 html[data-theme="dark"]:has(.app) .copilot-card, html[data-theme="dark"]:has(.app) .ai-card { background: rgba(77,148,247,.10); border-color: rgba(77,148,247,.35); animation: none; }
+.notice.warn { background: var(--dz-bg-warn-subtle); color: var(--dz-text-primary); line-height: 20px; }

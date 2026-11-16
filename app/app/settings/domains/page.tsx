@@ -45,9 +45,10 @@ export default function Domains() {
   useEffect(() => { (data || []).filter((d) => d.status !== "active" && !info[d.domain]).forEach((d) => check(d.domain, true)); // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data]);
 
+  const blocked = rule === "subdomain" && !!domain.trim() && isApex(normalizeDomain(domain));
   async function add() {
     const d = normalizeDomain(domain);
-    if (rule === "subdomain" && isApex(d)) return toast(`Standard includes subdomains like docs.${d}. Full domains are on the Data Rooms plan.`);
+    if (blocked) return;
     setBusy("new");
     try {
       const i = await api("POST", d);
@@ -114,9 +115,18 @@ export default function Domains() {
         </section>
       ); })}
       {open && (
-        <Modal title="Add a domain" onClose={() => setOpen(false)} width={460} footer={<><button className="btn btn-ghost" onClick={() => setOpen(false)}>Cancel</button><button className="btn btn-primary" disabled={busy === "new" || !domain.trim()} onClick={add}>{busy === "new" ? "Adding…" : "Add domain"}</button></>}>
+        <Modal title="Add a domain" onClose={() => setOpen(false)} width={460} footer={<><button className="btn btn-ghost" onClick={() => setOpen(false)}>Cancel</button><button className="btn btn-primary" disabled={busy === "new" || !domain.trim() || blocked} onClick={add}>{busy === "new" ? "Adding…" : "Add domain"}</button></>}>
           <label className="field"><span className="label">Domain</span><input className="input" autoFocus value={domain} onChange={(e) => setDomain(e.target.value)} onKeyDown={(e) => e.key === "Enter" && add()} placeholder={rule === "any" ? "docs.yourcompany.com or yourdeals.com" : "docs.yourcompany.com"} />
             <span className="caption faint">{rule === "any" ? "A subdomain is easiest. A full domain must not already host a website." : "Use a subdomain you don’t already use for a website. Full domains are on the Data Rooms plan."}</span></label>
+          {blocked && (
+            <div className="notice warn col" style={{ alignItems: "flex-start", gap: 8, marginTop: 12 }}>
+              <span><b>{normalizeDomain(domain)}</b> is a full domain. Your Standard plan includes subdomains, like <b>docs.{normalizeDomain(domain)}</b>. Full domains are on Data Rooms.</span>
+              <div className="row gap-8 wrap">
+                <button className="btn btn-secondary btn-s" onClick={() => setDomain(`docs.${normalizeDomain(domain)}`)}>Use docs.{normalizeDomain(domain)}</button>
+                {admin && <Link className="btn btn-ghost btn-s" href="/app/upgrade">See Data Rooms</Link>}
+              </div>
+            </div>
+          )}
         </Modal>
       )}
     </>
