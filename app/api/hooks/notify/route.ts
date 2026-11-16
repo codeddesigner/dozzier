@@ -66,7 +66,7 @@ export async function POST(req: NextRequest) {
     default: return NextResponse.json({ skipped: "unknown" });
   }
   // Zapier gets every event as structured data; Slack and Teams get a short message unless quiet hours are on.
-  const hookJobs: Promise<void>[] = [postHook(p.hooks?.zapier, { event: p.event, who: p.who, company: p.company, document: p.doc, location: p.location, page: p.page, text: p.body, title: p.title, url, at: new Date().toISOString() })];
+  const hookJobs: Promise<void>[] = [postHook(p.hooks?.zapier, { event: p.event, who: p.who, email: p.who && /^\S+@\S+\.\S+$/.test(p.who) ? p.who.toLowerCase() : null, company: p.company, document: p.doc, title: p.title, file: p.file, page: p.page, text: p.body, location: p.location, returning: p.returning ?? null, completed: p.completed ?? null, url, at: new Date().toISOString() })];
   if (wantsChat && !quiet) {
     const line = `*${subject}*\n${text.split("\n\n")[0]}`;
     hookJobs.push(postHook(p.hooks?.slack, { text: `${subject} — ${url}`, blocks: [{ type: "section", text: { type: "mrkdwn", text: line } }, { type: "actions", elements: [{ type: "button", text: { type: "plain_text", text: cta }, url }] }] }));

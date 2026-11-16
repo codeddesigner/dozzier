@@ -55,7 +55,7 @@ export default function DocsHome() {
             </div>
           </div>
         </div>
-        <p className="caption faint center" style={{ marginTop: 48 }}>{ARTICLES.length} guides · <Link href="/docs/api" className="link">API reference</Link> · <Link href="/docs/changelog" className="link">Changelog</Link></p>
+        <p className="caption faint center" style={{ marginTop: 48 }}>{ARTICLES.length} guides · <Link href="/docs/api" className="link">Zapier &amp; MCP</Link> · <Link href="/docs/changelog" className="link">Changelog</Link></p>
       </section>
     </main>
   );

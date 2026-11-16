@@ -225,43 +225,33 @@ export function searchDocs(q: string) {
   }).filter((x) => x.s > 0).sort((x, y) => y.s - x.s).map((x) => x.a);
 }
 
-export type Param = { name: string; type: string; required?: boolean; desc: string };
-export type Endpoint = { id: string; group: string; method: "GET" | "POST" | "PATCH" | "DEL"; path: string; title: string; desc: string; params: Param[]; body?: Record<string, unknown>; response: Record<string, unknown>; status: string };
-
-export const API_INTRO = [
-  { id: "authentication", title: "Authentication", body: "Authenticate with a secret key in the Authorization header: Bearer dz_live_… Create keys in Settings → API & MCP. Keep keys server-side; they carry your workspace’s permissions." },
-  { id: "rate-limits", title: "Rate limits", body: "Each key can make 100 requests per 10 seconds. Over the limit you get 429 Too Many Requests with a Retry-After header." },
-  { id: "errors", title: "Errors", body: "Errors return a JSON body { error: { code, message } } with 4xx for request problems and 5xx for ours. Codes: invalid_request, not_found, unauthorized, rate_limited." },
+/** Events Dozzier sends to a connected Zapier "Catch Hook". Kept in sync with app/api/hooks/notify. */
+export type ZapField = { name: string; desc: string };
+export type ZapEvent = { id: string; event: string; title: string; desc: string; fields: ZapField[]; example: Record<string, unknown> };
+const COMMON: ZapField[] = [
+  { name: "event", desc: "Which event fired (see the event name above)." },
+  { name: "url", desc: "Link to the right page in Dozzier." },
+  { name: "at", desc: "When it happened (ISO 8601, UTC)." },
 ];
-
-export const ENDPOINTS: Endpoint[] = [
-  { id: "list-links", group: "Links", method: "GET", path: "/v1/links", title: "List links", desc: "Returns links in your workspace, newest first. Paginate with limit and starting_after.", status: "200 OK",
-    params: [{ name: "limit", type: "integer", desc: "1–100, default 20." }, { name: "starting_after", type: "string", desc: "Cursor from the previous page." }, { name: "document_id", type: "string", desc: "Only links for this document." }],
-    response: { data: [{ id: "lnk_2xut37i4", name: "Acme Ventures", visits: 12 }], has_more: false } },
-  { id: "create-link", group: "Links", method: "POST", path: "/v1/links", title: "Create a link", desc: "Creates a tracked link for a document or Space. Settings you omit fall back to your workspace link defaults.", status: "201 Created",
-    params: [
-      { name: "document_id", type: "string", required: true, desc: "ID of the document or Space to share." },
-      { name: "name", type: "string", desc: "Label shown in your dashboard, e.g. the recipient company." },
-      { name: "require_email", type: "boolean", desc: "Ask visitors to verify their email. Default: workspace setting." },
-      { name: "allow_download", type: "boolean", desc: "Let visitors download a PDF copy." },
-      { name: "expires_at", type: "timestamp", desc: "ISO 8601. The link is disabled after this time." },
-      { name: "watermark", type: "boolean", desc: "Stamp viewer email, time and IP on each page." },
-    ],
-    body: { document_id: "doc_8f2c91", name: "Acme Ventures", require_email: true, expires_at: "2026-12-31T23:59:00Z" },
-    response: { id: "lnk_2xut37i4", url: "https://docs.randombase.com/acme", require_email: true, allow_download: false, visits: 0, created_at: "2026-11-13T21:20:00Z" } },
-  { id: "update-link", group: "Links", method: "PATCH", path: "/v1/links/{id}", title: "Update a link", desc: "Updates any link setting. Changes apply instantly, including for visitors who already have the URL.", status: "200 OK",
-    params: [{ name: "allow_download", type: "boolean", desc: "Let visitors download a PDF copy." }, { name: "enabled", type: "boolean", desc: "Turn the link off or on." }, { name: "expires_at", type: "timestamp", desc: "ISO 8601 expiry, or null to remove." }],
-    body: { allow_download: false }, response: { id: "lnk_2xut37i4", allow_download: false } },
-  { id: "delete-link", group: "Links", method: "DEL", path: "/v1/links/{id}", title: "Delete a link", desc: "Permanently disables and deletes a link. Analytics for past visits are kept.", status: "200 OK", params: [], response: { id: "lnk_2xut37i4", deleted: true } },
-  { id: "list-visits", group: "Visits", method: "GET", path: "/v1/visits", title: "List visits", desc: "Returns visits across your links, newest first.", status: "200 OK",
-    params: [{ name: "link_id", type: "string", desc: "Only visits for this link." }, { name: "since", type: "timestamp", desc: "Only visits that started after this time." }],
-    response: { data: [{ id: "vis_91ka", visitor_email: "paul@randombase.com", duration_seconds: 111, pages_viewed: 7 }], has_more: false } },
-  { id: "retrieve-visit", group: "Visits", method: "GET", path: "/v1/visits/{id}", title: "Retrieve a visit", desc: "Returns one visit with page-by-page time.", status: "200 OK", params: [],
-    response: { id: "vis_91ka", visitor_email: "paul@randombase.com", pages: [{ page: 1, seconds: 12 }, { page: 2, seconds: 48 }] } },
-  { id: "events", group: "Webhooks", method: "POST", path: "/your-endpoint", title: "Events", desc: "We POST a JSON event to your endpoint when something happens: visit.started, visit.ended, link.created, agreement.signed, file_request.uploaded.", status: "200 OK",
-    params: [{ name: "type", type: "string", required: true, desc: "Event type, e.g. visit.started." }, { name: "data", type: "object", required: true, desc: "The object the event is about." }],
-    body: { type: "visit.started", data: { id: "vis_91ka", link_id: "lnk_2xut37i4" } }, response: { received: true } },
-  { id: "verify-signatures", group: "Webhooks", method: "POST", path: "/your-endpoint", title: "Verify signatures", desc: "Each webhook includes a Dozzier-Signature header: an HMAC-SHA256 of the raw body using your endpoint secret. Compare it in constant time and reject mismatches.", status: "200 OK", params: [], response: { verified: true } },
+export const ZAPIER_EVENTS: ZapEvent[] = [
+  { id: "open", event: "open", title: "Link opened", desc: "Someone opened one of your links or data rooms, or came back to it.",
+    fields: [{ name: "who", desc: "Visitor email, or “An anonymous visitor”." }, { name: "email", desc: "Visitor email when known; otherwise empty." }, { name: "company", desc: "Company worked out from their email domain." }, { name: "document", desc: "Document, data room or link name." }, { name: "location", desc: "City and country, when available." }, { name: "returning", desc: "true if they’ve opened it before." }, ...COMMON],
+    example: { event: "open", who: "paul@acmevc.com", email: "paul@acmevc.com", company: "Acme Ventures", document: "Series A Deck", location: "Lagos, Nigeria", returning: false, url: "https://dozzier.co/app/contacts/…", at: "2026-11-16T12:01:09Z" } },
+  { id: "question", event: "question", title: "Question asked", desc: "A visitor asked a question on a page of your document.",
+    fields: [{ name: "who", desc: "Who asked." }, { name: "email", desc: "Their email when known." }, { name: "document", desc: "Document name." }, { name: "page", desc: "Page number the question is on." }, { name: "text", desc: "The question." }, ...COMMON],
+    example: { event: "question", who: "paul@acmevc.com", email: "paul@acmevc.com", document: "Series A Deck", page: 8, text: "What’s the burn after the raise?", url: "https://dozzier.co/app/contacts/…?tab=questions", at: "2026-11-16T12:04:51Z" } },
+  { id: "download", event: "download", title: "File downloaded", desc: "A visitor downloaded a copy of a document.",
+    fields: [{ name: "who", desc: "Who downloaded it." }, { name: "email", desc: "Their email when known." }, { name: "company", desc: "Their company." }, { name: "document", desc: "Document name." }, ...COMMON],
+    example: { event: "download", who: "cynthia@globex.com", email: "cynthia@globex.com", company: "Globex", document: "Term sheet", url: "https://dozzier.co/app/contacts/…", at: "2026-11-16T12:10:00Z" } },
+  { id: "signed", event: "signed", title: "Agreement signed", desc: "Someone signed an agreement. Fires again with completed = true when everyone has signed.",
+    fields: [{ name: "who", desc: "Signer’s name." }, { name: "title", desc: "Agreement name." }, { name: "completed", desc: "true when every signer has signed." }, ...COMMON],
+    example: { event: "signed", who: "Daniel Okafor", title: "Mutual NDA — Acme", completed: true, url: "https://dozzier.co/app/agreements/…", at: "2026-11-16T12:20:30Z" } },
+  { id: "upload", event: "upload", title: "File uploaded to a request", desc: "Someone uploaded a file to one of your file requests.",
+    fields: [{ name: "who", desc: "Uploader’s email, or “Someone”." }, { name: "email", desc: "Uploader’s email when known." }, { name: "title", desc: "File request name." }, { name: "file", desc: "File name." }, { name: "text", desc: "Their note, if they left one." }, ...COMMON],
+    example: { event: "upload", who: "finance@acme.com", email: "finance@acme.com", title: "Q3 financials", file: "Q3 P&L.xlsx", text: "Final numbers attached", url: "https://dozzier.co/app/file-requests", at: "2026-11-16T12:30:12Z" } },
+  { id: "request", event: "request", title: "Data room request", desc: "A visitor asked for something in a data room’s request tracker.",
+    fields: [{ name: "who", desc: "Who asked." }, { name: "email", desc: "Their email when known." }, { name: "document", desc: "Data room name." }, { name: "title", desc: "What they asked for." }, { name: "text", desc: "Extra details." }, ...COMMON],
+    example: { event: "request", who: "legal@acmevc.com", email: "legal@acmevc.com", document: "Investor due diligence", title: "Cap table as of Q3", text: "Fully diluted, please", url: "https://dozzier.co/app/spaces/…?tab=requests", at: "2026-11-16T12:41:05Z" } },
 ];
 
 export const CHANGELOG = [

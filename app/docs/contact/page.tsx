@@ -12,7 +12,7 @@ const SERVICES: Svc[] = [
   { name: "Document viewer", check: async () => (await fetch("/v/status-check", { cache: "no-store" })).ok },
   { name: "Link delivery", check: async () => !(await supabase.rpc("get_public_link", { p_slug: "status-check" })).error },
   { name: "Analytics pipeline", check: async () => !(await supabase.rpc("get_public_file_request", { p_slug: "status-check" })).error },
-  { name: "API & webhooks", note: "Private beta" },
+  { name: "Zapier & MCP" },
 ];
 
 export default function ContactSupport() {

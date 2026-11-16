@@ -14,13 +14,13 @@ const HOOKS: Record<string, { kind: Hook; how: string; help: string; placeholder
     how: "In Slack, create an app (or use an existing one), turn on Incoming Webhooks, add a webhook to the channel you want, then paste its URL here." },
   Teams: { kind: "teams", placeholder: "https://….webhook.office.com/… or a Workflows URL", help: "https://support.microsoft.com/office/create-incoming-webhooks-with-workflows-for-microsoft-teams-8ae491c7-0394-4861-ba59-055e33f75498",
     how: "In the Teams channel, open Workflows → “Post to a channel when a webhook request is received”, finish the setup, then paste the URL it gives you." },
-  Zapier: { kind: "zapier", placeholder: "https://hooks.zapier.com/hooks/catch/…", help: "https://zapier.com/apps/webhook/integrations",
+  Zapier: { kind: "zapier", placeholder: "https://hooks.zapier.com/hooks/catch/…", help: "/docs/api#connect-zapier",
     how: "In Zapier, start a Zap with “Webhooks by Zapier → Catch Hook”, copy the URL, paste it here, then send a test so Zapier can see the fields." },
 };
 const APPS: [string, string, string][] = [
   ["Slack", "Messaging", "Live “viewing now” alerts, questions and signatures in any channel."],
   ["Teams", "Messaging", "Visit alerts, questions and signatures in a Microsoft Teams channel."],
-  ["Zapier", "Developer", "Send every Dozzier event to 6,000+ apps."],
+  ["Zapier", "Developer", "Send every visit, question, download, signature and upload to 6,000+ apps."],
   ["HubSpot", "CRM", "Sync visits and intent scores to contacts and deals."],
   ["Salesforce", "CRM", "Log engagement as activities; create leads from new visitors."],
   ["Pipedrive", "CRM", "Attach document engagement to deals and people."],

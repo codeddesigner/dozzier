@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Search, FileText, Code2, Sparkles } from "lucide-react";
-import { ARTICLES, ENDPOINTS, category, searchDocs } from "@/lib/docs";
+import { ARTICLES, ZAPIER_EVENTS, category, searchDocs } from "@/lib/docs";
 
 /** Opens the search dialog from anywhere: window.dispatchEvent(new CustomEvent("dz-docs-search", { detail: "query" })) */
 export const openDocsSearch = (q = "") => window.dispatchEvent(new CustomEvent("dz-docs-search", { detail: q }));
@@ -31,7 +31,7 @@ export function DocsSearchDialog() {
   const api = useMemo(() => {
     const t = q.toLowerCase();
     if (!t.trim()) return [];
-    return ENDPOINTS.filter((e) => t.split(/\W+/).some((w) => w.length > 3 && (e.title + " " + e.desc + " " + e.params.map((p) => p.name).join(" ")).toLowerCase().includes(w.replace(/(ing|s)$/, "")))).slice(0, 2);
+    return ZAPIER_EVENTS.filter((e) => t.split(/\W+/).some((w) => w.length > 3 && ("zapier automation webhook " + e.title + " " + e.desc + " " + e.fields.map((f) => f.name).join(" ")).toLowerCase().includes(w.replace(/(ing|s)$/, "")))).slice(0, 2);
   }, [q]);
   const top = q.trim() ? guides[0] : null;
   const firstP = top?.body.find((b) => "p" in b && b.p.length > 60) as { p: string } | undefined;
@@ -66,10 +66,10 @@ export function DocsSearchDialog() {
               <FileText size={16} /><span className="grow ellipsis">{g.title}</span><span className="caption faint">{category(g.cat)?.title}</span>
             </button>
           ))}
-          {api.length > 0 && <div className="ds-label">API</div>}
+          {api.length > 0 && <div className="ds-label">Zapier events</div>}
           {api.map((e, j) => (
             <button key={e.id} className={`ds-row ${sel === guides.length + j ? "on" : ""}`} onMouseEnter={() => setSel(guides.length + j)} onClick={() => go(`/docs/api#${e.id}`)}>
-              <Code2 size={16} /><span className="grow ellipsis">{e.method === "DEL" ? "DELETE" : e.method} {e.path} — {e.title}</span><span className="caption faint">API reference</span>
+              <Code2 size={16} /><span className="grow ellipsis">{e.title} — <code>{e.event}</code></span><span className="caption faint">Zapier &amp; MCP</span>
             </button>
           ))}
           {q.trim() && guides.length === 0 && api.length === 0 && <div className="caption faint" style={{ padding: 16 }}>No results for “{q}”. <Link className="link" href="/docs/contact" onClick={() => setOpen(false)}>Ask support</Link></div>}

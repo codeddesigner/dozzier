@@ -47,7 +47,7 @@ export function SiteCta() {
 export function SiteFooter() {
   const cols: [string, [string, string][]][] = [
     ["Product", [["Analytics", "/product"], ["Data rooms", "/data-rooms"], ["MCP server", "/docs/mcp"], ["eSign", "/esign"], ["Integrations", "/integrations"], ["Pricing", "/pricing"]]],
-    ["Resources", [["Docs", "/docs"], ["API reference", "/docs/api"], ["Changelog", "/docs/changelog"], ["Status", "/docs/contact#status"], ["Help center", "/docs"]]],
+    ["Resources", [["Docs", "/docs"], ["Zapier & MCP", "/docs/api"], ["Changelog", "/docs/changelog"], ["Status", "/docs/contact#status"], ["Help center", "/docs"]]],
     ["Company", [["About", "/product"], ["Careers", "mailto:careers@dozzier.io"], ["Blog", "/docs/changelog"], ["Contact", "/talk-to-sales"]]],
     ["Legal", [["Privacy", "/legal/privacy"], ["Terms", "/legal/terms"], ["Security", "/security"], ["DPA", "/legal/dpa"]]],
   ];
