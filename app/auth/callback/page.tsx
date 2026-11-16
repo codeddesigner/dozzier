@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { Logo } from "@/components/Logo";
+import { fetchAuthMethods, methodFor } from "@/lib/authMethods";
 
 /** Google / Microsoft send people back here; the Supabase client reads the session from the URL. */
 export default function AuthCallback() {
@@ -21,7 +22,17 @@ export default function AuthCallback() {
       if (code) await supabase.auth.exchangeCodeForSession(code).catch(() => null);
       for (let i = 0; i < 20; i++) {
         const { data } = await supabase.auth.getSession();
-        if (data.session) return router.replace(next);
+        if (data.session) {
+          // The identity signed in most recently is the one just used; refuse it if an admin switched that method off.
+          const ids = [...(data.session.user.identities || [])].sort((a, b) => String(b.last_sign_in_at || "").localeCompare(String(a.last_sign_in_at || "")));
+          const m = methodFor(ids[0]?.provider);
+          if (m && !(await fetchAuthMethods())[m]) {
+            await supabase.auth.signOut();
+            const label = m === "google" ? "Google" : m === "microsoft" ? "Microsoft" : "SSO";
+            return setErr(`Signing in with ${label} is turned off. Log in with your email instead — use “Forgot password?” if you haven’t set a password.`);
+          }
+          return router.replace(next);
+        }
         await new Promise((r) => setTimeout(r, 150));
       }
       setErr("We couldn’t finish signing you in. Please try again.");

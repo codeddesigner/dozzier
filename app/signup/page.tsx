@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { startOAuth } from "@/lib/oauth";
+import { useAuthMethods } from "@/lib/authMethods";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Info } from "lucide-react";
 import { supabase } from "@/lib/supabase";
@@ -26,6 +27,7 @@ export default function Signup() {
   const [err, setErr] = useState<string | null>(null);
   const [note, setNote] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const methods = useAuthMethods();
   // Invite emails link here with ?email= so the invitee signs up with the invited address.
   useEffect(() => { try { const e = new URLSearchParams(window.location.search).get("email"); if (e) setEmail(e); } catch {} }, []);
   const domain = email.split("@")[1]?.toLowerCase() || "";
@@ -58,10 +60,10 @@ export default function Signup() {
         <form onSubmit={next} className="col" style={{ gap: 18 }}>
           <h1 className="title">Create your Dozzier account</h1>
           <p className="sub">Free for 14 days. No credit card required.</p>
-          <SocialButton provider="google" label="Continue with Google" onClick={() => social("Google")} />
-          <SocialButton provider="microsoft" label="Continue with Microsoft" onClick={() => social("Microsoft")} />
+          {methods?.google && <SocialButton provider="google" label="Continue with Google" onClick={() => social("Google")} />}
+          {methods?.microsoft && <SocialButton provider="microsoft" label="Continue with Microsoft" onClick={() => social("Microsoft")} />}
           {note && <div className="notice info"><Info size={16} />{note}</div>}
-          <OrDivider />
+          {(methods?.google || methods?.microsoft) && <OrDivider />}
           <label className="field"><span className="label">Work email</span>
             <input className="input" type="email" required autoFocus value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@company.com" autoComplete="email" />
             {personal && <span className="caption faint">Tip: use your work email so teammates can find your workspace.</span>}

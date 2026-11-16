@@ -3,6 +3,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { startOAuth } from "@/lib/oauth";
+import { useAuthMethods } from "@/lib/authMethods";
 import { Info, ShieldCheck } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { AuthLayout, LOGIN_BENTO, OrDivider, SocialButton } from "@/components/AuthLayout";
@@ -24,6 +25,8 @@ export default function Login() {
   const [busy, setBusy] = useState(false);
   const [mfa, setMfa] = useState<{ factorId: string } | null>(null);
   const [code, setCode] = useState("");
+  const methods = useAuthMethods();
+  const anySocial = !!methods && (methods.google || methods.microsoft || methods.sso);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -74,11 +77,11 @@ export default function Login() {
     <AuthLayout bentoTitle={LOGIN_BENTO}>
       <form onSubmit={submit} className="col" style={{ gap: 18 }}>
         <h1 className="title">Log in to Dozzier</h1>
-        <SocialButton provider="google" label="Continue with Google" onClick={() => social("Google sign-in")} />
-        <SocialButton provider="microsoft" label="Continue with Microsoft" onClick={() => social("Microsoft")} />
-        <SocialButton provider="sso" label="Continue with SSO" onClick={() => social("SSO")} />
+        {methods?.google && <SocialButton provider="google" label="Continue with Google" onClick={() => social("Google sign-in")} />}
+        {methods?.microsoft && <SocialButton provider="microsoft" label="Continue with Microsoft" onClick={() => social("Microsoft")} />}
+        {methods?.sso && <SocialButton provider="sso" label="Continue with SSO" onClick={() => social("SSO")} />}
         {note && <div className="notice info"><Info size={16} />{note}</div>}
-        <OrDivider />
+        {anySocial && <OrDivider />}
         <label className="field"><span className="label">Email</span><input className="input" type="email" required autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@company.com" /></label>
         <label className="field"><span className="label">Password</span><input className="input" type="password" required autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} /></label>
         <div className="row">

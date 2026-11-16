@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { LayoutDashboard, Users, CreditCard, Globe, LifeBuoy, Flag, ScrollText, ArrowLeft, ShieldCheck } from "lucide-react";
+import { LayoutDashboard, Users, CreditCard, Globe, LifeBuoy, Flag, ScrollText, ArrowLeft, ShieldCheck, KeyRound } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { Logo } from "@/components/Logo";
 import { ToastHost } from "@/components/ui";
@@ -12,6 +12,7 @@ const NAV = [
   { href: "/admin/users", label: "Users & workspaces", I: Users },
   { href: "/admin/billing", label: "Billing", I: CreditCard },
   { href: "/admin/domains", label: "Domains", I: Globe },
+  { href: "/admin/sign-in", label: "Sign-in methods", I: KeyRound },
   { href: "/admin/support", label: "Support", I: LifeBuoy },
   { href: "/admin/reports", label: "Reports", I: Flag },
   { href: "/admin/audit", label: "Admin log", I: ScrollText },
