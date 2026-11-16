@@ -67,7 +67,7 @@ export default function Login() {
   const social = (p: string) => setNote(`${p} isn’t switched on for this workspace yet — log in with your email and password.`);
 
   return (
-    <AuthLayout bentoTitle={LOGIN_BENTO} topRight={<>New to Dozzier? <Link href="/signup">Create account</Link></>}>
+    <AuthLayout bentoTitle={LOGIN_BENTO}>
       <form onSubmit={submit} className="col" style={{ gap: 18 }}>
         <h1 className="title">Log in to Dozzier</h1>
         <SocialButton provider="google" label="Continue with Google" onClick={() => social("Google sign-in")} />
@@ -82,6 +82,7 @@ export default function Login() {
         </div>
         {err && <p className="error-text">{err}</p>}
         <button className="btn btn-brand btn-block" disabled={busy}>{busy ? "Logging in…" : "Log in"}</button>
+        <p className="auth-switch">New to Dozzier? <Link href="/signup">Create account</Link></p>
       </form>
     </AuthLayout>
   );

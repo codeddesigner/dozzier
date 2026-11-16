@@ -52,7 +52,7 @@ export default function Signup() {
   const social = (p: string) => setNote(`${p} sign-in isn’t switched on for this workspace yet — continue with your work email for now.`);
 
   return (
-    <AuthLayout bentoTitle={SIGNUP_BENTO} topRight={<>Already have an account? <Link href="/login">Log in</Link></>}>
+    <AuthLayout bentoTitle={SIGNUP_BENTO}>
       {step === "email" ? (
         <form onSubmit={next} className="col" style={{ gap: 18 }}>
           <h1 className="title">Create your Dozzier account</h1>
@@ -67,6 +67,7 @@ export default function Signup() {
           </label>
           {err && <p className="error-text">{err}</p>}
           <button className="btn btn-brand btn-block">Continue with email</button>
+          <p className="auth-switch">Already have an account? <Link href="/login">Log in</Link></p>
           <p className="caption faint center">By continuing you agree to Dozzier’s <Link href="/legal/terms" className="link" style={{ fontWeight: 400 }}>Terms of Service</Link> and <Link href="/legal/privacy" className="link" style={{ fontWeight: 400 }}>Privacy Policy</Link>.</p>
         </form>
       ) : (
