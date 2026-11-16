@@ -12,7 +12,7 @@ import { uploadFile } from "@/lib/upload";
 import { officeFormat, countOfficePages } from "@/components/OfficeView";
 import { useApp } from "./AppContext";
 
-const SOURCES: [string, string][] = [["Google Drive", ""], ["Dropbox", "Db"], ["Box", "Bx"], ["OneDrive", "Od"], ["SharePoint", "Sp"]];
+const SOURCES: [string, string][] = [["Google Drive", "/logos/google-drive.png"], ["Dropbox", "/logos/dropbox.png"], ["Box", "Bx"], ["OneDrive", "Od"], ["SharePoint", "Sp"]];
 
 export function UploadModal({ folderId, onClose, onDone }: { folderId?: string | null; onClose: () => void; onDone: (docIds: string[]) => void }) {
   const { userId, wsId, profile } = useApp();
@@ -89,7 +89,7 @@ export function UploadModal({ folderId, onClose, onDone }: { folderId?: string |
             <button className="up-src on" onClick={() => input.current?.click()}><Upload size={20} /><span>My device</span></button>
             {SOURCES.map(([n, a]) => (
               <button key={n} className="up-src" onClick={() => toast(`${n} import needs the ${n} integration — upload from your device for now`)}>
-                {a ? <span className="up-mono">{a}</span> : <img src="/logos/google-drive.png" alt="" width={22} height={20} />}<span>{n}</span>
+                {a.startsWith("/") ? <img src={a} alt="" width={n === "Dropbox" ? 20 : 22} height={20} style={{ objectFit: "contain" }} /> : <span className="up-mono">{a}</span>}<span>{n}</span>
               </button>
             ))}
             <button className="up-src" onClick={() => setTab("url")}><Link2 size={20} /><span>From URL</span></button>
