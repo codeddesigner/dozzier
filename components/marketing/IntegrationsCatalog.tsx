@@ -33,7 +33,7 @@ export function IntegrationsCatalog() {
       </div>
       <div className="mk-int-grid" key={cat + q}>
         {list.map(([n, l, c, d, live], i) => (
-          <div key={n} className="mk-app cycle-item" style={{ animationDelay: `${i * 30}ms` }}>
+          <div key={n} className="mk-app" style={{ animationDelay: `${i * 30}ms` }}>
             <div className="row gap-12"><AppLogo name={n} size={36} /><div className="col grow"><span className="medium">{l}</span><span className="caption muted">{c}</span></div>
               {live ? <span className="badge badge-success"><Check size={11} />Available</span> : <span className="badge badge-muted">Early access</span>}</div>
             <p className="caption muted" style={{ fontSize: 14, lineHeight: "20px", margin: 0 }}>{d}</p>
