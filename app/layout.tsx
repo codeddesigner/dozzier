@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   description: "Share decks, proposals and data rooms as secure links. See who reads every page, get live alerts and follow up at the right moment.",
   icons: { icon: [{ url: "/favicon.svg", type: "image/svg+xml" }, { url: "/favicon.ico", sizes: "48x48" }], apple: "/apple-touch-icon.png" },
   openGraph: { title: "Dozzier | Secure Document Sharing & Data Rooms with Analytics", description: "Share decks, proposals and data rooms as secure links. See who reads every page, get live alerts and follow up at the right moment.", siteName: "Dozzier", url: "https://dozzier.co", type: "website" },
-  twitter: { card: "summary", title: "Dozzier | Secure Document Sharing & Data Rooms with Analytics", description: "Share decks, proposals and data rooms as secure links. See who reads every page, get live alerts and follow up at the right moment." },
+  twitter: { card: "summary_large_image", title: "Dozzier | Secure Document Sharing & Data Rooms with Analytics", description: "Share decks, proposals and data rooms as secure links. See who reads every page, get live alerts and follow up at the right moment." },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
