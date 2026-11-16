@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { startOAuth } from "@/lib/oauth";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Info } from "lucide-react";
 import { supabase } from "@/lib/supabase";
@@ -49,7 +50,7 @@ export default function Signup() {
     router.replace("/onboarding");
   }
 
-  const social = (p: string) => setNote(`${p} sign-in isn’t switched on for this workspace yet — continue with your work email for now.`);
+  const social = async (p: string) => { setNote(null); const err = await startOAuth(p === "Microsoft" ? "azure" : "google", "/app"); if (err) setNote(err); };
 
   return (
     <AuthLayout bentoTitle={SIGNUP_BENTO}>

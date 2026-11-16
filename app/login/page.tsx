@@ -2,6 +2,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { startOAuth } from "@/lib/oauth";
 import { Info, ShieldCheck } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { AuthLayout, LOGIN_BENTO, OrDivider, SocialButton } from "@/components/AuthLayout";
@@ -64,7 +65,10 @@ export default function Login() {
     );
   }
 
-  const social = (p: string) => setNote(`${p} isn’t switched on for this workspace yet — log in with your email and password.`);
+  const social = async (p: string) => {
+    if (p === "SSO") return setNote("Single sign-on (SAML) is set up per company on the Enterprise plan. Talk to sales, or log in with your email for now.");
+    setNote(null); const err = await startOAuth("google", nextPath()); if (err) setNote(err);
+  };
 
   return (
     <AuthLayout bentoTitle={LOGIN_BENTO}>
