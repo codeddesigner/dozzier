@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { RESOURCE_METADATA } from "@/lib/oauthServer";
 
 /**
  * Dozzier MCP server (Streamable HTTP, stateless JSON responses).
@@ -60,7 +61,9 @@ const TOOLS: { name: string; title: string; description: string; inputSchema: Js
 
 const rpcOk = (id: unknown, result: unknown) => ({ jsonrpc: "2.0", id, result });
 const rpcErr = (id: unknown, code: number, message: string) => ({ jsonrpc: "2.0", id: id ?? null, error: { code, message } });
-const cors = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "Authorization, Content-Type, Mcp-Session-Id, Mcp-Protocol-Version", "Access-Control-Allow-Methods": "POST, GET, OPTIONS" };
+const cors = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "Authorization, Content-Type, Mcp-Session-Id, Mcp-Protocol-Version", "Access-Control-Allow-Methods": "POST, GET, OPTIONS", "Access-Control-Expose-Headers": "WWW-Authenticate" };
+// Points MCP clients at Dozzier's sign-in (OAuth) when they arrive without a key.
+const CHALLENGE = `Bearer realm="dozzier", resource_metadata="${RESOURCE_METADATA}"`;
 
 function keyFrom(req: NextRequest) {
   return req.headers.get("authorization")?.replace(/^Bearer\s+/i, "").trim() || req.nextUrl.searchParams.get("key") || "";
@@ -99,8 +102,8 @@ async function handle(msg: Json, key: string) {
 export async function POST(req: NextRequest) {
   const key = keyFrom(req);
   if (!/^dz_[0-9a-f]{48}$/.test(key)) {
-    return NextResponse.json(rpcErr(null, -32001, "Missing or malformed API key. Create one in Dozzier → Settings → API & MCP and send it as “Authorization: Bearer dz_…”."),
-      { status: 401, headers: { ...cors, "WWW-Authenticate": 'Bearer realm="dozzier"' } });
+    return NextResponse.json(rpcErr(null, -32001, "Sign in to Dozzier to continue, or send an API key from Settings → API & MCP as “Authorization: Bearer dz_…”."),
+      { status: 401, headers: { ...cors, "WWW-Authenticate": CHALLENGE } });
   }
   let body: unknown;
   try { body = await req.json(); } catch { return NextResponse.json(rpcErr(null, -32700, "Parse error"), { status: 400, headers: cors }); }
@@ -108,7 +111,7 @@ export async function POST(req: NextRequest) {
   const sb = createClient(SB_URL, SB_KEY, { auth: { persistSession: false } });
   const probe = await sb.rpc("mcp_tool", { p_key: key, p_tool: "__auth__", p_args: {} });
   if (probe.error && !/Unknown tool/.test(probe.error.message)) {
-    return NextResponse.json(rpcErr(null, -32001, probe.error.message), { status: 401, headers: { ...cors, "WWW-Authenticate": 'Bearer realm="dozzier"' } });
+    return NextResponse.json(rpcErr(null, -32001, probe.error.message), { status: 401, headers: { ...cors, "WWW-Authenticate": `${CHALLENGE}, error="invalid_token"` } });
   }
   const msgs = Array.isArray(body) ? body : [body];
   const out = (await Promise.all(msgs.map((m) => handle((m || {}) as Json, key)))).filter(Boolean);
