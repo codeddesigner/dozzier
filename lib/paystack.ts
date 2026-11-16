@@ -2,11 +2,13 @@ import { createClient } from "@supabase/supabase-js";
 import { NextRequest } from "next/server";
 
 /** Server-only Paystack helpers. Prices are in the smallest unit (cents for USD). */
-export const CURRENCY = process.env.PAYSTACK_CURRENCY || "USD";
+import { BILLING_CURRENCY, PRICE_TABLE } from "@/lib/prices";
+export const CURRENCY = BILLING_CURRENCY;
+const T = PRICE_TABLE[CURRENCY];
 export const PRICES: Record<"personal" | "standard" | "datarooms", { name: string; monthly: number; annual: number; perSeat: boolean }> = {
-  personal: { name: "Personal", monthly: 500, annual: 4800, perSeat: false },
-  standard: { name: "Standard", monthly: 2500, annual: 24000, perSeat: true },
-  datarooms: { name: "Data Rooms", monthly: 14000, annual: 134400, perSeat: false },
+  personal: { name: "Personal", ...T.personal, perSeat: false },
+  standard: { name: "Standard", ...T.standard, perSeat: true },
+  datarooms: { name: "Data Rooms", ...T.datarooms, perSeat: false },
 };
 /** The secret key, tolerating stray spaces, newlines or quotes pasted into the env var. */
 const secret = () => (process.env.PAYSTACK_SECRET_KEY || "").trim().replace(/^["']|["']$/g, "").trim();
