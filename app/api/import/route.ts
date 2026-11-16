@@ -7,7 +7,7 @@ export const maxDuration = 300;
 const SB_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://hxgcoekovalkmdwcabll.supabase.co";
 const SB_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "sb_publishable_D1l_C12Kv_Y-yhzzALG6oA_rL3T1WQ1";
 const MAX = 2e9;
-const UA = "Mozilla/5.0 (compatible; DozzierImport/1.0; +https://dozzier.co)";
+const UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36";
 
 /** Follows redirects by hand so every hop stays on an allowed cloud-storage host (no SSRF). */
 async function fetchAllowed(url: string, hops = 8): Promise<Response | null> {
@@ -15,9 +15,14 @@ async function fetchAllowed(url: string, hops = 8): Promise<Response | null> {
   for (let i = 0; i < hops; i++) {
     const u = new URL(cur);
     if (u.protocol !== "https:" || !hostAllowed(u.hostname)) return null;
-    const r = await fetch(cur, { redirect: "manual", headers: { "User-Agent": UA, Accept: "*/*" }, cache: "no-store" }).catch(() => null);
+    // Give up on a hop that doesn't answer within 20 s; once headers arrive the body can stream for as long as it needs.
+    const ac = new AbortController();
+    const timer = setTimeout(() => ac.abort(), 20_000);
+    const r = await fetch(cur, { redirect: "manual", signal: ac.signal, headers: { "User-Agent": UA, Accept: "*/*" }, cache: "no-store" }).catch(() => null);
+    clearTimeout(timer);
     if (!r) return null;
     if (r.status >= 300 && r.status < 400) {
+      await r.body?.cancel().catch(() => {});
       const loc = r.headers.get("location");
       if (!loc) return null;
       cur = new URL(loc, cur).toString();
@@ -53,7 +58,7 @@ export async function POST(req: NextRequest) {
 
   for (const candidate of plan.urls) {
     const r = await fetchAllowed(candidate);
-    if (!r || !r.ok || !r.body) continue;
+    if (!r || !r.ok || !r.body) { await r?.body?.cancel().catch(() => {}); continue; }
     const type = (r.headers.get("content-type") || "").toLowerCase();
     // An HTML page means a sign-in, preview or "too large to scan" page rather than the file.
     if (type.includes("text/html")) { await r.body.cancel().catch(() => {}); continue; }
