@@ -14,7 +14,9 @@ const GROUPS: [string, [string, Cell, Cell, Cell, Cell][]][] = [
     ["Tracked links", "Unlimited", "Unlimited", "Unlimited", "Unlimited"],
     ["Email verification & passcodes", true, true, true, true],
     ["Dynamic watermarks", false, true, true, true],
-    ["Custom branding & domain", false, true, true, true],
+    ["Custom branding", false, true, true, true],
+    ["Branded address (you.dozzier.co)", false, true, true, true],
+    ["Your own domain", false, false, true, true],
     ["Bulk personalised links", false, true, true, true],
   ]],
   ["Analytics & engagement", [

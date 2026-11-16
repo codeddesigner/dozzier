@@ -15,10 +15,29 @@ export function isApex(domain: string) {
 export function normalizeDomain(input: string) {
   return input.trim().toLowerCase().replace(/^https?:\/\//, "").replace(/\/.*$/, "").replace(/\.$/, "");
 }
-/** What each plan may add: Standard gets subdomains, Data Rooms gets subdomains and full domains. */
-export function domainRule(plan: string | null | undefined): "none" | "subdomain" | "any" {
+/** Every workspace on Standard can claim <name>.dozzier.co, like DocSend’s company subdomain. */
+export const VANITY_ROOT = "dozzier.co";
+const RESERVED = new Set(["www", "app", "api", "admin", "docs", "doc", "help", "support", "status", "blog", "mail", "email", "smtp", "ftp", "cdn", "static", "assets", "img", "images", "files", "auth", "login", "signup", "account", "billing", "pay", "dashboard", "dev", "staging", "test", "beta", "demo", "news", "security", "legal", "dozzier", "team", "sales", "hello", "info", "m", "mobile", "ns1", "ns2", "mx", "webmail", "vercel"]);
+/** "acme" → null if usable, else the reason it isn’t. */
+export function vanityProblem(label: string): string | null {
+  if (!/^[a-z0-9]([a-z0-9-]{1,30}[a-z0-9])$/.test(label)) return "Use 3–32 letters, numbers or hyphens (not at the start or end)";
+  if (label.includes("--")) return "Avoid double hyphens";
+  if (RESERVED.has(label)) return "That name is reserved — try another";
+  return null;
+}
+/** true for acme.dozzier.co */
+export function isVanity(domain: string) {
+  const d = domain.toLowerCase();
+  return d.endsWith(`.${VANITY_ROOT}`) && d.slice(0, -VANITY_ROOT.length - 1).split(".").length === 1;
+}
+/** Suggests a vanity name from the workspace name: "Ssurce Ltd" → "ssurce-ltd". */
+export function suggestVanity(name: string) {
+  return name.toLowerCase().normalize("NFKD").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 32) || "";
+}
+/** What each plan may add: Standard (and the trial) gets a name.dozzier.co address; Data Rooms also gets its own domains. */
+export function domainRule(plan: string | null | undefined): "none" | "vanity" | "any" {
   if (plan === "datarooms") return "any";
-  if (plan === "standard") return "subdomain";
+  if (plan === "standard" || plan === "trial") return "vanity";
   return "none";
 }
 /** The DNS "name" field for a record: "docs" for docs.acme.com, "@" for acme.com. */
