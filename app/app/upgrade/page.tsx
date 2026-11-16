@@ -33,11 +33,11 @@ export default function Upgrade() {
         <div className="segmented mt-8"><button className={!annual ? "active" : ""} onClick={() => setAnnual(false)}>Monthly</button><button className={annual ? "active" : ""} onClick={() => setAnnual(true)}>Annually · save 20%</button></div>
       </div>
       <div className="mt-32">
-        <PricingCards currency={BILLING_CURRENCY} annual={annual} trial={profile.plan === "trial"} cta={(id) => profile.plan === id || (profile.plan === "trial" && id === "datarooms")
+        <PricingCards annual={annual} trial={profile.plan === "trial"} cta={(id) => profile.plan === id || (profile.plan === "trial" && id === "datarooms")
           ? <button className="btn btn-block btn-brand" aria-disabled="true">Current plan</button>
           : <button className={`btn btn-block ${id === "standard" ? "btn-dark" : "btn-brand"}`} disabled={busy !== null} onClick={() => pick(id)}>{busy === id ? "Opening checkout…" : id === "datarooms" ? "Start free trial" : "Select plan"}</button>} />
       </div>
-      <p className="caption faint mt-24">Relevant taxes are included automatically where Dozzier is registered. Prices in {BILLING_CURRENCY === "NGN" ? "Nigerian naira (NGN)" : "USD"}{annual ? ", billed annually at 20% off" : ", billed monthly"}. Standard is charged per member of your workspace. Payments are processed securely by Paystack.</p>
+      <p className="caption faint mt-24">Relevant taxes are included automatically where Dozzier is registered. Prices in USD{annual ? ", billed annually at 20% off" : ", billed monthly"}{BILLING_CURRENCY === "NGN" ? "; Paystack charges the naira equivalent at checkout" : ""}. Standard is charged per member of your workspace. Payments are processed securely by Paystack.</p>
     </div>
   );
 }
