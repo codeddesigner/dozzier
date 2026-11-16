@@ -1767,7 +1767,7 @@ html[data-theme="dark"] .app { background: #1b2433; } html[data-theme="dark"] .a
 .lp-nav-inner .spacer + .btn-ghost { margin-right: 0; }
 .btn-lime { background: #edfc48; color: #0a0a0a; font-weight: 600; box-shadow: 0 1px 2px rgba(18,18,15,.06); }
 .btn-lime:hover:not(:disabled) { background: #e2f235; }
-.hero { padding-top: 96px; gap: 0; }
+.hero { padding-top: 40px; gap: 0; }
 .hero > .announce { margin-bottom: 24px; }
 .hero-title { font-size: 72px; line-height: 1.04; letter-spacing: -2.16px; max-width: 1046px; margin: 0; }
 .hero > .body-l { margin: 24px 0 0; font-size: 16px; line-height: 24px; }
@@ -2017,7 +2017,7 @@ html[data-theme="dark"] .app { background: #1b2433; } html[data-theme="dark"] .a
 /* ===== Marketing pages (Figma: Product, Pricing, Talk to Sales, Data rooms, Integrations, Security, eSign) ===== */
 .lp-links a.on { color: var(--dz-text-primary); }
 .lp-links a.on::after { transform: scaleX(1); }
-.mk-hero { padding: 88px 24px 56px; display: flex; flex-direction: column; align-items: center; gap: 18px; text-align: center; }
+.mk-hero { padding: 48px 24px 56px; display: flex; flex-direction: column; align-items: center; gap: 18px; text-align: center; }
 .mk-pill { background: #f0f6fe; color: #1463d1; border-radius: 999px; padding: 5px 12px; font-size: 13px; line-height: 18px; font-weight: 500; }
 .mk-h1 { font-size: 60px; line-height: 1.05; letter-spacing: -1.5px; font-weight: 500; max-width: 980px; margin: 0; color: var(--dz-text-primary); }
 .mk-sub { font-size: 16px; line-height: 24px; color: #4b5563; max-width: 700px; margin: 0; }
@@ -2114,7 +2114,7 @@ html[data-theme="dark"] .app { background: #1b2433; } html[data-theme="dark"] .a
 .mk-compare svg { display: inline-block; vertical-align: middle; }
 .gap-14 { gap: 14px; }
 .gap-20 { gap: 20px; }
-.mk-sales { max-width: 1248px; margin: 0 auto; padding: 88px 24px 120px; display: flex; gap: 80px; align-items: flex-start; }
+.mk-sales { max-width: 1248px; margin: 0 auto; padding: 48px 24px 120px; display: flex; gap: 80px; align-items: flex-start; }
 .mk-sales-l { flex: 1; display: flex; flex-direction: column; gap: 18px; padding-top: 4px; }
 .mk-sales-l p { margin: 0; }
 .mk-h1s { font-size: 52px; line-height: 1.08; letter-spacing: -0.78px; font-weight: 500; margin: 0; }
