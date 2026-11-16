@@ -8,6 +8,7 @@ import { countPdfPages } from "@/lib/pdf";
 import { fileKind } from "@/lib/format";
 import { limitsFor, fmtBytes, MAX_FILE_BYTES } from "@/lib/limits";
 import { extractText } from "@/lib/extractText";
+import { uploadFile } from "@/lib/upload";
 import { officeFormat, countOfficePages } from "@/components/OfficeView";
 import { useApp } from "./AppContext";
 
@@ -49,8 +50,8 @@ export function UploadModal({ folderId, onClose, onDone }: { folderId?: string |
         const office = officeFormat(f.type, f.name);
         const pages = kind === "pdf" || f.type === "application/pdf" ? await countPdfPages(f) : office ? await countOfficePages(f, office) : 1;
         const path = `${wsId}/${crypto.randomUUID()}-${f.name.replace(/[^\w.\-]+/g, "_")}`;
-        const up = await supabase.storage.from(BUCKET).upload(path, f, { contentType: f.type || "application/octet-stream" });
-        if (up.error) throw up.error;
+        const label = `Uploading ${i + 1} of ${files.length}${f.size > 6e6 ? ` (${fmtBytes(f.size)})` : ""}`;
+        await uploadFile(path, f, (p) => setProgress(`${label}… ${Math.round(p * 100)}%`));
         const { data, error } = await supabase.from("documents").insert({
           name: f.name.replace(/\.[^.]+$/, ""), content_text: await extractText(f), file_path: path, file_type: kind, mime_type: f.type, size_bytes: f.size, page_count: pages, folder_id: folderId || null,
         }).select("id").single();

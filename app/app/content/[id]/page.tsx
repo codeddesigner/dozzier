@@ -1,4 +1,5 @@
 "use client";
+import { uploadFile } from "@/lib/upload";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { LinksTable, VisitRow, V, PV } from "@/components/DocTables";
 import Link from "next/link";
@@ -73,8 +74,7 @@ export default function DocumentPage() {
   async function replace(file: File) {
     toast("Uploading new version…");
     const path = `${wsId}/${crypto.randomUUID()}-${file.name.replace(/[^\w.\-]+/g, "_")}`;
-    const up = await supabase.storage.from(BUCKET).upload(path, file, { contentType: file.type });
-    if (up.error) return toast(up.error.message);
+    try { await uploadFile(path, file); } catch (e) { return toast((e as Error).message); }
     const kind = fileKind(file.type || file.name);
     const office = officeFormat(file.type, file.name);
     const pages = kind === "pdf" ? await countPdfPages(file) : office ? await countOfficePages(file, office) : 1;
