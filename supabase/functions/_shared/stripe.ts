@@ -68,7 +68,8 @@ export async function caller(req: Request) {
   const { data: u } = await sb.auth.getUser(token);
   if (!u.user) return null;
   const [{ data: ws }, { data: role }] = await Promise.all([sb.rpc("ws"), sb.rpc("ws_role")]);
-  return { sb, user: u.user, ws: (ws as string) || u.user.id, role: (role as string) || "Owner" };
+  // If the role lookup fails, treat the caller as having no role (deny) rather than as the owner.
+  return { sb, user: u.user, ws: (ws as string) || u.user.id, role: (role as string) || "" };
 }
 
 export const isStripeCustomer = (id?: string | null) => !!id && /^cus_/.test(id);

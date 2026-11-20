@@ -4,7 +4,16 @@ import { json, admin, stripe, webhookSecret, PRICES } from "./stripe.ts";
 type Meta = { ws?: string; plan?: string; annual?: string; seats?: string };
 type Sub = { id: string; status: string; cancel_at_period_end?: boolean; customer: string; metadata?: Meta; items?: { data?: { quantity?: number }[] } };
 type Session = { client_reference_id?: string | null; customer?: string | null; subscription?: string | null; metadata?: Meta; mode?: string };
-type Invoice = { id: string; number?: string | null; customer_email?: string | null; customer_name?: string | null; amount_paid: number; currency: string; subscription?: string | null; status_transitions?: { paid_at?: number | null }; lines?: { data?: { quantity?: number; price?: { recurring?: { interval?: string } }; metadata?: Meta }[] }; subscription_details?: { metadata?: Meta } };
+type Invoice = { id: string; number?: string | null; customer_email?: string | null; customer_name?: string | null; amount_paid: number; currency: string; subscription?: string | { id: string } | null;
+  parent?: { subscription_details?: { subscription?: string | { id: string } | null } | null } | null;
+  status_transitions?: { paid_at?: number | null }; lines?: { data?: { quantity?: number; parent?: { subscription_item_details?: { subscription?: string | null } | null } | null }[] } };
+type FullSub = { id: string; metadata?: Meta; items?: { data?: { quantity?: number; price?: { recurring?: { interval?: string } } }[] } };
+
+/** The invoice's subscription id, wherever this webhook's Stripe API version puts it. */
+function invoiceSub(inv: Invoice): string | null {
+  const pick = (v?: string | { id: string } | null) => (typeof v === "string" ? v : v?.id) || null;
+  return pick(inv.subscription) || pick(inv.parent?.subscription_details?.subscription) || inv.lines?.data?.[0]?.parent?.subscription_item_details?.subscription || null;
+}
 
 const enc = new TextEncoder();
 async function verify(raw: string, header: string | null) {
@@ -73,17 +82,20 @@ Deno.serve(async (req) => {
       }
       case "invoice.paid": {
         const inv = ev.data.object as Invoice;
-        if (inv.subscription) await syncSub(inv.subscription, "active");
+        const subId = invoiceSub(inv);
+        if (subId) await syncSub(subId, "active");
         if (inv.customer_email && inv.amount_paid) {
-          const line = inv.lines?.data?.[0];
-          const meta = inv.subscription_details?.metadata || line?.metadata || {};
+          // Read plan, interval and seats from the subscription itself (stable regardless of webhook API version).
+          const sub = subId ? await stripe<FullSub>(`/subscriptions/${subId}`).catch(() => null) : null;
+          const item = sub?.items?.data?.[0];
+          const meta = sub?.metadata || {};
           const cur = inv.currency.toUpperCase();
           // The app sends the Dozzier-designed receipt (same path as the welcome and digest emails).
           await db.rpc("lifecycle_post", { p_payload: {
             event: "receipt", to: inv.customer_email, name: inv.customer_name || null,
             plan: PRICES[planOf(meta) || "standard"].name,
-            interval: line?.price?.recurring?.interval === "year" ? "annually" : "monthly",
-            seats: line?.quantity ?? null,
+            interval: (item?.price?.recurring?.interval || (meta.annual === "1" ? "year" : "month")) === "year" ? "annually" : "monthly",
+            seats: item?.quantity ?? inv.lines?.data?.[0]?.quantity ?? null,
             amount: new Intl.NumberFormat("en-US", { style: "currency", currency: cur, minimumFractionDigits: 2 }).format(inv.amount_paid / 100),
             reference: inv.number || inv.id, currency: cur,
             date: new Date((inv.status_transitions?.paid_at || Date.now() / 1000) * 1000).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }),
@@ -93,7 +105,8 @@ Deno.serve(async (req) => {
       }
       case "invoice.payment_failed": {
         const inv = ev.data.object as Invoice;
-        if (inv.subscription) await syncSub(inv.subscription, "past_due");
+        const subId = invoiceSub(inv);
+        if (subId) await syncSub(subId, "past_due");
         break;
       }
     }

@@ -16,7 +16,8 @@ const STATUS: Record<string, string> = { active: "Subscription active", cancelin
 export default function Billing() {
   const { profile, refreshProfile } = useApp();
   const [opening, setOpening] = useState(false);
-  async function manage() { setOpening(true); const r = await openBillingPortal(); setOpening(false); if (r.url) window.open(r.url, "_blank"); else toast(r.error || "Couldn’t open billing"); }
+  async function manage() { setOpening(true); const r = await openBillingPortal(); setOpening(false); // Same tab: browsers (Safari, phones) block new tabs opened after waiting on the server.
+    if (r.url) window.location.href = r.url; else toast(r.error || "Couldn’t open billing"); }
   // Back from Stripe checkout: the webhook updates the plan within a few seconds.
   useEffect(() => {
     if (!new URLSearchParams(window.location.search).get("paid")) return;

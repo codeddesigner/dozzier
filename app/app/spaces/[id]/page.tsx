@@ -83,7 +83,12 @@ export default function SpacePage() {
     setFname(""); setNewFolder(false); reload();
   }
   async function remove(it: SpaceItem) { await supabase.from("space_items").delete().eq("id", it.id); audit(id, email, `Removed “${it.name}”`, "upload"); toast("Removed from Space"); reload(); }
-  async function preview() { try { const slug = await spaceLink(space); window.open(linkUrl(slug), "_blank"); reload(); } catch (e) { toast(e instanceof Error ? e.message : "Couldn’t open preview"); } }
+  async function preview() {
+    // Open the tab during the click (browsers block tabs opened after waiting), then point it at the preview.
+    const w = window.open("about:blank", "_blank");
+    try { const slug = await spaceLink(space); if (w) w.location.href = linkUrl(slug); else window.location.href = linkUrl(slug); reload(); }
+    catch (e) { w?.close(); toast(e instanceof Error ? e.message : "Couldn’t open preview"); }
+  }
 
   return (
     <div className="content">

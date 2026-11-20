@@ -76,7 +76,12 @@ export default function Agreements() {
   async function open(a: Agreement) {
     if (a.kind === "esign") return router.push(`/app/agreements/${a.id}`);
     if (a.body) return setView(a);
-    if (a.file_path) { const { data: d } = await supabase.storage.from(BUCKET).createSignedUrl(a.file_path, 300); if (d) window.open(d.signedUrl, "_blank"); }
+    if (a.file_path) {
+      // Open the tab during the click (browsers block tabs opened after waiting), then point it at the file.
+      const w = window.open("about:blank", "_blank");
+      const { data: d } = await supabase.storage.from(BUCKET).createSignedUrl(a.file_path, 300);
+      if (d && w) w.location.href = d.signedUrl; else if (d) window.location.href = d.signedUrl; else w?.close();
+    }
   }
   async function remove(a: Agreement) {
     const shared = (data?.list || []).some((x) => x.id !== a.id && x.file_path === a.file_path);
