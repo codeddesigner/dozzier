@@ -1398,7 +1398,6 @@ html[data-theme="dark"]:has(.app) .inbox-item.unread { background: rgba(77,148,2
   .mob-tabs a.on svg { animation: pop-in .3s cubic-bezier(.2,1.6,.4,1); }
   .cp-back { padding-top: 8vh; }
   .pipe-col { flex-basis: 84vw; }
-  .ask-input { bottom: 76px; }
   .es-editor { z-index: 45; }
   .page-head { flex-wrap: wrap; }
 }
