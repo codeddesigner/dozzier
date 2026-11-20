@@ -1,7 +1,7 @@
 // Stripe → Dozzier. Verifies the signature, keeps the workspace's plan in sync and triggers the receipt email.
 import { json, admin, stripe, webhookSecret, PRICES } from "./stripe.ts";
 
-type Meta = { ws?: string; plan?: string; annual?: string; seats?: string };
+type Meta = { ws?: string; plan?: string; annual?: string; seats?: string; prev_status?: string };
 type Sub = { id: string; status: string; cancel_at_period_end?: boolean; customer: string; metadata?: Meta; items?: { data?: { quantity?: number }[] } };
 type Session = { client_reference_id?: string | null; customer?: string | null; subscription?: string | null; metadata?: Meta; mode?: string };
 type Invoice = { id: string; number?: string | null; customer_email?: string | null; customer_name?: string | null; amount_paid: number; currency: string; subscription?: string | { id: string } | null;
@@ -62,6 +62,12 @@ Deno.serve(async (req) => {
         const s = ev.data.object as Session;
         const ws = s.client_reference_id || s.metadata?.ws;
         if (s.mode !== "subscription" || !s.subscription || !ws) break;
+        if (s.metadata?.plan === "test") {
+          // Admin test plan: record the subscription so the receipt and Manage subscription work; leave the plan alone.
+          const { error } = await db.from("profiles").update({ billing_customer: s.customer, billing_subscription: s.subscription, subscription_status: "active" }).eq("id", ws);
+          if (error) throw error;
+          break;
+        }
         const { data: prev } = await db.from("profiles").select("billing_subscription").eq("id", ws).maybeSingle();
         const { error } = await db.from("profiles").update({
           plan: planOf(s.metadata) || undefined, billing_customer: s.customer, subscription_status: "active",
@@ -77,6 +83,13 @@ Deno.serve(async (req) => {
       case "customer.subscription.updated":
       case "customer.subscription.deleted": {
         const s = ev.data.object as Sub;
+        if (s.metadata?.plan === "test") {
+          // Ending the admin test plan restores the workspace's previous billing status.
+          const patch = ev.type.endsWith("deleted") ? { billing_subscription: null, subscription_status: s.metadata.prev_status || null } : { subscription_status: statusFor(s) };
+          const { error } = await db.from("profiles").update(patch).eq("billing_subscription", s.id);
+          if (error) throw error;
+          break;
+        }
         await syncSub(s.id, ev.type.endsWith("deleted") ? "canceled" : statusFor(s), planOf(s.metadata), s.items?.data?.[0]?.quantity ?? null);
         break;
       }
@@ -93,7 +106,7 @@ Deno.serve(async (req) => {
           // The app sends the Dozzier-designed receipt (same path as the welcome and digest emails).
           await db.rpc("lifecycle_post", { p_payload: {
             event: "receipt", to: inv.customer_email, name: inv.customer_name || null,
-            plan: PRICES[planOf(meta) || "standard"].name,
+            plan: meta.plan === "test" ? "Test (admin only)" : PRICES[planOf(meta) || "standard"].name,
             interval: (item?.price?.recurring?.interval || (meta.annual === "1" ? "year" : "month")) === "year" ? "annually" : "monthly",
             seats: item?.quantity ?? inv.lines?.data?.[0]?.quantity ?? null,
             amount: new Intl.NumberFormat("en-US", { style: "currency", currency: cur, minimumFractionDigits: 2 }).format(inv.amount_paid / 100),
