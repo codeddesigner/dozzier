@@ -2202,7 +2202,7 @@ html[data-theme="dark"] .app { background: #1b2433; } html[data-theme="dark"] .a
 /* Cards, tiles and rows: borders, not shadows; no lifting on hover. */
 .kpi-card, .kpi, .card, .feature-card, .mini-card, .step-card, .price-card, .sec-card, .bento-card, .bento-hero, .bento-trust,
 .int-tile, .int-card, .sel-card, .docs-hero-search, .docs-cat, .docs-video, .help-row, .sv-fcard, .pipe-card, .side-promo, .st-tpl,
-.st-card, .fr-card, .es-page, .ws-switch, .rail-app.active, .rail-btn.on, .segmented button.active, .auth-card, .gate, .ask-input,
+.st-card, .fr-card, .es-page, .ws-switch, .rail-app.active, .rail-btn.on, .segmented button.active, .auth-card, .gate,
 .peek-alert, .peek-kpi-v, .mk-app, .mk-form, .mk-card, .mk-modal, .mk-chart, .mk-alert, .mk-intel-card, .mk-tl-ico, .mk-room-card, .mk-folders,
 .mk-nda, .mk-req, .browser, .float-card, .float-card.f1, .ai-card, .cs-tpl, .hdr-search { box-shadow: none !important; }
 .kpi:hover, .card:hover, a.card:hover, .card.clickable:hover, button.card:hover, .feature-card:hover, .mini-card:hover, .step-card:hover, .price-card:hover,
