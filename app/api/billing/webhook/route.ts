@@ -1,69 +1,74 @@
 import { NextRequest, NextResponse } from "next/server";
-import crypto from "crypto";
-import { anonDb, billingUpdate, paystack } from "@/lib/paystack";
+import { anonDb, billingUpdate, stripe, syncSubscription, statusFor, verifyWebhook, PRICES } from "@/lib/stripe";
 import { deliver } from "@/lib/email/server";
 import { receiptEmail } from "@/lib/email/messages";
 
 export const dynamic = "force-dynamic";
-type Ev = { event: string; data: { customer?: { customer_code?: string; email?: string; first_name?: string | null }; amount?: number; currency?: string; reference?: string; paid_at?: string; plan_object?: { name?: string; interval?: string }; metadata?: { ws?: string; plan?: string; seats?: number } | string; subscription_code?: string; plan?: { plan_code?: string; name?: string; interval?: string } | string; status?: string } };
 
-/** Paystack → Dozzier. Verifies the signature, then updates the workspace's plan. */
+type Meta = { ws?: string; plan?: string; annual?: string; seats?: string };
+type Sub = { id: string; status: string; cancel_at_period_end?: boolean; customer: string; metadata?: Meta; items?: { data?: { quantity?: number }[] } };
+type Session = { client_reference_id?: string | null; customer?: string | null; subscription?: string | null; metadata?: Meta; mode?: string };
+type Invoice = { id: string; number?: string | null; customer: string; customer_email?: string | null; customer_name?: string | null; amount_paid: number; currency: string; subscription?: string | null; status_transitions?: { paid_at?: number | null }; lines?: { data?: { quantity?: number; price?: { recurring?: { interval?: string } }; metadata?: Meta }[] }; subscription_details?: { metadata?: Meta } };
+
+const planOf = (m?: Meta) => (m?.plan && m.plan in PRICES ? m.plan : null);
+const seatsOf = (s: Sub) => s.items?.data?.[0]?.quantity ?? (s.metadata?.seats ? Number(s.metadata.seats) : null);
+
+/** Stripe → Dozzier. Verifies the signature, then keeps the workspace's plan in sync. */
 export async function POST(req: NextRequest) {
   const raw = await req.text();
-  const secret = (process.env.PAYSTACK_SECRET_KEY || "").trim().replace(/^["']|["']$/g, "").trim();
-  if (!secret) return NextResponse.json({ error: "not configured" }, { status: 503 });
-  const sig = req.headers.get("x-paystack-signature") || "";
-  const want = crypto.createHmac("sha512", secret).update(raw).digest("hex");
-  if (sig.length !== want.length || !crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(want))) return NextResponse.json({ error: "bad signature" }, { status: 401 });
+  if (!process.env.STRIPE_WEBHOOK_SECRET) return NextResponse.json({ error: "not configured" }, { status: 503 });
+  if (!verifyWebhook(raw, req.headers.get("stripe-signature"))) return NextResponse.json({ error: "bad signature" }, { status: 401 });
+  const ev = JSON.parse(raw) as { type: string; data: { object: unknown } };
 
-  const ev = JSON.parse(raw) as Ev;
-  const d = ev.data || {};
-  const customer = d.customer?.customer_code || null;
-  const meta = typeof d.metadata === "object" && d.metadata ? d.metadata : {};
   try {
-    switch (ev.event) {
-      case "charge.success":
-        // First payment carries our metadata; renewals just confirm the subscription is healthy.
-        if (meta.ws && meta.plan) await billingUpdate({ ws: meta.ws, customer, plan: meta.plan, status: "active", seats: meta.seats ?? null });
-        else if (customer) await billingUpdate({ customer, status: "active" });
-        await sendReceipt(d, meta).catch((e) => console.error("receipt failed", e));
-        break;
-      case "subscription.create": {
-        // A plan change: switch to the new subscription and stop the old one.
-        const { data: prev } = await anonDb().rpc("billing_previous_subscription", { p_secret: process.env.DOZZIER_HOOK_SECRET, p_customer: customer });
-        if (customer) await billingUpdate({ customer, subscription: d.subscription_code || null, status: "active" });
+    switch (ev.type) {
+      case "checkout.session.completed": {
+        const s = ev.data.object as Session;
+        if (s.mode !== "subscription" || !s.subscription) break;
+        const ws = s.client_reference_id || s.metadata?.ws;
+        if (!ws) break;
+        // A plan change: remember the old subscription so it can be stopped once the new one is live.
+        const { data: prev } = await anonDb().rpc("billing_previous_subscription", { p_secret: process.env.DOZZIER_HOOK_SECRET, p_customer: s.customer });
+        await billingUpdate({ ws, customer: s.customer, plan: planOf(s.metadata), status: "active", subscription: s.subscription, seats: s.metadata?.seats ? Number(s.metadata.seats) : null });
         const old = prev as string | null;
-        if (old && old !== d.subscription_code) {
-          try { const s = await paystack<{ email_token: string }>(`/subscription/${old}`); await paystack("/subscription/disable", { method: "POST", body: { code: old, token: s.email_token } }); } catch {}
-        }
+        if (old && old !== s.subscription && old.startsWith("sub_")) await stripe(`/subscriptions/${old}`, { prorate: "true" }, "DELETE").catch(() => {});
         break;
       }
-      case "subscription.not_renew":
-        if (d.subscription_code) await anonDb().rpc("billing_subscription_ended", { p_secret: process.env.DOZZIER_HOOK_SECRET, p_subscription: d.subscription_code, p_status: "canceling" });
+      case "customer.subscription.created":
+      case "customer.subscription.updated":
+      case "customer.subscription.deleted": {
+        const s = ev.data.object as Sub;
+        await syncSubscription(s.id, ev.type.endsWith("deleted") ? "canceled" : statusFor(s), planOf(s.metadata), seatsOf(s));
         break;
-      case "subscription.disable":
-        if (d.subscription_code) await anonDb().rpc("billing_subscription_ended", { p_secret: process.env.DOZZIER_HOOK_SECRET, p_subscription: d.subscription_code, p_status: "canceled" });
+      }
+      case "invoice.paid": {
+        const inv = ev.data.object as Invoice;
+        if (inv.subscription) await syncSubscription(inv.subscription, "active");
+        await sendReceipt(inv).catch((e) => console.error("receipt failed", e));
         break;
-      case "invoice.payment_failed":
-        if (customer) await billingUpdate({ customer, status: "past_due" });
+      }
+      case "invoice.payment_failed": {
+        const inv = ev.data.object as Invoice;
+        if (inv.subscription) await syncSubscription(inv.subscription, "past_due");
         break;
+      }
     }
   } catch (e) {
     return NextResponse.json({ error: e instanceof Error ? e.message : "failed" }, { status: 500 });
   }
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ received: true });
 }
 
-const PLAN_NAME: Record<string, string> = { personal: "Personal", standard: "Standard", datarooms: "Data Rooms" };
-/** Emails the payer a Dozzier receipt (Paystack sends its own too). */
-async function sendReceipt(d: Ev["data"], meta: { plan?: string; seats?: number; annual?: boolean }) {
-  const to = d.customer?.email; if (!to || !d.amount) return;
-  const plan = typeof d.plan === "object" && d.plan ? d.plan : d.plan_object || {};
-  const name = (plan.name || "").replace(/^Dozzier\s+/, "").split(" · ")[0] || PLAN_NAME[meta.plan || ""] || "Dozzier";
-  const interval = plan.interval || (meta.annual ? "annually" : "monthly");
-  const cur = (d.currency || "USD").toUpperCase();
-  const amount = new Intl.NumberFormat("en-US", { style: "currency", currency: cur, minimumFractionDigits: 2 }).format(d.amount / 100);
-  const date = new Date(d.paid_at || Date.now()).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
-  const m = receiptEmail({ name: d.customer?.first_name, plan: name, interval, seats: meta.seats ?? null, amount, reference: d.reference || "—", date, currency: cur });
-  await deliver({ to: [to], subject: m.subject, html: m.html, text: m.text, tag: "receipt" });
+/** Emails the payer a Dozzier-designed receipt for every paid invoice. */
+async function sendReceipt(inv: Invoice) {
+  if (!inv.customer_email || !inv.amount_paid) return;
+  const line = inv.lines?.data?.[0];
+  const meta = inv.subscription_details?.metadata || line?.metadata || {};
+  const plan = PRICES[(planOf(meta) || "standard") as keyof typeof PRICES].name;
+  const interval = line?.price?.recurring?.interval === "year" ? "annually" : "monthly";
+  const cur = inv.currency.toUpperCase();
+  const amount = new Intl.NumberFormat("en-US", { style: "currency", currency: cur, minimumFractionDigits: 2 }).format(inv.amount_paid / 100);
+  const date = new Date((inv.status_transitions?.paid_at || Date.now() / 1000) * 1000).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+  const m = receiptEmail({ name: inv.customer_name, plan, interval, seats: line?.quantity ?? null, amount, reference: inv.number || inv.id, date, currency: cur });
+  await deliver({ to: [inv.customer_email], subject: m.subject, html: m.html, text: m.text, tag: "receipt" });
 }

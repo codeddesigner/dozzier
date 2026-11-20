@@ -7,7 +7,7 @@ type Hit = { id: string; email: string; full_name: string | null; workspace_name
 const PLANS: [string, string][] = [["standard", "Standard"], ["datarooms", "Data Rooms"], ["personal", "Personal"]];
 const LENGTHS: [string, string][] = [["1", "1 month"], ["3", "3 months"], ["6", "6 months"], ["12", "12 months"], ["24", "24 months"], ["", "No end date"]];
 
-/** Admin: give an account's workspace a plan without Paystack, optionally until a date. */
+/** Admin: give an account's workspace a plan without Stripe, optionally until a date. */
 export function AssignSubscription({ account, onClose, onDone }: { account?: { id: string; email: string; isMember?: boolean }; onClose: () => void; onDone: () => void }) {
   const [who, setWho] = useState(account || null);
   const [q, setQ] = useState("");

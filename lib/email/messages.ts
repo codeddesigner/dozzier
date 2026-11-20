@@ -159,7 +159,7 @@ export function receiptEmail(o: { name?: string | null; plan: string; interval: 
         visual: visual.receipt({ invoice: `REF ${o.reference.slice(0, 18).toUpperCase()}`, line, amount: o.amount, tax: "Included", total: o.amount }) },
       body: p(`Hi ${esc(first(o.name))},`, true) + p("Thanks for your payment. Here are the details for your records:")
         + facts([["Plan", line], ["Billing", o.interval === "annually" ? "Yearly" : "Monthly"], ["Amount", `${o.amount} (${o.currency})`], ["Date", o.date], ["Reference", o.reference]])
-        + button("View billing", `${SITE}/app/settings/billing`) + muted("Paystack also emails an official receipt. Need a company invoice? Reply with your billing details.") + signoff(),
+        + button("View billing", `${SITE}/app/settings/billing`) + muted("Invoice PDFs are under Settings → Billing → Manage subscription. Need your company details on them? Reply to this email.") + signoff(),
       footer: accountFooter("You’re receiving this because a payment was made for your Dozzier workspace.") }),
     text: `Payment received: ${o.amount} for ${line} (${o.interval}). Reference ${o.reference}. ${SITE}/app/settings/billing`,
   };

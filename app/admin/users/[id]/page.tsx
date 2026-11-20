@@ -84,7 +84,7 @@ export default function AdminUser() {
             <dt>Subscription</dt><dd>{p?.subscription_status === "comped" ? "Assigned by admin" : p?.subscription_status || "None"}{p?.billing_seats ? ` · ${p.billing_seats} seats` : ""}</dd>
             {p?.subscription_status === "comped" && <><dt>Assigned until</dt><dd className="row gap-8">{p.comp_ends_at ? day(p.comp_ends_at) : "No end date"}<button className="btn btn-ghost btn-s" disabled={busy} onClick={() => { if (confirm("End this assigned plan now? The workspace will be asked to choose a paid plan.")) act("admin_end_subscription", { p_id: id }, "Assigned plan ended"); }}>End now</button></dd>
               {p.comp_note && <><dt>Note</dt><dd>{p.comp_note}</dd></>}</>}
-            <dt>Paystack customer</dt><dd>{p?.billing_customer ? <a className="link row gap-4" target="_blank" rel="noreferrer" href={`https://dashboard.paystack.com/#/customers/${p.billing_customer}`}>{p.billing_customer}<ExternalLink size={12} /></a> : "—"}</dd>
+            <dt>Stripe customer</dt><dd>{p?.billing_customer ? <a className="link row gap-4" target="_blank" rel="noreferrer" href={`https://dashboard.stripe.com/customers/${p.billing_customer}`}>{p.billing_customer}<ExternalLink size={12} /></a> : "—"}</dd>
             <dt>Subscription code</dt><dd>{p?.billing_subscription || "—"}</dd>
           </dl>
         </div>
@@ -127,7 +127,7 @@ export default function AdminUser() {
           <div className="col gap-12">
             <label className="field"><span className="label">Plan</span><select className="input" value={plan} onChange={(e) => setPlan(e.target.value)}>{Object.entries(PLAN_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select></label>
             <label className="field"><span className="label">Reason (kept in the admin log)</span><input className="input" value={note} onChange={(e) => setNote(e.target.value)} placeholder="e.g. Comped for beta feedback" /></label>
-            {p?.billing_subscription && <p className="caption muted">This workspace pays through Paystack. Changing the plan here doesn’t change what Paystack charges; the next payment event can set it back.</p>}
+            {p?.billing_subscription && <p className="caption muted">This workspace pays through Stripe. Changing the plan here doesn’t change what Stripe charges; the next payment event can set it back.</p>}
           </div>
         </Modal>
       )}
@@ -151,7 +151,7 @@ export default function AdminUser() {
       {modal === "delete" && (
         <Modal title="Delete account permanently" onClose={() => setModal(null)} width={480} footer={<><span className="grow" /><button className="btn btn-ghost" onClick={() => setModal(null)}>Cancel</button><button className="btn btn-danger-solid" disabled={busy || confirmEmail.trim().toLowerCase() !== user.email.toLowerCase()} onClick={() => act("admin_delete_user", { p_id: id, p_confirm_email: confirmEmail }, "Account deleted", () => router.push("/admin/users"))}>Delete forever</button></>}>
           <div className="col gap-12">
-            <p className="muted">This deletes the account and everything it owns — documents, links, data rooms, contacts and analytics. It can’t be undone. Uploaded files stay in storage until removed in Supabase.{p?.billing_subscription ? " Cancel their Paystack subscription first so they aren’t charged again." : ""}</p>
+            <p className="muted">This deletes the account and everything it owns — documents, links, data rooms, contacts and analytics. It can’t be undone. Uploaded files stay in storage until removed in Supabase.{p?.billing_subscription ? " Cancel their Stripe subscription first so they aren’t charged again." : ""}</p>
             <label className="field"><span className="label">Type <b>{user.email}</b> to confirm</span><input className="input" value={confirmEmail} onChange={(e) => setConfirmEmail(e.target.value)} /></label>
           </div>
         </Modal>

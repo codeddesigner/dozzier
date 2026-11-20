@@ -17,7 +17,7 @@ export default function Billing() {
   const { profile, refreshProfile } = useApp();
   const [opening, setOpening] = useState(false);
   async function manage() { setOpening(true); const r = await openBillingPortal(); setOpening(false); if (r.url) window.open(r.url, "_blank"); else toast(r.error || "Couldn’t open billing"); }
-  // Back from Paystack checkout: the webhook updates the plan within a few seconds.
+  // Back from Stripe checkout: the webhook updates the plan within a few seconds.
   useEffect(() => {
     if (!new URLSearchParams(window.location.search).get("paid")) return;
     toast("Payment received — updating your plan…");
@@ -56,8 +56,8 @@ export default function Billing() {
         <Card title="Payment & subscription" style={{ flex: 1, minWidth: 240 }}>
           <div className="row gap-10"><CreditCard size={20} className="faint" /><span className="grow muted" style={{ fontSize: 14 }}>{STATUS[profile.subscription_status || ""] || (profile.plan === "trial" ? "Free trial — no card needed" : "No subscription yet")}</span></div>
           {profile.billing_subscription
-            ? <><p className="caption faint">Update your card, download receipts or cancel on Paystack’s secure page.</p><div><button className="btn btn-secondary btn-s" disabled={opening} onClick={manage}>{opening ? "Opening…" : "Manage subscription"}</button></div></>
-            : <p className="caption faint">Payments are processed securely by Paystack. Pick a plan to subscribe.</p>}
+            ? <><p className="caption faint">Update your card, download invoices, change plan or cancel on Stripe’s secure page.</p><div><button className="btn btn-secondary btn-s" disabled={opening} onClick={manage}>{opening ? "Opening…" : "Manage subscription"}</button></div></>
+            : <p className="caption faint">Payments are processed securely by Stripe. Pick a plan to subscribe.</p>}
         </Card>
       </div>
       <Card title="Usage this period">
@@ -73,7 +73,7 @@ export default function Billing() {
         )}
       </Card>
       <Card title="Invoices">
-        <div className="row gap-10" style={{ padding: "8px 0" }}><Receipt size={18} className="faint" /><span className="muted" style={{ fontSize: 14 }}>{profile.billing_subscription ? "Paystack emails a receipt for every payment. Past invoices are on the Manage subscription page." : `No invoices yet${profile.plan === "trial" ? " — you’re on the free trial" : ""}.`}</span></div>
+        <div className="row gap-10" style={{ padding: "8px 0" }}><Receipt size={18} className="faint" /><span className="muted" style={{ fontSize: 14 }}>{profile.billing_subscription ? "We email a receipt for every payment. Invoice PDFs are on the Manage subscription page." : `No invoices yet${profile.plan === "trial" ? " — you’re on the free trial" : ""}.`}</span></div>
       </Card>
     </>
   );

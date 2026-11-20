@@ -18,7 +18,7 @@ export default function AdminBilling() {
   const n = (s: string) => rows.filter((r) => r.subscription_status === s).length;
   return (
     <>
-      <div className="adm-head"><h1>Billing</h1><span className="grow" /><button className="btn btn-primary btn-s" onClick={() => setAssign(true)}><Gift size={14} />Assign subscription</button><a className="btn btn-secondary btn-s" href="https://dashboard.paystack.com/#/subscriptions" target="_blank" rel="noreferrer">Open Paystack</a></div>
+      <div className="adm-head"><h1>Billing</h1><span className="grow" /><button className="btn btn-primary btn-s" onClick={() => setAssign(true)}><Gift size={14} />Assign subscription</button><a className="btn btn-secondary btn-s" href="https://dashboard.stripe.com/subscriptions" target="_blank" rel="noreferrer">Open Stripe</a></div>
       <div className="adm-kpis">
         <div className="adm-kpi"><b>{money(mrr)}</b><span>Monthly recurring revenue</span></div>
         <div className="adm-kpi"><b>{n("active")}</b><span>Active subscriptions</span></div>
@@ -26,7 +26,7 @@ export default function AdminBilling() {
         <div className="adm-kpi"><b>{n("canceling")}</b><span>Cancelling</span></div>
         <div className="adm-kpi"><b>{n("comped")}</b><span>Assigned (free)</span></div>
       </div>
-      <p className="caption muted">MRR counts monthly list prices (annual plans are billed upfront at 20% off). Paystack is the source of truth for money received.</p>
+      <p className="caption muted">MRR counts monthly list prices (annual plans are billed upfront at 20% off). Stripe is the source of truth for money received.</p>
       <div className="adm-card" style={{ padding: "0 18px" }}>
         <table className="table">
           <thead><tr><th>Workspace</th><th>Plan</th><th>Status</th><th>Seats</th><th>MRR</th><th>Since</th></tr></thead>

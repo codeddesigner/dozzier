@@ -5,7 +5,6 @@ import { PricingCards } from "@/components/Pricing";
 import { useApp } from "@/components/AppContext";
 import { toast } from "@/components/ui";
 import { startCheckout } from "@/lib/billing";
-import { BILLING_CURRENCY } from "@/lib/prices";
 
 export default function Upgrade() {
   const { profile, refreshProfile } = useApp();
@@ -37,7 +36,7 @@ export default function Upgrade() {
           ? <button className="btn btn-block btn-brand" aria-disabled="true">Current plan</button>
           : <button className={`btn btn-block ${id === "standard" ? "btn-dark" : "btn-brand"}`} disabled={busy !== null} onClick={() => pick(id)}>{busy === id ? "Opening checkout…" : id === "datarooms" ? "Start free trial" : "Select plan"}</button>} />
       </div>
-      <p className="caption faint mt-24">Relevant taxes are included automatically where Dozzier is registered. Prices in USD{annual ? ", billed annually at 20% off" : ", billed monthly"}{BILLING_CURRENCY === "NGN" ? "; Paystack charges the naira equivalent at checkout" : ""}. Standard is charged per member of your workspace. Payments are processed securely by Paystack.</p>
+      <p className="caption faint mt-24">Prices in US dollars{annual ? ", billed annually at 20% off" : ", billed monthly"}. Standard is charged per member of your workspace. Payments are processed securely by Stripe, and you can cancel any time.</p>
     </div>
   );
 }
