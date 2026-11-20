@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import { inMemory } from "@/lib/upload";
 import { useParams } from "next/navigation";
 import { Upload, CheckCircle2, ShieldCheck, X } from "lucide-react";
 import { supabase, BUCKET, SUPABASE_URL, SUPABASE_KEY } from "@/lib/supabase";
@@ -11,7 +12,8 @@ const MAX = 50 * 1024 * 1024;
 const KIND_LABEL: Record<string, string> = { pdf: "PDF", sheet: "SHEET", doc: "DOC", deck: "DECK", image: "IMG", video: "VID", file: "FILE" };
 
 /** Upload with progress via the Storage REST API; falls back to the SDK. */
-function put(path: string, f: File, onPct: (n: number) => void): Promise<void> {
+async function put(path: string, picked: File, onPct: (n: number) => void): Promise<void> {
+  const f = await inMemory(picked);
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     xhr.open("POST", `${SUPABASE_URL}/storage/v1/object/${BUCKET}/${path.split("/").map(encodeURIComponent).join("/")}`);

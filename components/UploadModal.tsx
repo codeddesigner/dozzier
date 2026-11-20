@@ -8,7 +8,7 @@ import { countPdfPages } from "@/lib/pdf";
 import { fileKind } from "@/lib/format";
 import { limitsFor, fmtBytes, MAX_FILE_BYTES } from "@/lib/limits";
 import { extractText } from "@/lib/extractText";
-import { uploadFile } from "@/lib/upload";
+import { uploadFile, inMemory } from "@/lib/upload";
 import { officeFormat, countOfficePages } from "@/components/OfficeView";
 import { useApp } from "./AppContext";
 import { downloadUrls, PROVIDER_HINT, type Provider } from "@/lib/cloudImport";
@@ -47,17 +47,19 @@ export function UploadModal({ folderId, onClose, onDone }: { folderId?: string |
       const quota = limitsFor(profile.plan).gb * 1e9;
       const adding = files.reduce((a, f) => a + f.size, 0);
       if (usedBytes + adding > quota) throw new Error(`That would use ${fmtBytes(usedBytes + adding)} of your ${limitsFor(profile.plan).gb} GB storage. Delete old files or upgrade your plan.`);
-      for (const [i, f] of files.entries()) {
-        setProgress(`Uploading ${i + 1} of ${files.length}${f.size > 20e6 ? ` (${fmtBytes(f.size)}) — large files take a moment` : ""}…`);
-        if (f.size > MAX_FILE_BYTES) throw new Error(`${f.name} is larger than 2 GB`);
+      for (const [i, picked] of files.entries()) {
+        setProgress(`Uploading ${i + 1} of ${files.length}${picked.size > 20e6 ? ` (${fmtBytes(picked.size)}) — large files take a moment` : ""}…`);
+        if (picked.size > MAX_FILE_BYTES) throw new Error(`${picked.name} is larger than 2 GB`);
+        const f = await inMemory(picked);
         const kind = fileKind(f.type || f.name);
         const office = officeFormat(f.type, f.name);
-        const pages = kind === "pdf" || f.type === "application/pdf" ? await countPdfPages(f) : office ? await countOfficePages(f, office) : 1;
+        // Page counting and text search are nice-to-haves: never let them block the upload.
+        const pages = await (kind === "pdf" || f.type === "application/pdf" ? countPdfPages(f) : office ? countOfficePages(f, office) : Promise.resolve(1)).catch(() => 1);
         const path = `${wsId}/${crypto.randomUUID()}-${f.name.replace(/[^\w.\-]+/g, "_")}`;
         const label = `Uploading ${i + 1} of ${files.length}${f.size > 6e6 ? ` (${fmtBytes(f.size)})` : ""}`;
         await uploadFile(path, f, (p) => setProgress(`${label}… ${Math.round(p * 100)}%`));
         const { data, error } = await supabase.from("documents").insert({
-          name: f.name.replace(/\.[^.]+$/, ""), content_text: await extractText(f), file_path: path, file_type: kind, mime_type: f.type, size_bytes: f.size, page_count: pages, folder_id: folderId || null,
+          name: f.name.replace(/\.[^.]+$/, ""), content_text: await extractText(f).catch(() => null), file_path: path, file_type: kind, mime_type: f.type, size_bytes: f.size, page_count: pages, folder_id: folderId || null,
         }).select("id").single();
         if (error) throw error;
         ids.push(data.id);
@@ -65,7 +67,8 @@ export function UploadModal({ folderId, onClose, onDone }: { folderId?: string |
       toast(files.length === 1 ? `${files[0].name} uploaded` : `${files.length} files uploaded`);
       onDone(ids);
     } catch (e: unknown) {
-      setErr(e instanceof Error ? e.message : "Upload failed");
+      const m = e instanceof Error ? e.message : "Upload failed";
+      setErr(/failed to fetch|network|load failed/i.test(m) ? "The upload was interrupted. Check your connection and try again. If the file is in Google Drive or WhatsApp, save it to your phone first." : m);
     }
     setBusy(false); setProgress("");
   }

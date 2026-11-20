@@ -12,6 +12,17 @@ const b64 = (s: string) => btoa(unescape(encodeURIComponent(s)));
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 /**
+ * Android hands browsers a live link to files picked from Drive, WhatsApp or Downloads. Reading it more
+ * than once (page count, then upload) can make Chrome think the file changed and abort with "Failed to fetch".
+ * Copying it into memory once, right after it's picked, avoids that. Very large files stay as they are.
+ */
+export async function inMemory(f: File): Promise<File> {
+  if (f.size > 150e6) return f;
+  try { return new File([await f.arrayBuffer()], f.name, { type: f.type, lastModified: f.lastModified }); }
+  catch { throw new Error(`Couldn’t read ${f.name}. If it’s in Google Drive or WhatsApp, save it to your phone first, then upload it.`); }
+}
+
+/**
  * Uploads a file to the documents bucket. Small files go in one request; anything over 6 MB uses
  * Supabase's resumable (TUS) endpoint in 6 MB chunks, retrying each chunk so a dropped connection
  * doesn't restart a 2 GB upload. onProgress gets 0–1.
@@ -19,8 +30,13 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 export async function uploadFile(path: string, file: File, onProgress?: (p: number) => void): Promise<void> {
   const contentType = file.type || "application/octet-stream";
   if (file.size <= RESUMABLE_FROM) {
-    const { error } = await supabase.storage.from(BUCKET).upload(path, file, { contentType });
-    if (error) throw error;
+    // Retry brief connection drops (common on mobile data) before giving up.
+    for (let attempt = 0; ; attempt++) {
+      const { error } = await supabase.storage.from(BUCKET).upload(path, file, { contentType, upsert: attempt > 0 });
+      if (!error) break;
+      if (attempt >= 2 || !/fetch|network|load failed|timeout/i.test(error.message)) throw error;
+      await sleep(1500 * (attempt + 1));
+    }
     onProgress?.(1);
     return;
   }

@@ -1,5 +1,6 @@
 "use client";
 import { useRef, useState } from "react";
+import { inMemory } from "@/lib/upload";
 import { useRouter } from "next/navigation";
 import { FileSignature, Trash2, Download, Eye, Plus, Upload, FileText, Copy, ShieldCheck, ChevronDown } from "lucide-react";
 import { supabase, BUCKET } from "@/lib/supabase";
@@ -44,7 +45,7 @@ export default function Agreements() {
   async function uploadPdf(f: File) {
     if (!/pdf/i.test(f.type) && !/\.pdf$/i.test(f.name)) return toast("eSign works with PDFs — export your document as PDF first");
     setBusy(true);
-    try { await createFrom(f, f.name.replace(/\.pdf$/i, ""), await countPdfPages(f)); } catch (e) { toast(e instanceof Error ? e.message : "Upload failed"); setBusy(false); }
+    try { const pdf = await inMemory(f); await createFrom(pdf, f.name.replace(/\.pdf$/i, ""), await countPdfPages(pdf)); } catch (e) { toast(e instanceof Error ? e.message : "Upload failed"); setBusy(false); }
   }
   async function fromNda() {
     setBusy(true);
@@ -62,7 +63,9 @@ export default function Agreements() {
     await supabase.from("agreement_fields").insert((fs.data || []).map((f) => ({ agreement_id: a.id, signer_id: map.get(pos.get(f.signer_id)), kind: f.kind, page: f.page, x: f.x, y: f.y, w: f.w, h: f.h })).filter((f) => f.signer_id));
     router.push(`/app/agreements/${a.id}`);
   }
-  async function uploadGate(f: File) {
+  async function uploadGate(picked: File) {
+    const f = await inMemory(picked).catch((e) => { toast(e.message); return null; });
+    if (!f) return;
     const path = `${wsId}/agreements/${crypto.randomUUID()}-${f.name.replace(/[^\w.\-]+/g, "_")}`;
     const up = await supabase.storage.from(BUCKET).upload(path, f, { contentType: f.type });
     if (up.error) return toast(up.error.message);
