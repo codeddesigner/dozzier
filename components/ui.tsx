@@ -90,9 +90,10 @@ export function Modal({ title, onClose, children, footer, width = 600 }: { title
 export function Menu({ items, trigger, triggerClass = "btn btn-dark", label = "More actions" }: { items: { label: string; onClick: () => void; danger?: boolean; icon?: ReactNode }[]; trigger?: ReactNode; triggerClass?: string; label?: string }) {
   const [open, setOpen] = useState<{ top?: number; bottom?: number; right: number } | null>(null);
   const ref = useRef<HTMLDivElement>(null);
+  const pop = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!open) return;
-    const h = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(null); };
+    const h = (e: MouseEvent) => { const t = e.target as Node; if (!ref.current?.contains(t) && !pop.current?.contains(t)) setOpen(null); };
     const close = () => setOpen(null);
     document.addEventListener("mousedown", h); window.addEventListener("resize", close); window.addEventListener("scroll", close, true);
     return () => { document.removeEventListener("mousedown", h); window.removeEventListener("resize", close); window.removeEventListener("scroll", close, true); };
@@ -108,15 +109,15 @@ export function Menu({ items, trigger, triggerClass = "btn btn-dark", label = "M
     <div ref={ref} style={{ position: "relative", display: "inline-block" }} onClick={(e) => e.stopPropagation()}>
       {trigger ? <button className={triggerClass} aria-label={label} aria-haspopup="menu" aria-expanded={!!open} onClick={toggle}>{trigger}</button>
         : <button className="icon-btn s" aria-label={label} aria-expanded={!!open} onClick={toggle}><MoreHorizontal size={16} /></button>}
-      {open && (
-        <div className="menu" style={{ position: "fixed", top: open.top, bottom: open.bottom, right: open.right, zIndex: 90 }}>
+      {/* Rendered on <body> so animated or transformed ancestors (page headers, list rows) can't trap it under later content. */}
+      {open && typeof document !== "undefined" && createPortal(
+        <div ref={pop} className="menu" role="menu" onClick={(e) => e.stopPropagation()} style={{ position: "fixed", top: open.top, bottom: open.bottom, right: open.right, zIndex: 1000 }}>
           {items.map((it) => (
-            <button key={it.label} className={it.danger ? "danger" : ""} onClick={() => { setOpen(null); it.onClick(); }}>
+            <button key={it.label} role="menuitem" className={it.danger ? "danger" : ""} onClick={() => { setOpen(null); it.onClick(); }}>
               {it.icon}{it.label}
             </button>
           ))}
-        </div>
-      )}
+        </div>, document.body)}
     </div>
   );
 }

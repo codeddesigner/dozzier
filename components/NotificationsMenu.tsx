@@ -1,5 +1,6 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { openActivity } from "@/components/ActivityFeed";
 import Link from "next/link";
 import { Bell } from "lucide-react";
 import { supabase } from "@/lib/supabase";
@@ -125,7 +126,7 @@ export function NotificationsMenu() {
               );
             })}
           </div>
-          <div className="row notif-foot-row"><Link href="/app/inbox" className="notif-foot grow" onClick={() => setOpen(false)}>Open inbox</Link><Link href="/app/settings/notifications" className="notif-foot grow" onClick={() => setOpen(false)}>Settings</Link></div>
+          <div className="row notif-foot-row"><button className="notif-foot grow" onClick={() => { setOpen(false); openActivity(); }}>See all activity</button><Link href="/app/settings/notifications" className="notif-foot grow" onClick={() => setOpen(false)}>Settings</Link></div>
         </div>
       )}
     </div>

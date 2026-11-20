@@ -1,4 +1,4 @@
-import { LayoutGrid, Folder, House, FileSignature, FileInput, CircleUserRound, Building2, Share2, Sparkles, Settings, FolderLock } from "lucide-react";
+import { LayoutGrid, Folder, House, FileSignature, FileInput, CircleUserRound, Building2, Sparkles, Settings, FolderLock } from "lucide-react";
 
 export const NAV_GROUPS = [
   { label: "Overview", items: [{ href: "/app", label: "Dashboard", icon: LayoutGrid }] },
@@ -16,7 +16,6 @@ export const NAV_GROUPS = [
     items: [
       { href: "/app/contacts", label: "Contacts", icon: CircleUserRound },
       { href: "/app/accounts", label: "Accounts", icon: Building2 },
-      { href: "/app/shared", label: "Shared with me", icon: Share2 },
     ],
   },
   {

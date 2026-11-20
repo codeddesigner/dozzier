@@ -37,7 +37,7 @@ export function CommandPalette() {
       { id: "a-fr", group: "Actions", icon: FileInput, title: "New file request", href: "/app/file-requests?new=1" },
       { id: "a-sign", group: "Actions", icon: FileSignature, title: "Send an agreement for signature", href: "/app/agreements" },
       { id: "a-pipe", group: "Go to", icon: KanbanSquare, title: "Deal pipeline", href: "/app/accounts" },
-      { id: "a-inbox", group: "Go to", icon: Inbox, title: "Inbox", href: "/app/inbox" },
+      { id: "a-inbox", group: "Go to", icon: Inbox, title: "Activity", href: "/app/inbox" },
       { id: "a-set", group: "Go to", icon: Settings, title: "Settings", href: "/app/settings/profile", kbd: "⌘," },
       { id: "a-dark", group: "Actions", icon: Moon, title: "Toggle dark mode", run: () => { const d = document.documentElement.getAttribute("data-theme") === "dark"; applyTheme(d ? "light" : "dark"); } },
     ].filter((a) => !t || a.title.toLowerCase().includes(t.toLowerCase()) || a.id === "a-link" || a.id === "a-ask");

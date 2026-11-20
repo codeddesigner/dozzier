@@ -14,7 +14,7 @@ const STEPS: Step[] = [
   { target: '.sidebar a[href="/app/content"]', place: "right", title: "Start with your content", body: "Upload decks, PDFs or videos here. We scan each file for sensitive info and suggest the right link settings." },
   { route: "/app/content", target: '[data-tour="add-content"]', place: "bottom", title: "Add content, then share a link", body: "Create a tracked link per recipient — require email, add a passcode or NDA, set expiry and watermark — then see every page they read." },
   { route: "/app", target: ".dash-table", place: "left", title: "See exactly who’s reading", body: "Every visit, page by page — time spent, downloads and forwards. Click a person for their full timeline and intent score." },
-  { target: '.sidebar a[href="/app/inbox"]', place: "right", title: "Know the moment they open it", body: "Activity shows who’s viewing right now, questions on pages and forwards. Turn on push to get alerts on your phone." },
+  { target: '.sidebar [data-label="Activity"]', place: "right", title: "Know the moment they open it", body: "Activity shows who’s viewing right now, questions on pages and forwards. Turn on push to get alerts on your phone." },
   { target: '[data-tour="spaces"]', place: "right", title: "Run deals in a data room", body: "Group files into a Space, set permissions per group, track diligence requests and answer questions — all in one link." },
   { target: ".ws-switch", place: "right", title: "Make it yours", body: "Open your workspace menu for profile, preferences, dark mode, team members and billing. You can restart this tour from Help anytime." },
 ];

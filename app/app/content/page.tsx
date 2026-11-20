@@ -8,13 +8,15 @@ import { UploadModal } from "@/components/UploadModal";
 import { LinkModal } from "@/components/LinkModal";
 import { timeAgo } from "@/lib/format";
 import { useApp } from "@/components/AppContext";
+import { SharedWithMe } from "@/components/SharedWithMe";
 
-type View = { kind: "all" } | { kind: "deleted" } | { kind: "folder"; id: string };
+type View = { kind: "all" } | { kind: "deleted" } | { kind: "shared" } | { kind: "folder"; id: string };
 
 export default function ContentLibrary() {
   const router = useRouter();
   const { profile } = useApp();
   const [view, setView] = useState<View>({ kind: "all" });
+  useEffect(() => { try { if (new URLSearchParams(window.location.search).get("view") === "shared") setView({ kind: "shared" }); } catch {} }, []);
   const [upload, setUpload] = useState(false);
   const [newFolder, setNewFolder] = useState<null | "team" | "personal">(null);
   const [folderName, setFolderName] = useState("");
@@ -64,7 +66,7 @@ export default function ContentLibrary() {
   }, [data, view, q, asc, hits]);
   const snippet = (id: string) => { const s = hits?.get(id); if (!s) return null; return <span className="caption muted search-snip" dangerouslySetInnerHTML={{ __html: s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/«/g, "<mark>").replace(/»/g, "</mark>") }} />; };
 
-  const title = view.kind === "all" ? "All content" : view.kind === "deleted" ? "Deleted content" : data?.folders.find((f) => f.id === view.id)?.name || "Folder";
+  const title = view.kind === "all" ? "All content" : view.kind === "deleted" ? "Deleted content" : view.kind === "shared" ? "Shared with me" : data?.folders.find((f) => f.id === view.id)?.name || "Folder";
 
   async function createFolder() {
     if (!folderName.trim() || !newFolder) return;
@@ -100,6 +102,7 @@ export default function ContentLibrary() {
       <aside className="hide-sm" style={{ width: 300, flexShrink: 0, borderRight: "1px solid var(--dz-border-default)", padding: "24px 12px" }}>
         <div className="h2" style={{ padding: "0 10px 12px" }}>Content library</div>
         <FolderBtn v={{ kind: "all" }} label="All content" />
+        <FolderBtn v={{ kind: "shared" }} label="Shared with me" />
         <FolderBtn v={{ kind: "deleted" }} label="Deleted content" />
         {(["team", "personal"] as const).map((k) => (
           <div key={k}>
@@ -111,6 +114,12 @@ export default function ContentLibrary() {
       </aside>
       <div className="content grow" style={{ maxWidth: 1000 }}>
         <div className="row gap-12 wrap head-row"><h1 className="page-title grow head-main">{title}</h1></div>
+        {/* Phones have no folder sidebar: switch between your content and what others shared. */}
+        <div className="segmented show-sm mt-16" role="tablist">
+          <button className={view.kind !== "shared" ? "active" : ""} onClick={() => setView({ kind: "all" })}>My content</button>
+          <button className={view.kind === "shared" ? "active" : ""} onClick={() => setView({ kind: "shared" })}>Shared with me</button>
+        </div>
+        {view.kind === "shared" ? <SharedWithMe /> : <>
         <div className="row gap-8 mt-24 wrap">
           <button className="btn btn-dark" data-tour="add-content" onClick={() => setUpload(true)}><Upload size={16} />Add content<ChevronDown size={14} /></button>
           <button className="btn btn-secondary" onClick={() => docs[0] ? setShare(true) : toast("Upload a document first")}><Share2 size={16} />Share</button>
@@ -145,6 +154,7 @@ export default function ContentLibrary() {
             </tbody>
           </table>
         )}
+        </>}
       </div>
       {upload && <UploadModal folderId={view.kind === "folder" ? view.id : null} onClose={() => setUpload(false)} onDone={() => { setUpload(false); reload(); }} />}
       {share && docs[0] && <ShareModal docs={docs} onClose={() => setShare(false)} />}

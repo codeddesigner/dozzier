@@ -4,6 +4,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { LayoutGrid, Inbox as InboxIcon, Folder as FolderIcon, Building2, Settings as SettingsIcon, Search, Bell, CircleHelp, ChevronUp, ChevronDown, ChevronRight, LogOut, Zap, Moon, User as UserIcon, Check, Sparkles, Plus, Flag, Star, X, PanelLeft, Play, ShieldCheck } from "lucide-react";
+import { ActivityModal } from "@/components/ActivityFeed";
 import { applyTheme, type Theme } from "@/components/Theme";
 import { supabase } from "@/lib/supabase";
 import { Avatar, ToastHost, toast } from "@/components/ui";
@@ -138,6 +139,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [collapsed, setCollapsed] = useState(false);
   const [help, setHelp] = useState(false);
   const [more, setMore] = useState(false);
+  const [activityOpen, setActivityOpen] = useState(false);
+  // Activity is a popup: opened by the sidebar, the phone tab bar, the notifications menu or /app?activity=1.
+  useEffect(() => {
+    const open = () => { setActivityOpen(true); setMore(false); };
+    window.addEventListener("dz:activity", open);
+    try { const u = new URL(window.location.href); if (u.searchParams.get("activity")) { open(); u.searchParams.delete("activity"); window.history.replaceState(null, "", u.pathname + u.search); } } catch {}
+    return () => window.removeEventListener("dz:activity", open);
+  }, [path]);
   useEffect(() => setMore(false), [path]);
   const checklist = useChecklist(state?.userId || null, state?.profile || null);
   const side = useSidebarData(state?.userId || null);
@@ -229,7 +238,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <div className="side-nav">
             <span className="nav-indicator" style={{ transform: `translateY(${ind?.y ?? 0}px)`, height: ind?.h ?? 40, opacity: ind ? 1 : 0 }} />
             <button className="nav-item" onClick={openPalette} data-label="Search"><Search size={20} /><span className="grow">Search</span><span className="kbd side-kbd">⌘K</span></button>
-            <Link href="/app/inbox" className={`nav-item ${isActive("/app/inbox") ? "active" : ""}`} data-label="Activity"><Bell size={20} /><span className="grow">Activity</span>{side.activity > 0 && <span className="nav-count">{side.activity > 99 ? "99+" : side.activity}</span>}</Link>
+            <button className={`nav-item ${activityOpen ? "active" : ""}`} onClick={() => setActivityOpen(true)} data-label="Activity"><Bell size={20} /><span className="grow">Activity</span>{side.activity > 0 && <span className="nav-count">{side.activity > 99 ? "99+" : side.activity}</span>}</button>
             {NAV_SIDE.map((n) => (
               <Link key={n.href} href={n.href} className={`nav-item ${isActive(n.href) ? "active" : ""}`} data-label={n.label}><n.icon size={20} /><span>{n.label}</span></Link>
             ))}
@@ -277,10 +286,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           )}
           <div className="shell">
             <main className="main">{children}</main>
+            {activityOpen && <ActivityModal onClose={() => setActivityOpen(false)} />}
           </div>
           <nav className="mob-tabs" aria-label="Main">
-            {[{ href: "/app/inbox", label: "Inbox", I: InboxIcon }, { href: "/app/content", label: "Content", I: FolderIcon }, { href: "/app/accounts", label: "Accounts", I: Building2 }, { href: "/app/settings", label: "Settings", I: SettingsIcon }].map((t) => (
-              <Link key={t.href} href={t.href} className={path.startsWith(t.href) || (t.href === "/app/inbox" && path === "/app") ? "on" : ""}><t.I size={20} /><span>{t.label}</span></Link>
+            <button className={activityOpen ? "on" : ""} onClick={() => setActivityOpen(true)}><InboxIcon size={20} /><span>Activity</span></button>
+            {[{ href: "/app/content", label: "Content", I: FolderIcon }, { href: "/app/accounts", label: "Accounts", I: Building2 }, { href: "/app/settings", label: "Settings", I: SettingsIcon }].map((t) => (
+              <Link key={t.href} href={t.href} className={!activityOpen && path.startsWith(t.href) ? "on" : ""}><t.I size={20} /><span>{t.label}</span></Link>
             ))}
             <button className={more ? "on" : ""} onClick={() => setMore((m) => !m)} aria-expanded={more}><LayoutGrid size={20} /><span>More</span></button>
           </nav>
